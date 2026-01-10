@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from core.models import Organization, BaseModel
 from core.utils import OrganizationManager
+from assets.models import Asset
 
 
 class WebsiteMonitor(BaseModel):
@@ -383,7 +384,7 @@ class RackDevice(BaseModel):
     power_draw_watts = models.PositiveIntegerField(null=True, blank=True)
 
     # Optional link to asset
-    asset_id = models.PositiveIntegerField(null=True, blank=True, help_text="Link to Asset")
+    asset = models.ForeignKey(Asset, on_delete=models.SET_NULL, null=True, blank=True, help_text="Link to Asset", related_name='rack_devices')
 
     # Visual
     color = models.CharField(max_length=7, default='#0d6efd', help_text="Hex color for visualization")
@@ -512,7 +513,7 @@ class IPAddress(BaseModel):
     description = models.TextField(blank=True)
 
     # Optional link to asset
-    asset_id = models.PositiveIntegerField(null=True, blank=True, help_text="Link to Asset")
+    asset = models.ForeignKey(Asset, on_delete=models.SET_NULL, null=True, blank=True, help_text="Link to Asset", related_name='ip_addresses')
 
     # Last seen
     last_seen_at = models.DateTimeField(null=True, blank=True)

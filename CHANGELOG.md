@@ -5,6 +5,99 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-01-10
+
+### ✨ Added
+- **Processes Feature** - Sequential workflow/runbook system for IT operations
+  - Process CRUD operations with slug-based URLs
+  - Sequential stages with entity linking (Documents, Passwords, Assets, Secure Notes)
+  - Global processes (superuser-created) and organization-specific processes
+  - Process categories: onboarding, offboarding, deployment, maintenance, incident, backup, security, other
+  - Inline formset management for stages with drag-and-drop reordering
+  - Confirmation checkpoints per stage
+  - Full CRUD operations with list, detail, create, edit, delete views
+  - Navigation integration in main navbar
+
+- **Diagrams Feature** - Draw.io integration for network and system diagrams
+  - Embedded diagrams.net editor via iframe with postMessage API
+  - Store diagrams in .drawio XML format (editable)
+  - PNG and SVG export generation via diagrams.net export API
+  - Diagram types: network, process flow, architecture, rack layout, floor plan, organizational chart
+  - Global diagrams support (superuser-created)
+  - Tag-based categorization and organization
+  - Full CRUD operations with list, detail, create, edit, delete views
+  - Download support for all formats (PNG, SVG, XML)
+  - Thumbnail previews in list view
+
+- **Rackmount Asset Tracking** - Enhanced asset management for rack-mounted equipment
+  - `is_rackmount` checkbox field on assets
+  - `rack_units` field for height tracking (1U, 2U, etc.)
+  - Conditional form field display (rack_units shows only when is_rackmount is checked)
+  - JavaScript toggle for dynamic field visibility
+  - Asset migration to add rackmount fields (assets/migrations/0004)
+
+- **Enhanced Rack Management** - Improved rack-to-asset integration
+  - Rack devices now require existing assets (ForeignKey to Asset model)
+  - Asset dropdown filtered to show only rackmount assets for organization
+  - "Create New Asset" button with smart redirect flow
+  - After asset creation from rack page, automatically returns to "Add Asset to Rack" form
+  - Updated labels: "Devices" → "Mounted Assets"
+  - Improved rack detail layout with asset links
+
+- **Access Management Dashboard** - Consolidated admin interface
+  - Single page for Organizations, Users, Members, and Roles management
+  - Summary cards showing counts (Organizations, Users, Memberships)
+  - Recent data tables (5 recent orgs, 5 recent users, 10 recent memberships)
+  - Quick links to all management functions
+  - Roles & Permissions section with links to Tags, API Keys, Audit Logs
+  - Superuser-only access with permission checks
+
+### 🎨 Improved
+- **Admin Navigation** - Condensed dropdown menu from 7 items to 6
+  - Replaced separate Orgs/Users/Members/Roles links with single "Access Management" link
+  - Cleaner, more organized menu structure
+  - Better UX for administrators
+
+- **Asset Form** - Enhanced network fields section
+  - Added hostname, IP address, and MAC address fields
+  - Responsive 3-column grid layout for network fields
+  - Rackmount fields section with 2-column layout
+  - Helper text for all new fields
+  - Improved validation and placeholder text
+
+- **Monitoring Forms** - Better organization filtering
+  - RackDeviceForm filters assets by organization and rackmount capability
+  - IPAddressForm properly filters assets by organization
+  - Helpful empty labels and help text
+  - Required field indicators with asterisks
+
+### 🔧 Changed
+- **Rack Device Model** - Changed from generic device to asset-based system
+  - Removed RackDevice fields: name, photo, color, power_draw_watts, units
+  - Changed asset field from optional to required ForeignKey
+  - Asset properties now drive rack device display (name comes from Asset.name)
+  - Maintains start_unit and notes fields
+  - Migration created to preserve existing data
+
+- **Forms Organization** - Improved __init__ patterns
+  - Consistent organization parameter passing
+  - Proper queryset filtering in all forms
+  - Better parameter extraction (kwargs.pop pattern)
+
+### 📚 Documentation
+- Updated README.md to version 2.2.0
+- Added Processes and Diagrams features to Core Features list
+- Updated Infrastructure description to mention rackmount assets
+- Comprehensive CHANGELOG entry for all new features
+
+### 🗄️ Database Migrations
+- `assets.0004_add_rackmount_fields` - Added is_rackmount and rack_units to Asset model
+- `monitoring.0004_change_asset_id_to_foreignkey` - Changed RackDevice to use Asset ForeignKey
+- `processes.0001_initial` - Created Process, ProcessStage, and Diagram models
+
+### 🐕 Contributors
+- Luna the GSD - Continued security oversight and code quality review
+
 ## [2.1.1] - 2026-01-10
 
 ### 🐛 Fixed

@@ -41,6 +41,36 @@ def switch_organization(request, org_id):
 
 
 @login_required
+def access_management(request):
+    """
+    Access Management dashboard - consolidated view for orgs, users, members, roles.
+    Superuser only.
+    """
+    if not request.user.is_superuser:
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('core:dashboard')
+
+    # Get counts
+    org_count = Organization.objects.count()
+    user_count = User.objects.count()
+    member_count = Membership.objects.count()
+
+    # Get recent data
+    recent_orgs = Organization.objects.order_by('-created_at')[:5]
+    recent_users = User.objects.order_by('-date_joined')[:5]
+    recent_members = Membership.objects.select_related('user', 'organization').order_by('-created_at')[:10]
+
+    return render(request, 'accounts/access_management.html', {
+        'org_count': org_count,
+        'user_count': user_count,
+        'member_count': member_count,
+        'recent_orgs': recent_orgs,
+        'recent_users': recent_users,
+        'recent_members': recent_members,
+    })
+
+
+@login_required
 def profile(request):
     """
     User profile view showing memberships and personal info.

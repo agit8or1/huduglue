@@ -64,6 +64,10 @@ class Asset(BaseModel):
     ip_address = models.GenericIPAddressField(null=True, blank=True, help_text='IPv4 or IPv6 address')
     mac_address = models.CharField(max_length=17, blank=True, help_text='MAC address (e.g., 00:11:22:33:44:55)')
 
+    # Rackmount fields
+    is_rackmount = models.BooleanField(default=False, help_text='Is this asset rackmountable?')
+    rack_units = models.PositiveIntegerField(null=True, blank=True, help_text='Height in rack units (U)')
+
     # Flexible fields stored as JSON
     custom_fields = models.JSONField(default=dict, blank=True)
 

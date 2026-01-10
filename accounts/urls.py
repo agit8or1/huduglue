@@ -10,6 +10,7 @@ app_name = 'accounts'
 
 urlpatterns = [
     path('switch/<int:org_id>/', views.switch_organization, name='switch_organization'),
+    path('access-management/', views.access_management, name='access_management'),
 
     # Quick Add
     path('quick/', quick_views.quick_add_menu, name='quick_add_menu'),

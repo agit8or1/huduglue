@@ -62,6 +62,9 @@ def asset_create(request):
     """
     org = get_request_organization(request)
 
+    # Check for redirect parameter (e.g., from rack page)
+    redirect_to = request.GET.get('redirect') or request.POST.get('redirect')
+
     if request.method == 'POST':
         form = AssetForm(request.POST, organization=org)
         if form.is_valid():
@@ -70,7 +73,17 @@ def asset_create(request):
             asset.created_by = request.user
             asset.save()
             form.save_m2m()
-            messages.success(request, f"Asset '{asset.name}' created successfully.")
+            messages.success(request, f"Asset '{asset.name}' created successfully. Now add it to the rack.")
+
+            # Handle redirect
+            if redirect_to and redirect_to.startswith('rack_'):
+                # Extract rack ID from "rack_123" format
+                try:
+                    rack_id = redirect_to.split('_')[1]
+                    return redirect('monitoring:rack_device_create', rack_id=rack_id)
+                except (IndexError, ValueError):
+                    pass
+
             return redirect('assets:asset_detail', pk=asset.pk)
     else:
         form = AssetForm(organization=org)
@@ -78,6 +91,7 @@ def asset_create(request):
     return render(request, 'assets/asset_form.html', {
         'form': form,
         'action': 'Create',
+        'redirect_to': redirect_to,  # Pass to template for hidden field
     })
 
 

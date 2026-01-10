@@ -33,13 +33,15 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 - **Four-Tier Access** - Owner, Admin, Editor, Read-Only
 
 ### 📦 Core Features
-- **Asset Management** - Track devices with custom fields and relationships
+- **Asset Management** - Track devices with custom fields, rackmount tracking, and relationships
 - **Password Vault** - AES-GCM encrypted secrets with folder organization
 - **Personal Vault** - Private password storage per user
 - **Documentation** - Per-org docs with categories, tags, and versioning
 - **Global Knowledge Base** - Staff-only internal KB
 - **Website Monitoring** - Uptime checks with SSL certificate tracking
-- **Infrastructure** - NetBox-style rack visualization + IPAM
+- **Infrastructure** - NetBox-style rack visualization with rackmount assets + IPAM
+- **Processes** - Sequential workflow/runbook system with entity linking
+- **Diagrams** - Draw.io integration for network/system diagrams (PNG/SVG/XML export)
 - **Secure Notes** - Encrypted ephemeral messaging
 - **Contact Management** - Organization-specific contacts
 - **Audit Logging** - Complete activity tracking
@@ -203,7 +205,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- **Version**: 2.1.1
+- **Version**: 2.2.0
 - **Release Date**: January 2026
 - **Status**: Production Ready
 - **Maintained**: Yes

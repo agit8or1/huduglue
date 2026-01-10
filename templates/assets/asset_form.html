@@ -19,6 +19,9 @@
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
+            {% if redirect_to %}
+            <input type="hidden" name="redirect" value="{{ redirect_to }}">
+            {% endif %}
 
             <div class="row g-3">
                 <!-- Basic Information - 2 columns -->
@@ -80,6 +83,54 @@
                     {% endif %}
                 </div>
 
+                <!-- Network Fields - 3 columns -->
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.hostname.label }}</label>
+                    {{ form.hostname }}
+                    {% if form.hostname.errors %}
+                        <div class="text-danger small">{{ form.hostname.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.ip_address.label }}</label>
+                    {{ form.ip_address }}
+                    {% if form.ip_address.errors %}
+                        <div class="text-danger small">{{ form.ip_address.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.mac_address.label }}</label>
+                    {{ form.mac_address }}
+                    {% if form.mac_address.errors %}
+                        <div class="text-danger small">{{ form.mac_address.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Rackmount Fields - 2 columns -->
+                <div class="col-md-6">
+                    <div class="form-check">
+                        {{ form.is_rackmount }}
+                        <label class="form-check-label" for="{{ form.is_rackmount.id_for_label }}">
+                            {{ form.is_rackmount.label }}
+                        </label>
+                    </div>
+                    <small class="form-text text-muted">Check if this asset can be mounted in a rack</small>
+                    {% if form.is_rackmount.errors %}
+                        <div class="text-danger small">{{ form.is_rackmount.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6" id="rack-units-field" style="display: none;">
+                    <label class="form-label">{{ form.rack_units.label }}</label>
+                    {{ form.rack_units }}
+                    <small class="form-text text-muted">Height in rack units (1U, 2U, etc.)</small>
+                    {% if form.rack_units.errors %}
+                        <div class="text-danger small">{{ form.rack_units.errors }}</div>
+                    {% endif %}
+                </div>
+
                 <!-- Tags - Full width if present -->
                 {% if form.tags.field.queryset %}
                 <div class="col-12">
@@ -105,11 +156,6 @@
                 <div class="col-md-6">
                     <label class="form-label">{{ form.custom_fields.label }}</label>
                     {{ form.custom_fields }}
-                    <small class="form-text text-muted">
-                        <strong>JSON format required.</strong> Examples:<br>
-                        <code>{"dns_servers": ["8.8.8.8", "8.8.4.4"]}</code><br>
-                        <code>{"warranty_date": "2025-12-31", "purchase_order": "PO-12345"}</code>
-                    </small>
                     {% if form.custom_fields.errors %}
                         <div class="text-danger small">{{ form.custom_fields.errors }}</div>
                     {% endif %}
@@ -131,8 +177,30 @@
 
 {% block extra_js %}
 <script>
-// JSON validation for custom_fields
+// Rackmount checkbox toggle
 document.addEventListener('DOMContentLoaded', function() {
+    const rackmountCheckbox = document.getElementById('{{ form.is_rackmount.id_for_label }}');
+    const rackUnitsField = document.getElementById('rack-units-field');
+
+    function toggleRackUnits() {
+        if (rackmountCheckbox && rackUnitsField) {
+            if (rackmountCheckbox.checked) {
+                rackUnitsField.style.display = 'block';
+            } else {
+                rackUnitsField.style.display = 'none';
+            }
+        }
+    }
+
+    // Initialize on page load
+    toggleRackUnits();
+
+    // Toggle on checkbox change
+    if (rackmountCheckbox) {
+        rackmountCheckbox.addEventListener('change', toggleRackUnits);
+    }
+
+    // JSON validation for custom_fields
     const customFieldsInput = document.querySelector('textarea[name="custom_fields"]');
     const form = customFieldsInput ? customFieldsInput.closest('form') : null;
 

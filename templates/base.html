@@ -85,31 +85,11 @@
                             <i class="fas fa-cog"></i> Admin
                         </a>
                         <ul class="dropdown-menu">
-                            <li><h6 class="dropdown-header">Settings</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'core:settings_general' %}"><i class="fas fa-sliders-h"></i> General</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:settings_security' %}"><i class="fas fa-shield-alt"></i> Security</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:settings_smtp' %}"><i class="fas fa-envelope"></i> SMTP/Email</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:settings_scheduler' %}"><i class="fas fa-clock"></i> Task Scheduler</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:settings_directory' %}"><i class="fas fa-users-cog"></i> Directory Services</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">System</h6></li>
+                            <li><a class="dropdown-item" href="{% url 'core:settings_general' %}"><i class="fas fa-sliders-h"></i> Settings</a></li>
                             <li><a class="dropdown-item" href="{% url 'core:system_status' %}"><i class="fas fa-heartbeat"></i> System Status</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:maintenance' %}"><i class="fas fa-tools"></i> Maintenance</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:user_list' %}"><i class="fas fa-users-cog"></i> User Management</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:organization_list' %}"><i class="fas fa-building"></i> Organizations</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:member_list' %}"><i class="fas fa-users"></i> Members</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:role_list' %}"><i class="fas fa-user-shield"></i> Roles</a></li>
-                            <li><a class="dropdown-item" href="{% url 'api:apikey_list' %}"><i class="fas fa-key"></i> API Keys</a></li>
-                            <li><a class="dropdown-item" href="{% url 'audit:audit_log_list' %}"><i class="fas fa-clipboard-list"></i> Audit Logs</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:tag_list' %}"><i class="fas fa-tags"></i> Tags</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:access_management' %}"><i class="fas fa-users-cog"></i> Access Management</a></li>
+                            <li><a class="dropdown-item" href="{% url 'integrations:integration_list' %}"><i class="fas fa-plug"></i> Integrations</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Integrations</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'integrations:integration_list' %}"><i class="fas fa-plug"></i> Connections</a></li>
-                            <li><a class="dropdown-item" href="{% url 'integrations:psa_companies' %}"><i class="fas fa-building"></i> PSA Companies</a></li>
-                            <li><a class="dropdown-item" href="{% url 'integrations:psa_contacts' %}"><i class="fas fa-users"></i> PSA Contacts</a></li>
-                            <li><a class="dropdown-item" href="{% url 'integrations:psa_tickets' %}"><i class="fas fa-ticket-alt"></i> PSA Tickets</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Global View</h6></li>
                             <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}"><i class="fas fa-globe"></i> Global Dashboard</a></li>
                             <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-tasks"></i> Global Processes</a></li>
                         </ul>

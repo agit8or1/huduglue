@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}{{ action }} Device - {{ rack.name }} - HuduGlue{% endblock %}
+{% block title %}{{ action }} Asset to Rack - {{ rack.name }} - HuduGlue{% endblock %}
 
 {% block content %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'monitoring:rack_list' %}">Racks</a></li>
         <li class="breadcrumb-item"><a href="{% url 'monitoring:rack_detail' rack.pk %}">{{ rack.name }}</a></li>
-        <li class="breadcrumb-item active">{{ action }} Device</li>
+        <li class="breadcrumb-item active">{{ action }} Asset</li>
     </ol>
 </nav>
 
@@ -15,16 +15,29 @@
     <div class="col-md-8 offset-md-2">
         <div class="card">
             <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-hdd"></i> {{ action }} Device</h3>
+                <h3 class="mb-0"><i class="fas fa-hdd"></i> {{ action }} Asset to Rack</h3>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
 
                     <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Device Name *</label>
+                        <label for="{{ form.asset.id_for_label }}" class="form-label">Asset <span class="text-danger">*</span></label>
+                        {{ form.asset }}
+                        {% if form.asset.errors %}<div class="invalid-feedback d-block">{{ form.asset.errors }}</div>{% endif %}
+                        <small class="form-text text-muted">
+                            Select the asset to mount in this rack.
+                            <a href="{% url 'assets:asset_create' %}?redirect=rack_{{ rack.pk }}" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="fas fa-plus"></i> Create New Asset
+                            </a>
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Label / Description *</label>
                         {{ form.name }}
                         {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors }}</div>{% endif %}
+                        <small class="form-text text-muted">Rack label (can be different from asset name)</small>
                     </div>
 
                     <div class="row">
@@ -58,16 +71,10 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ form.photo_url.id_for_label }}" class="form-label">Photo URL</label>
-                        {{ form.photo_url }}
-                        {% if form.photo_url.errors %}<div class="invalid-feedback d-block">{{ form.photo_url.errors }}</div>{% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.asset_id.id_for_label }}" class="form-label">Asset ID</label>
-                        {{ form.asset_id }}
-                        {% if form.asset_id.errors %}<div class="invalid-feedback d-block">{{ form.asset_id.errors }}</div>{% endif %}
-                        <small class="form-text text-muted">Link to asset record</small>
+                        <label for="{{ form.photo.id_for_label }}" class="form-label">Photo</label>
+                        {{ form.photo }}
+                        {% if form.photo.errors %}<div class="invalid-feedback d-block">{{ form.photo.errors }}</div>{% endif %}
+                        <small class="form-text text-muted">Upload a photo of the device</small>
                     </div>
 
                     <div class="mb-3">

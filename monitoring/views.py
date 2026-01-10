@@ -329,20 +329,20 @@ def rack_delete(request, pk):
 @login_required
 @require_write
 def rack_device_create(request, rack_id):
-    """Add device to rack."""
+    """Add asset to rack."""
     org = get_request_organization(request)
     rack = get_object_or_404(Rack, pk=rack_id, organization=org)
 
     if request.method == 'POST':
-        form = RackDeviceForm(request.POST, rack=rack)
+        form = RackDeviceForm(request.POST, request.FILES, rack=rack, organization=org)
         if form.is_valid():
             device = form.save(commit=False)
             device.rack = rack
             device.save()
-            messages.success(request, f'Device "{device.name}" added to rack.')
+            messages.success(request, f'Asset "{device.name}" added to rack.')
             return redirect('monitoring:rack_detail', pk=rack.pk)
     else:
-        form = RackDeviceForm(rack=rack)
+        form = RackDeviceForm(rack=rack, organization=org)
 
     return render(request, 'monitoring/rack_device_form.html', {
         'form': form,
@@ -354,22 +354,22 @@ def rack_device_create(request, rack_id):
 @login_required
 @require_write
 def rack_device_edit(request, pk):
-    """Edit rack device."""
+    """Edit rack asset."""
     device = get_object_or_404(RackDevice, pk=pk)
     org = get_request_organization(request)
 
     if device.rack.organization != org:
-        messages.error(request, 'Device not found.')
+        messages.error(request, 'Asset not found.')
         return redirect('monitoring:rack_list')
 
     if request.method == 'POST':
-        form = RackDeviceForm(request.POST, instance=device, rack=device.rack)
+        form = RackDeviceForm(request.POST, request.FILES, instance=device, rack=device.rack, organization=org)
         if form.is_valid():
             form.save()
-            messages.success(request, f'Device "{device.name}" updated.')
+            messages.success(request, f'Asset "{device.name}" updated.')
             return redirect('monitoring:rack_detail', pk=device.rack.pk)
     else:
-        form = RackDeviceForm(instance=device, rack=device.rack)
+        form = RackDeviceForm(instance=device, rack=device.rack, organization=org)
 
     return render(request, 'monitoring/rack_device_form.html', {
         'form': form,
@@ -512,7 +512,7 @@ def ip_address_create(request, subnet_id):
     subnet = get_object_or_404(Subnet, pk=subnet_id, organization=org)
 
     if request.method == 'POST':
-        form = IPAddressForm(request.POST, subnet=subnet)
+        form = IPAddressForm(request.POST, subnet=subnet, organization=org)
         if form.is_valid():
             ip = form.save(commit=False)
             ip.subnet = subnet
@@ -520,7 +520,7 @@ def ip_address_create(request, subnet_id):
             messages.success(request, f'IP address "{ip.ip_address}" added.')
             return redirect('monitoring:subnet_detail', pk=subnet.pk)
     else:
-        form = IPAddressForm(subnet=subnet)
+        form = IPAddressForm(subnet=subnet, organization=org)
 
     return render(request, 'monitoring/ip_address_form.html', {
         'form': form,
@@ -541,13 +541,13 @@ def ip_address_edit(request, pk):
         return redirect('monitoring:subnet_list')
 
     if request.method == 'POST':
-        form = IPAddressForm(request.POST, instance=ip_address, subnet=ip_address.subnet)
+        form = IPAddressForm(request.POST, instance=ip_address, subnet=ip_address.subnet, organization=org)
         if form.is_valid():
             form.save()
             messages.success(request, f'IP address "{ip_address.ip_address}" updated.')
             return redirect('monitoring:subnet_detail', pk=ip_address.subnet.pk)
     else:
-        form = IPAddressForm(instance=ip_address, subnet=ip_address.subnet)
+        form = IPAddressForm(instance=ip_address, subnet=ip_address.subnet, organization=org)
 
     return render(request, 'monitoring/ip_address_form.html', {
         'form': form,

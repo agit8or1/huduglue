@@ -91,7 +91,7 @@ class RackDeviceForm(forms.ModelForm):
         model = RackDevice
         fields = [
             'name', 'start_unit', 'units', 'power_draw_watts',
-            'color', 'photo', 'notes', 'asset_id',
+            'color', 'photo', 'notes', 'asset',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -101,12 +101,25 @@ class RackDeviceForm(forms.ModelForm):
             'color': forms.TextInput(attrs={'class': 'form-control', 'type': 'color'}),
             'photo_url': forms.URLInput(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'asset_id': forms.NumberInput(attrs={'class': 'form-control'}),
+            'asset': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):
         rack = kwargs.pop('rack', None)
+        organization = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
+
+        # Filter assets by organization and rackmount capability
+        if organization:
+            from assets.models import Asset
+            # Only show rackmount assets
+            self.fields['asset'].queryset = Asset.objects.filter(
+                organization=organization,
+                is_rackmount=True
+            ).order_by('name')
+            self.fields['asset'].required = True
+            self.fields['asset'].help_text = 'Select a rackmount asset. Only assets marked as rackmount are shown.'
+            self.fields['asset'].empty_label = '-- Select a rackmount asset --'
 
 
 class SubnetForm(forms.ModelForm):
@@ -141,7 +154,7 @@ class IPAddressForm(forms.ModelForm):
         model = IPAddress
         fields = [
             'ip_address', 'hostname', 'mac_address', 'status',
-            'description', 'notes', 'asset_id',
+            'description', 'notes', 'asset',
         ]
         widgets = {
             'ip_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '192.168.1.100'}),
@@ -150,9 +163,16 @@ class IPAddressForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'asset_id': forms.NumberInput(attrs={'class': 'form-control'}),
+            'asset': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):
         subnet = kwargs.pop('subnet', None)
+        organization = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
+
+        # Filter assets by organization
+        if organization:
+            from assets.models import Asset
+            self.fields['asset'].queryset = Asset.objects.filter(organization=organization)
+            self.fields['asset'].required = False  # IP addresses can be unassigned

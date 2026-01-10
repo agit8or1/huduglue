@@ -205,7 +205,10 @@ class Diagram(BaseModel):
     organization = models.ForeignKey(
         Organization,
         on_delete=models.CASCADE,
-        related_name='diagrams'
+        related_name='diagrams',
+        null=True,
+        blank=True,
+        help_text='Organization for org-specific diagrams. NULL for global diagram templates.'
     )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255)
