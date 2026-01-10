@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Tags{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Tags</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="fas fa-tags"></i> Tags</h2>
+    <a href="{% url 'core:tag_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Tag
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if tags %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Color</th>
+                        <th>Usage</th>
+                        <th>Created</th>
+                        <th style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tag in tags %}
+                    <tr>
+                        <td>
+                            <span class="badge" style="background-color: {{ tag.color }}; color: white;">
+                                {{ tag.name }}
+                            </span>
+                        </td>
+                        <td>
+                            <input type="color" value="{{ tag.color }}" disabled style="width: 50px; height: 30px; border: none;">
+                            <small class="text-muted">{{ tag.color }}</small>
+                        </td>
+                        <td>
+                            {% if tag.asset_count or tag.password_count %}
+                                <small class="text-muted">
+                                    {% if tag.asset_count %}<i class="fas fa-box"></i> {{ tag.asset_count }} asset{{ tag.asset_count|pluralize }}{% endif %}
+                                    {% if tag.asset_count and tag.password_count %}, {% endif %}
+                                    {% if tag.password_count %}<i class="fas fa-key"></i> {{ tag.password_count }} password{{ tag.password_count|pluralize }}{% endif %}
+                                </small>
+                            {% else %}
+                                <small class="text-muted">Unused</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ tag.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'core:tag_edit' tag.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'core:tag_delete' tag.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-tags fa-3x mb-3"></i>
+            <h5>No tags yet</h5>
+            <p>Tags help organize your assets and passwords.</p>
+            <a href="{% url 'core:tag_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Your First Tag
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

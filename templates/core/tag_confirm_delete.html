@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Tag{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'core:tag_list' %}">Tags</a></li>
+        <li class="breadcrumb-item active">Delete Tag</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="fas fa-trash text-danger"></i> Delete Tag</h2>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Warning:</strong> Are you sure you want to delete this tag?
+        </div>
+
+        <div class="mb-4">
+            <h5>Tag to delete:</h5>
+            <span class="badge" style="background-color: {{ tag.color }}; color: white; font-size: 16px;">
+                {{ tag.name }}
+            </span>
+        </div>
+
+        {% if asset_count or password_count %}
+        <div class="alert alert-warning">
+            <i class="fas fa-info-circle"></i> <strong>This tag is currently in use:</strong>
+            <ul class="mb-0 mt-2">
+                {% if asset_count %}<li><i class="fas fa-box"></i> {{ asset_count }} asset{{ asset_count|pluralize }}</li>{% endif %}
+                {% if password_count %}<li><i class="fas fa-key"></i> {{ password_count }} password{{ password_count|pluralize }}</li>{% endif %}
+            </ul>
+            <p class="mb-0 mt-2"><strong>Note:</strong> The tag will be removed from all items, but the items themselves will not be deleted.</p>
+        </div>
+        {% else %}
+        <p class="text-muted"><i class="fas fa-check-circle text-success"></i> This tag is not currently used by any items.</p>
+        {% endif %}
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Yes, Delete Tag
+            </button>
+            <a href="{% url 'core:tag_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

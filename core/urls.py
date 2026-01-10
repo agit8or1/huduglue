@@ -8,6 +8,7 @@ from . import favorites_views
 from . import securenotes_views
 from . import dashboard_views
 from . import settings_views
+from . import tag_views
 
 app_name = 'core'
 
@@ -16,6 +17,12 @@ urlpatterns = [
     path('documentation/', views.documentation, name='documentation'),
     path('about/', views.about, name='about'),
     path('search/', search_views.global_search, name='search'),
+
+    # Tags (admin only)
+    path('tags/', tag_views.tag_list, name='tag_list'),
+    path('tags/create/', tag_views.tag_create, name='tag_create'),
+    path('tags/<int:pk>/edit/', tag_views.tag_edit, name='tag_edit'),
+    path('tags/<int:pk>/delete/', tag_views.tag_delete, name='tag_delete'),
 
     # Favorites
     path('favorites/', favorites_views.favorite_list, name='favorite_list'),
