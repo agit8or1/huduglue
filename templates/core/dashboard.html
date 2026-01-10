@@ -7,6 +7,15 @@
     <h2><i class="fas fa-tachometer-alt"></i> Dashboard{% if current_organization %}: {{ current_organization.name }}{% endif %}</h2>
 </div>
 
+<!-- 2FA Warning -->
+{% if not has_2fa %}
+<div class="alert alert-warning alert-dismissible fade show mb-3" role="alert">
+    <i class="fas fa-shield-alt"></i> <strong>Security Warning:</strong> Two-factor authentication (2FA) is not enabled on your account.
+    For enhanced security, please <a href="{% url 'two_factor:setup' %}" class="alert-link">enable 2FA now</a>.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
 <!-- Stats Cards -->
 <div class="row g-2 mb-3">
     <div class="col-md-3">
