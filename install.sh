@@ -81,12 +81,25 @@ if ! command -v mysql &> /dev/null; then
     PACKAGES_TO_INSTALL+=("mariadb-client")
 fi
 
+# Check for build essentials (needed for Python packages like cryptography)
+if ! dpkg -l | grep -q build-essential; then
+    print_warning "build-essential not found (needed for Python packages)"
+    PACKAGES_TO_INSTALL+=("build-essential" "python3.12-dev" "libssl-dev" "libffi-dev")
+fi
+
 # Install missing packages
 if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
     print_info "Installing missing packages: ${PACKAGES_TO_INSTALL[*]}"
     echo -e "${YELLOW}This requires sudo privileges. You may be prompted for your password.${NC}"
+
+    # Update package list
+    print_info "Updating package list..."
     sudo apt-get update -qq
-    sudo apt-get install -y "${PACKAGES_TO_INSTALL[@]}"
+
+    # Set DEBIAN_FRONTEND to avoid interactive prompts
+    print_info "Installing packages (this may take a few minutes)..."
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${PACKAGES_TO_INSTALL[@]}"
+
     print_status "System prerequisites installed"
 else
     print_status "All system prerequisites met"
@@ -104,11 +117,15 @@ python3.12 -m venv venv
 print_status "Virtual environment created"
 
 # Step 3: Activate virtual environment and install dependencies
-print_info "Step 3/10: Installing Python dependencies..."
+print_info "Step 3/10: Installing Python dependencies (this may take 2-3 minutes)..."
 source venv/bin/activate
 
-pip install --upgrade pip > /dev/null 2>&1
-pip install -r requirements.txt > /dev/null 2>&1
+echo -e "${YELLOW}Upgrading pip...${NC}"
+pip install --upgrade pip -q
+
+echo -e "${YELLOW}Installing dependencies from requirements.txt...${NC}"
+echo -e "${YELLOW}Please wait, this will take a few minutes...${NC}"
+pip install -r requirements.txt --progress-bar on
 print_status "Python dependencies installed"
 
 # Step 4: Generate secrets
