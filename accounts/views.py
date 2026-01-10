@@ -158,7 +158,6 @@ def two_factor_setup(request):
 
             if secret and code:
                 import pyotp
-                from two_factor.models import get_available_methods
                 from django_otp.plugins.otp_totp.models import TOTPDevice
 
                 totp = pyotp.TOTP(secret)
