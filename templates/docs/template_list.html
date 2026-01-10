@@ -10,69 +10,72 @@
     </a>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        {% if templates %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Template Name</th>
-                        <th>Content Type</th>
-                        <th>Category</th>
-                        <th>Updated</th>
-                        <th width="150">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for template in templates %}
-                    <tr>
-                        <td>
-                            <i class="fas fa-file-alt text-primary"></i>
-                            <strong>{{ template.title }}</strong>
-                        </td>
-                        <td>
-                            <span class="badge bg-secondary">{{ template.get_content_type_display }}</span>
-                        </td>
-                        <td>
-                            {% if template.category %}
-                            <span class="badge bg-info">{{ template.category.name }}</span>
-                            {% else %}
-                            <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <small class="text-muted">{{ template.updated_at|date:"Y-m-d H:i" }}</small>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="{% url 'docs:template_edit' template.pk %}" class="btn btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'docs:document_create' %}?template={{ template.id }}" class="btn btn-outline-success" title="Use Template">
-                                    <i class="fas fa-plus"></i>
-                                </a>
-                                <a href="{% url 'docs:template_delete' template.pk %}" class="btn btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
+{% if templates %}
+<div class="row">
+    {% for template in templates %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            {% if template.preview_image %}
+            <img src="{{ template.preview_image.url }}" class="card-img-top" alt="{{ template.title }}" style="height: 200px; object-fit: cover; background: #f8f9fa;">
+            {% else %}
+            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                <div class="text-center">
+                    <i class="fas fa-file-alt fa-4x text-muted mb-2"></i>
+                    <div class="small text-muted">{{ template.get_content_type_display }}</div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ template.title }}</h5>
+                    <span class="badge bg-success">Template</span>
+                </div>
+
+                <div class="mb-2">
+                    <span class="badge bg-secondary">{{ template.get_content_type_display }}</span>
+                    {% if template.category %}
+                    <span class="badge bg-info">{{ template.category.name }}</span>
+                    {% endif %}
+                    {% if template.tags.all %}
+                    {% for tag in template.tags.all|slice:":2" %}
+                    <span class="badge bg-light text-dark">{{ tag.name }}</span>
                     {% endfor %}
-                </tbody>
-            </table>
+                    {% if template.tags.count > 2 %}
+                    <span class="badge bg-light text-dark">+{{ template.tags.count|add:"-2" }}</span>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="small text-muted mb-3">
+                    <div><i class="fas fa-calendar"></i> Updated: {{ template.updated_at|date:"M d, Y" }}</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'docs:document_create' %}?template={{ template.id }}" class="btn btn-sm btn-success" title="Use this template">
+                        <i class="fas fa-plus"></i> Use
+                    </a>
+                    <a href="{% url 'docs:template_edit' template.pk %}" class="btn btn-sm btn-outline-primary" title="Edit template">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'docs:template_delete' template.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
         </div>
-        {% else %}
-        <div class="text-center text-muted py-5">
-            <i class="fas fa-file-alt fa-3x mb-3"></i>
-            <p>No templates yet. Create your first template to get started!</p>
-            <a href="{% url 'docs:template_create' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Create Template
-            </a>
-        </div>
-        {% endif %}
     </div>
+    {% endfor %}
 </div>
+{% else %}
+<div class="alert alert-secondary text-center py-5">
+    <i class="fas fa-file-alt fa-3x mb-3 text-muted"></i>
+    <h5>No Document Templates Yet</h5>
+    <p class="text-muted">Create your first template to get started!</p>
+    <a href="{% url 'docs:template_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create Template
+    </a>
+</div>
+{% endif %}
 
 <div class="card mt-3">
     <div class="card-body">
