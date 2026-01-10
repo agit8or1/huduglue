@@ -98,6 +98,11 @@
                             <li><a class="dropdown-item" href="{% url 'core:system_status' %}"><i class="fas fa-heartbeat"></i> System Status</a></li>
                             <li><a class="dropdown-item" href="{% url 'core:maintenance' %}"><i class="fas fa-tools"></i> Maintenance</a></li>
                             <li><a class="dropdown-item" href="{% url 'accounts:user_list' %}"><i class="fas fa-users-cog"></i> User Management</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:organization_list' %}"><i class="fas fa-building"></i> Organizations</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:member_list' %}"><i class="fas fa-users"></i> Members</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:role_list' %}"><i class="fas fa-user-shield"></i> Roles</a></li>
+                            <li><a class="dropdown-item" href="{% url 'api:apikey_list' %}"><i class="fas fa-key"></i> API Keys</a></li>
+                            <li><a class="dropdown-item" href="{% url 'audit:audit_log_list' %}"><i class="fas fa-clipboard-list"></i> Audit Logs</a></li>
                             <li><a class="dropdown-item" href="{% url 'core:tag_list' %}"><i class="fas fa-tags"></i> Tags</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Integrations</h6></li>
@@ -147,11 +152,6 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="fas fa-user"></i> Profile</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:organization_list' %}"><i class="fas fa-building"></i> Organizations</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:member_list' %}"><i class="fas fa-users"></i> Members</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:role_list' %}"><i class="fas fa-user-shield"></i> Roles</a></li>
-                            <li><a class="dropdown-item" href="{% url 'api:apikey_list' %}"><i class="fas fa-key"></i> API Keys</a></li>
-                            <li><a class="dropdown-item" href="{% url 'audit:audit_log_list' %}"><i class="fas fa-clipboard-list"></i> Audit Logs</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'core:about' %}"><i class="fas fa-info-circle"></i> About</a></li>
                             <li>
