@@ -58,60 +58,110 @@ Full implementations for:
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### One-Line Installation (Recommended)
 
+The easiest way to install HuduGlue:
+
+```bash
+git clone https://github.com/agit8or1/huduglue.git && cd huduglue && bash install.sh
+```
+
+This automated installer will:
+- ✅ Install all prerequisites (Python 3.12, pip, venv, MariaDB client)
+- ✅ Create virtual environment and install dependencies
+- ✅ Generate secure encryption keys automatically
+- ✅ Create `.env` configuration file
+- ✅ Setup database and user
+- ✅ Run migrations
+- ✅ Create superuser account
+- ✅ Collect static files
+- ✅ Optionally start the development server
+
+**System Requirements:**
 - Ubuntu 20.04+ or Debian 11+
+- 2GB RAM minimum (4GB recommended)
+- Internet connection for package installation
+
+### Manual Installation
+
+If you prefer to install manually or need more control:
+
+<details>
+<summary>Click to expand manual installation steps</summary>
+
+#### Prerequisites
 - Python 3.12+
 - MariaDB 10.5+ or MySQL 8.0+
-- Nginx (production)
-- 2GB RAM minimum (4GB recommended)
-
-### Installation
+- Nginx (production only)
 
 ```bash
 # 1. Clone repository
 git clone https://github.com/agit8or1/huduglue.git
 cd huduglue
 
-# 2. Create virtual environment
-python3 -m venv venv
+# 2. Install system dependencies
+sudo apt-get update
+sudo apt-get install -y python3.12 python3.12-venv python3-pip mariadb-client mariadb-server
+
+# 3. Create virtual environment
+python3.12 -m venv venv
 source venv/bin/activate
 
-# 3. Install dependencies
+# 4. Install Python dependencies
+pip install --upgrade pip
 pip install -r requirements.txt
-
-# 4. Copy environment template
-cp .env.example .env
 
 # 5. Generate secrets
 python3 -c "from cryptography.fernet import Fernet; print('APP_MASTER_KEY=' + Fernet.generate_key().decode())"
 python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(50))"
 python3 -c "import secrets; print('API_KEY_SECRET=' + secrets.token_urlsafe(50))"
 
-# Edit .env and paste the generated values
+# 6. Create .env file
+# Copy the generated secrets from step 5 into this file
+cat > .env << 'EOF'
+DEBUG=True
+SECRET_KEY=<paste_secret_key_here>
+ALLOWED_HOSTS=localhost,127.0.0.1
 
-# 6. Create database
-mysql -u root -p
+DB_NAME=huduglue
+DB_USER=huduglue
+DB_PASSWORD=your_secure_password
+DB_HOST=localhost
+DB_PORT=3306
+
+APP_MASTER_KEY=<paste_master_key_here>
+API_KEY_SECRET=<paste_api_key_secret_here>
+
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+SITE_NAME=HuduGlue
+SITE_URL=http://localhost:8000
+EOF
+
+# 7. Start MariaDB and create database
+sudo systemctl start mariadb
+sudo mysql << 'EOSQL'
 CREATE DATABASE huduglue CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'huduglue'@'localhost' IDENTIFIED BY 'your_password';
+CREATE USER 'huduglue'@'localhost' IDENTIFIED BY 'your_secure_password';
 GRANT ALL PRIVILEGES ON huduglue.* TO 'huduglue'@'localhost';
 FLUSH PRIVILEGES;
-EXIT;
+EOSQL
 
-# 7. Run migrations
+# 8. Run migrations
 python3 manage.py migrate
 
-# 8. Create superuser (you'll be prompted for username, email, and password)
+# 9. Create superuser
 python3 manage.py createsuperuser
 
-# 9. Collect static files
+# 10. Collect static files
 python3 manage.py collectstatic --noinput
 
-# 10. Run development server
+# 11. Run development server
 python3 manage.py runserver 0.0.0.0:8000
 ```
 
-Visit `http://localhost:8000` and log in with the credentials you created in step 8.
+Visit `http://localhost:8000` and log in with the credentials you created in step 9.
+
+</details>
 
 ## 📚 Documentation
 
