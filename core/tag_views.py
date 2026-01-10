@@ -23,8 +23,8 @@ def tag_list(request):
         return redirect('accounts:organization_list')
 
     tags = Tag.objects.filter(organization=org).annotate(
-        asset_count=Count('asset', distinct=True),
-        password_count=Count('password', distinct=True)
+        asset_count=Count('assets', distinct=True),
+        password_count=Count('passwords', distinct=True)
     ).order_by('name')
 
     return render(request, 'core/tag_list.html', {

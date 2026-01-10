@@ -105,7 +105,11 @@
                 <div class="col-md-6">
                     <label class="form-label">{{ form.custom_fields.label }}</label>
                     {{ form.custom_fields }}
-                    <small class="form-text text-muted">JSON format: {"key": "value"}</small>
+                    <small class="form-text text-muted">
+                        <strong>JSON format required.</strong> Examples:<br>
+                        <code>{"dns_servers": ["8.8.8.8", "8.8.4.4"]}</code><br>
+                        <code>{"warranty_date": "2025-12-31", "purchase_order": "PO-12345"}</code>
+                    </small>
                     {% if form.custom_fields.errors %}
                         <div class="text-danger small">{{ form.custom_fields.errors }}</div>
                     {% endif %}
@@ -123,4 +127,47 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// JSON validation for custom_fields
+document.addEventListener('DOMContentLoaded', function() {
+    const customFieldsInput = document.querySelector('textarea[name="custom_fields"]');
+    const form = customFieldsInput ? customFieldsInput.closest('form') : null;
+
+    if (customFieldsInput && form) {
+        // Add real-time validation feedback
+        customFieldsInput.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value && value !== '{}') {
+                try {
+                    JSON.parse(value);
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } catch (e) {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            }
+        });
+
+        // Validate on form submit
+        form.addEventListener('submit', function(e) {
+            const value = customFieldsInput.value.trim();
+            if (value && value !== '{}') {
+                try {
+                    JSON.parse(value);
+                } catch (error) {
+                    e.preventDefault();
+                    alert('Custom Fields must be valid JSON format.\n\nExample for DNS servers:\n{"dns_servers": ["8.8.8.8", "8.8.4.4"]}\n\nError: ' + error.message);
+                    customFieldsInput.focus();
+                    customFieldsInput.classList.add('is-invalid');
+                    return false;
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

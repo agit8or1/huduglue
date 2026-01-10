@@ -5,6 +5,65 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-01-10
+
+### ✨ Added
+- **Tag Management** - Full CRUD for organization tags in Admin section
+  - Create/edit/delete tags with custom colors
+  - View tag usage across assets and passwords
+  - Live color preview in tag forms
+  - Delete warnings when tags are in use
+- **Screenshot Gallery** - 31 feature screenshots for documentation
+  - Full screenshot gallery page (SCREENSHOTS.md)
+  - 2x3 thumbnail grid preview in README
+  - Organized by feature category
+- **Navigation Improvements**:
+  - Tags menu item in Admin → System section
+  - Improved navbar layout with truncated long usernames
+  - Compact spacing for better single-line fit
+
+### 🔧 Changed
+- **Static File Serving** - Switched to WhiteNoise for efficient static file delivery
+  - Removed redundant nginx (NPM handles reverse proxy)
+  - Gunicorn now serves static files via WhiteNoise
+  - Compressed manifest static files storage
+- **Deployment Architecture** - Optimized for Nginx Proxy Manager
+  - Gunicorn listens on 0.0.0.0:8000 (not unix socket)
+  - NPM handles SSL termination and caching
+  - Simplified stack: NPM → Gunicorn:8000 → Django
+- **Asset Form** - Condensed multi-column layout
+  - 2-column and 3-column responsive grid
+  - Side-by-side notes and custom fields
+  - Scrollable tags container
+  - Improved JSON validation for custom fields with examples
+- **Documentation** - Updated README with working links
+  - Fixed broken documentation references
+  - Updated screenshots path
+  - Clarified no default credentials (must run createsuperuser)
+
+### 🐛 Fixed
+- **System Status** - Fixed systemctl path issue
+  - Use /usr/bin/systemctl (full path) for service checks
+  - Resolves "No such file or directory" error
+- **Navbar Layout** - Fixed text jumbling with long usernames
+  - Username truncated with ellipsis (max 150px)
+  - Organization name truncated (max 180px)
+  - Optimized padding and font sizes
+- **Static Files** - Logo and assets now load correctly
+  - WhiteNoise middleware properly configured
+  - Collected static files with manifest
+- **Tag Management** - Fixed FieldError in tag list view
+  - Corrected Count() annotations for related fields
+- **Asset Form** - Improved JSON field validation
+  - Better help text with DNS server examples
+  - Client-side validation to catch errors before submission
+
+### 📚 Documentation
+- Added SCREENSHOTS.md with all 31 feature screenshots
+- Updated README.md with screenshot gallery preview
+- Fixed all broken documentation links
+- Clarified installation process and credential setup
+
 ## [2.0.0] - 2026-01-10
 
 ### 🔒 Security Fixes (Critical)
