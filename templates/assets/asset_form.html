@@ -3,12 +3,124 @@
 {% block title %}{{ action }} Asset{% endblock %}
 
 {% block content %}
-<h1>{{ action }} Asset</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'assets:asset_list' %}">Assets</a></li>
+        <li class="breadcrumb-item active">{{ action }} Asset</li>
+    </ol>
+</nav>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="{% url 'assets:asset_list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="fas fa-box"></i> {{ action }} Asset</h2>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-3">
+                <!-- Basic Information - 2 columns -->
+                <div class="col-md-6">
+                    <label class="form-label"><strong>{{ form.name.label }}</strong> <span class="text-danger">*</span></label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger small">{{ form.name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label"><strong>{{ form.asset_type.label }}</strong></label>
+                    {{ form.asset_type }}
+                    {% if form.asset_type.errors %}
+                        <div class="text-danger small">{{ form.asset_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Identification - 3 columns -->
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.asset_tag.label }}</label>
+                    {{ form.asset_tag }}
+                    {% if form.asset_tag.errors %}
+                        <div class="text-danger small">{{ form.asset_tag.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.serial_number.label }}</label>
+                    {{ form.serial_number }}
+                    {% if form.serial_number.errors %}
+                        <div class="text-danger small">{{ form.serial_number.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ form.primary_contact.label }}</label>
+                    {{ form.primary_contact }}
+                    {% if form.primary_contact.errors %}
+                        <div class="text-danger small">{{ form.primary_contact.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Manufacturer Details - 2 columns -->
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.manufacturer.label }}</label>
+                    {{ form.manufacturer }}
+                    {% if form.manufacturer.errors %}
+                        <div class="text-danger small">{{ form.manufacturer.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.model.label }}</label>
+                    {{ form.model }}
+                    {% if form.model.errors %}
+                        <div class="text-danger small">{{ form.model.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tags - Full width if present -->
+                {% if form.tags.field.queryset %}
+                <div class="col-12">
+                    <label class="form-label">{{ form.tags.label }}</label>
+                    <div class="border rounded p-2" style="max-height: 120px; overflow-y: auto;">
+                        {{ form.tags }}
+                    </div>
+                    {% if form.tags.errors %}
+                        <div class="text-danger small">{{ form.tags.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Notes - 2 columns side by side -->
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.notes.label }}</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div class="text-danger small">{{ form.notes.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.custom_fields.label }}</label>
+                    {{ form.custom_fields }}
+                    <small class="form-text text-muted">JSON format: {"key": "value"}</small>
+                    {% if form.custom_fields.errors %}
+                        <div class="text-danger small">{{ form.custom_fields.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Asset
+                </button>
+                <a href="{% url 'assets:asset_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
