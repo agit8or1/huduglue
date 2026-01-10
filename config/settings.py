@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'integrations.apps.IntegrationsConfig',
     'monitoring.apps.MonitoringConfig',
+    'processes.apps.ProcessesConfig',
 ]
 
 MIDDLEWARE = [

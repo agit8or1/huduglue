@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Global Processes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1><i class="fas fa-globe"></i> Global Processes</h1>
+        <p class="text-muted">Processes available to all organizations</p>
+    </div>
+    <a href="{% url 'processes:global_process_create' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Create Global Process
+    </a>
+</div>
+
+<!-- Global Processes Table -->
+<div class="card">
+    <div class="card-body">
+        <table id="globalProcessesTable" class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Stages</th>
+                    <th>Tags</th>
+                    <th>Published</th>
+                    <th>Created By</th>
+                    <th width="100">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in processes %}
+                <tr>
+                    <td>
+                        <a href="{% url 'processes:process_detail' process.slug %}">{{ process.title }}</a>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">{{ process.get_category_display }}</span>
+                    </td>
+                    <td>{{ process.stages.count }} stages</td>
+                    <td>
+                        {% for tag in process.tags.all %}
+                        <span class="badge bg-info">{{ tag.name }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if process.is_published %}
+                        <span class="badge bg-success"><i class="fas fa-check"></i> Published</span>
+                        {% else %}
+                        <span class="badge bg-warning"><i class="fas fa-eye-slash"></i> Draft</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ process.created_by.username }}</td>
+                    <td>
+                        <a href="{% url 'processes:process_detail' process.slug %}" class="btn btn-sm btn-outline-primary" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No global processes yet. <a href="{% url 'processes:global_process_create' %}">Create one</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#globalProcessesTable').DataTable({
+        "order": [[0, "asc"]],
+        "pageLength": 25,
+        "language": {
+            "search": "Search:",
+            "lengthMenu": "Show _MENU_ processes",
+            "info": "Showing _START_ to _END_ of _TOTAL_ processes",
+            "infoEmpty": "No processes available",
+            "infoFiltered": "(filtered from _MAX_ total)",
+            "zeroRecords": "No matching processes found"
+        }
+    });
+});
+</script>
+{% endblock %}

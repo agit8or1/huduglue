@@ -176,3 +176,190 @@ class DocumentFlag(BaseModel):
 
     def __str__(self):
         return f"{self.user.username} flagged {self.document.title}"
+
+
+class Diagram(BaseModel):
+    """
+    Draw.io diagram with versioning support.
+    """
+    DIAGRAM_TYPES = [
+        ('network', 'Network Diagram'),
+        ('process', 'Process Flow'),
+        ('architecture', 'System Architecture'),
+        ('rack', 'Rack Layout'),
+        ('floorplan', 'Floor Plan'),
+        ('org', 'Organizational Chart'),
+        ('erd', 'Entity Relationship Diagram'),
+        ('flowchart', 'Flowchart'),
+        ('other', 'Other'),
+    ]
+
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='diagrams'
+    )
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255)
+    description = models.TextField(blank=True)
+
+    # Diagram data (current version)
+    diagram_xml = models.TextField(help_text='.drawio XML format')
+
+    # Export caching
+    png_export = models.FileField(
+        upload_to='diagrams/png/',
+        null=True,
+        blank=True,
+        help_text='PNG export of diagram'
+    )
+    svg_export = models.FileField(
+        upload_to='diagrams/svg/',
+        null=True,
+        blank=True,
+        help_text='SVG export of diagram'
+    )
+
+    # Categorization
+    diagram_type = models.CharField(
+        max_length=50,
+        choices=DIAGRAM_TYPES,
+        default='other'
+    )
+    tags = models.ManyToManyField(Tag, blank=True, related_name='diagrams')
+
+    # Global/template support
+    is_global = models.BooleanField(
+        default=False,
+        help_text='Global diagram - visible to all organizations'
+    )
+    is_published = models.BooleanField(default=True)
+    is_template = models.BooleanField(
+        default=False,
+        help_text='Diagram template - can be cloned'
+    )
+
+    # Metadata
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='diagrams_created'
+    )
+    last_modified_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='diagrams_modified'
+    )
+    last_edited_at = models.DateTimeField(auto_now=True)
+
+    # Version tracking
+    version_number = models.PositiveIntegerField(default=1)
+
+    objects = OrganizationManager()
+
+    class Meta:
+        db_table = 'diagrams'
+        unique_together = [['organization', 'slug']]
+        ordering = ['-last_edited_at']
+        indexes = [
+            models.Index(fields=['organization', 'slug']),
+            models.Index(fields=['diagram_type']),
+            models.Index(fields=['is_global', 'is_published']),
+        ]
+
+    def __str__(self):
+        prefix = "[GLOBAL] " if self.is_global else ""
+        template = "[TEMPLATE] " if self.is_template else ""
+        return f"{prefix}{template}{self.title} (v{self.version_number})"
+
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def create_version_snapshot(self, user):
+        """Create a version snapshot of current diagram."""
+        DiagramVersion.objects.create(
+            diagram=self,
+            version_number=self.version_number,
+            diagram_xml=self.diagram_xml,
+            created_by=user
+        )
+
+
+class DiagramVersion(BaseModel):
+    """
+    Version history for diagrams.
+    """
+    diagram = models.ForeignKey(
+        Diagram,
+        on_delete=models.CASCADE,
+        related_name='versions'
+    )
+    version_number = models.PositiveIntegerField()
+    diagram_xml = models.TextField(help_text='Snapshot of diagram XML')
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    change_notes = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'diagram_versions'
+        unique_together = [['diagram', 'version_number']]
+        ordering = ['-version_number']
+        indexes = [
+            models.Index(fields=['diagram', '-version_number']),
+        ]
+
+    def __str__(self):
+        return f"{self.diagram.title} - v{self.version_number}"
+
+
+class DiagramAnnotation(BaseModel):
+    """
+    Annotations on diagrams (comments, notes, highlights).
+    """
+    diagram = models.ForeignKey(
+        Diagram,
+        on_delete=models.CASCADE,
+        related_name='annotations'
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='diagram_annotations'
+    )
+
+    # Annotation content
+    text = models.TextField()
+    annotation_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('note', 'Note'),
+            ('comment', 'Comment'),
+            ('issue', 'Issue'),
+            ('suggestion', 'Suggestion'),
+        ],
+        default='note'
+    )
+
+    # Position (optional - for pinned annotations)
+    position_x = models.IntegerField(null=True, blank=True)
+    position_y = models.IntegerField(null=True, blank=True)
+
+    is_resolved = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'diagram_annotations'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['diagram', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.annotation_type}: {self.text[:50]}"

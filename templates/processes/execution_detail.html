@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Process Execution - {{ execution.process.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1><i class="fas fa-running"></i> Process Execution</h1>
+        <h4 class="text-muted">{{ execution.process.title }}</h4>
+    </div>
+    <div>
+        <a href="{% url 'processes:process_detail' execution.process.slug %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Process
+        </a>
+    </div>
+</div>
+
+<!-- Execution Status -->
+<div class="card mb-3">
+    <div class="card-header py-2 {% if execution.status == 'completed' %}bg-success text-white{% elif execution.status == 'in_progress' %}bg-warning{% elif execution.status == 'failed' %}bg-danger text-white{% endif %}">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> Execution Status</h6>
+            <span class="badge bg-light text-dark">{{ execution.get_status_display }}</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Assigned to:</strong> {{ execution.assigned_to.username }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Started by:</strong> {{ execution.started_by.username }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Started:</strong> {{ execution.started_at|date:"Y-m-d H:i" }}</p>
+            </div>
+            <div class="col-md-3">
+                {% if execution.due_date %}
+                <p class="mb-1"><strong>Due:</strong> {{ execution.due_date|date:"Y-m-d H:i" }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if execution.notes %}
+        <div class="mt-2">
+            <strong>Notes:</strong>
+            <p class="text-muted mb-0">{{ execution.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Progress Bar -->
+        <div class="mt-3">
+            <label class="form-label"><strong>Progress: {{ execution.completion_percentage }}%</strong></label>
+            <div class="progress" style="height: 25px;">
+                <div class="progress-bar {% if execution.completion_percentage == 100 %}bg-success{% else %}bg-primary{% endif %}"
+                     role="progressbar"
+                     style="width: {{ execution.completion_percentage }}%;"
+                     aria-valuenow="{{ execution.completion_percentage }}"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                    {{ execution.completion_percentage }}%
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stage Completions -->
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-list-check"></i> Stage Completions</h6>
+    </div>
+    <div class="card-body">
+        <ol class="list-group list-group-numbered">
+            {% for completion in completions %}
+            <li class="list-group-item {% if completion.is_completed %}list-group-item-success{% endif %}">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">
+                            {% if completion.is_completed %}
+                            <i class="fas fa-check-circle text-success"></i>
+                            {% else %}
+                            <i class="far fa-circle text-muted"></i>
+                            {% endif %}
+                            {{ completion.stage.title }}
+                        </h5>
+                        {% if completion.stage.description %}
+                        <p class="mb-2 text-muted">{{ completion.stage.description }}</p>
+                        {% endif %}
+
+                        <!-- Linked Entities -->
+                        <div class="mt-2">
+                            {% if completion.stage.linked_document %}
+                            <a href="{% url 'docs:document_detail' completion.stage.linked_document.slug %}"
+                               class="btn btn-sm btn-primary" target="_blank">
+                                <i class="fas fa-file-alt"></i> View Document
+                            </a>
+                            {% elif completion.stage.linked_password %}
+                            <a href="{% url 'vault:password_detail' completion.stage.linked_password.pk %}"
+                               class="btn btn-sm btn-danger" target="_blank">
+                                <i class="fas fa-key"></i> View Password
+                            </a>
+                            {% elif completion.stage.linked_asset %}
+                            <a href="{% url 'assets:asset_detail' completion.stage.linked_asset.pk %}"
+                               class="btn btn-sm btn-success" target="_blank">
+                                <i class="fas fa-box"></i> View Asset
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        {% if completion.is_completed %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-check"></i> Completed by {{ completion.completed_by.username }}
+                                on {{ completion.completed_at|date:"Y-m-d H:i" }}
+                            </small>
+                            {% if completion.notes %}
+                            <p class="small mb-0 mt-1"><strong>Notes:</strong> {{ completion.notes }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if not completion.is_completed and execution.status == 'in_progress' %}
+                    <div class="ms-3">
+                        <button type="button"
+                                class="btn btn-success complete-stage"
+                                data-completion-id="{{ completion.pk }}">
+                            <i class="fas fa-check"></i> Mark Complete
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+
+{% if execution.status == 'completed' %}
+<div class="alert alert-success mt-3">
+    <i class="fas fa-check-circle"></i> <strong>Process completed!</strong>
+    Completed on {{ execution.completed_at|date:"Y-m-d H:i" }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.complete-stage').click(function() {
+        const button = $(this);
+        const completionId = button.data('completion-id');
+
+        if (confirm('Mark this stage as complete?')) {
+            $.ajax({
+                url: '/processes/completion/' + completionId + '/complete/',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(data) {
+                    if (data.success) {
+                        // Reload page to show updated status
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                },
+                error: function() {
+                    alert('Error marking stage as complete');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

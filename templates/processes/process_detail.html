@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}{{ process.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1><i class="fas fa-tasks"></i> {{ process.title }}</h1>
+        <div class="text-muted small">
+            {% if process.is_global %}
+            <span class="badge bg-success"><i class="fas fa-globe"></i> Global Process</span>
+            {% endif %}
+            <span class="badge bg-secondary">{{ process.get_category_display }}</span>
+            {% for tag in process.tags.all %}
+            <span class="badge bg-info">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'processes:execution_create' process.slug %}" class="btn btn-success">
+            <i class="fas fa-play"></i> Start Execution
+        </a>
+        {% if not process.is_global %}
+        <a href="{% url 'processes:process_edit' process.slug %}" class="btn btn-outline-secondary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'processes:process_delete' process.slug %}" class="btn btn-outline-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Process Description -->
+{% if process.description %}
+<div class="card mb-3">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-info-circle"></i> Description</h6>
+    </div>
+    <div class="card-body">
+        {{ process.description|linebreaks }}
+    </div>
+</div>
+{% endif %}
+
+<!-- Linked Diagram -->
+{% if process.linked_diagram %}
+<div class="alert alert-info">
+    <i class="fas fa-project-diagram"></i> This process has a linked diagram:
+    <a href="{% url 'docs:diagram_detail' process.linked_diagram.slug %}">{{ process.linked_diagram.title }}</a>
+</div>
+{% endif %}
+
+<!-- My Active Executions -->
+{% if my_executions %}
+<div class="card mb-3">
+    <div class="card-header py-2 bg-warning">
+        <h6 class="mb-0"><i class="fas fa-running"></i> My Active Executions</h6>
+    </div>
+    <div class="card-body">
+        {% for execution in my_executions %}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>Started {{ execution.started_at|date:"Y-m-d H:i" }}</strong>
+                - {{ execution.completion_percentage }}% complete
+                {% if execution.due_date %}
+                <span class="text-muted">(Due: {{ execution.due_date|date:"Y-m-d" }})</span>
+                {% endif %}
+            </div>
+            <a href="{% url 'processes:execution_detail' execution.pk %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-arrow-right"></i> Continue
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Process Stages -->
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-list-ol"></i> Process Stages</h6>
+    </div>
+    <div class="card-body">
+        {% if stages %}
+        <ol class="list-group list-group-numbered">
+            {% for stage in stages %}
+            <li class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">{{ stage.title }}</h5>
+                        {% if stage.description %}
+                        <p class="mb-2 text-muted">{{ stage.description }}</p>
+                        {% endif %}
+
+                        <!-- Linked Entities -->
+                        <div class="mt-2">
+                            {% if stage.linked_document %}
+                            <span class="badge bg-primary">
+                                <i class="fas fa-file-alt"></i> Document:
+                                <a href="{% url 'docs:document_detail' stage.linked_document.slug %}" class="text-white">
+                                    {{ stage.linked_document.title }}
+                                </a>
+                            </span>
+                            {% elif stage.linked_password %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-key"></i> Password:
+                                <a href="{% url 'vault:password_detail' stage.linked_password.pk %}" class="text-white">
+                                    {{ stage.linked_password.title }}
+                                </a>
+                            </span>
+                            {% elif stage.linked_secure_note %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-sticky-note"></i> Note: {{ stage.linked_secure_note.title }}
+                            </span>
+                            {% elif stage.linked_asset %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-box"></i> Asset:
+                                <a href="{% url 'assets:asset_detail' stage.linked_asset.pk %}" class="text-white">
+                                    {{ stage.linked_asset.name }}
+                                </a>
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if stage.estimated_duration_minutes %}
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-clock"></i> Estimated time: {{ stage.estimated_duration_minutes }} minutes
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% if stage.requires_confirmation %}
+                    <div class="ms-3">
+                        <span class="badge bg-info">
+                            <i class="fas fa-check-circle"></i> Requires Confirmation
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="text-muted mb-0">No stages defined for this process.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Process Metadata -->
+<div class="card mt-3">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-info-circle"></i> Metadata</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1"><strong>Created by:</strong> {{ process.created_by.username }}</p>
+                <p class="mb-1"><strong>Created:</strong> {{ process.created_at|date:"Y-m-d H:i" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1"><strong>Last modified by:</strong> {{ process.last_modified_by.username }}</p>
+                <p class="mb-1"><strong>Updated:</strong> {{ process.updated_at|date:"Y-m-d H:i" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'processes:process_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Processes
+    </a>
+</div>
+{% endblock %}

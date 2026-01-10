@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Process{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h5>
+            </div>
+            <div class="card-body">
+                <h4>Are you sure you want to delete this process?</h4>
+                <p class="lead">{{ process.title }}</p>
+
+                {% if active_executions > 0 %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This process has {{ active_executions }} active execution(s).
+                    Deleting this process will also delete all associated executions.
+                </div>
+                {% endif %}
+
+                <ul>
+                    <li>Category: {{ process.get_category_display }}</li>
+                    <li>Stages: {{ process.stages.count }}</li>
+                    <li>Created: {{ process.created_at|date:"Y-m-d H:i" }}</li>
+                </ul>
+
+                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'processes:process_detail' process.slug %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete Process
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

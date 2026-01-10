@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ action }} Process{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-tasks"></i> {{ action }} Process</h1>
+    <a href="{% if process %}{% url 'processes:process_detail' process.slug %}{% else %}{% url 'processes:process_list' %}{% endif %}" class="btn btn-outline-secondary">
+        <i class="fas fa-times"></i> Cancel
+    </a>
+</div>
+
+<form method="post" id="processForm">
+    {% csrf_token %}
+
+    <!-- Process Details -->
+    <div class="card mb-3">
+        <div class="card-header py-2">
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> Process Details</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="text-danger small">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-danger small">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="text-danger small">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                        {{ form.tags }}
+                        {% if form.tags.errors %}
+                        <div class="text-danger small">{{ form.tags.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.linked_diagram.id_for_label }}" class="form-label">Linked Diagram (optional)</label>
+                        {{ form.linked_diagram }}
+                        {% if form.linked_diagram.errors %}
+                        <div class="text-danger small">{{ form.linked_diagram.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        {{ form.is_published }}
+                        <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                            Published (visible to users)
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        {{ form.is_template }}
+                        <label class="form-check-label" for="{{ form.is_template.id_for_label }}">
+                            Template (can be cloned)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Process Stages -->
+    <div class="card mb-3">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-list-ol"></i> Process Stages</h6>
+            <button type="button" class="btn btn-sm btn-primary" id="addStage">
+                <i class="fas fa-plus"></i> Add Stage
+            </button>
+        </div>
+        <div class="card-body">
+            {{ formset.management_form }}
+
+            <div id="stagesContainer">
+                {% for stage_form in formset %}
+                <div class="stage-form border rounded p-3 mb-3" data-form-index="{{ forloop.counter0 }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Stage {{ forloop.counter }}</h6>
+                        <button type="button" class="btn btn-sm btn-danger remove-stage" data-form-index="{{ forloop.counter0 }}">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+
+                    {{ stage_form.id }}
+                    {% if stage_form.instance.pk %}{{ stage_form.DELETE }}{% endif %}
+
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="mb-2">
+                                <label class="form-label small">Order</label>
+                                {{ stage_form.order }}
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <div class="mb-2">
+                                <label class="form-label small">Title</label>
+                                {{ stage_form.title }}
+                                {% if stage_form.title.errors %}
+                                <div class="text-danger small">{{ stage_form.title.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small">Description</label>
+                        {{ stage_form.description }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <label class="form-label small">Linked Document</label>
+                                {{ stage_form.linked_document }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <label class="form-label small">Linked Password</label>
+                                {{ stage_form.linked_password }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <label class="form-label small">Linked Asset</label>
+                                {{ stage_form.linked_asset }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <label class="form-label small">Linked Secure Note</label>
+                                {{ stage_form.linked_secure_note }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ stage_form.requires_confirmation }}
+                                <label class="form-check-label small" for="{{ stage_form.requires_confirmation.id_for_label }}">
+                                    Requires user confirmation
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label class="form-label small">Est. Duration (minutes)</label>
+                                {{ stage_form.estimated_duration_minutes }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if stage_form.non_field_errors %}
+                    <div class="alert alert-danger mt-2 mb-0">
+                        {{ stage_form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if formset.non_form_errors %}
+            <div class="alert alert-danger">
+                {{ formset.non_form_errors }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a href="{% if process %}{% url 'processes:process_detail' process.slug %}{% else %}{% url 'processes:process_list' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Process
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Handle removing stages
+    $(document).on('click', '.remove-stage', function() {
+        const formIndex = $(this).data('form-index');
+        const stageForm = $(this).closest('.stage-form');
+
+        // Check if this is an existing stage (has DELETE field)
+        const deleteCheckbox = stageForm.find('input[name$="-DELETE"]');
+        if (deleteCheckbox.length) {
+            // Mark for deletion
+            deleteCheckbox.prop('checked', true);
+            stageForm.hide();
+        } else {
+            // Just remove from DOM
+            stageForm.remove();
+        }
+
+        updateStageNumbers();
+    });
+
+    // Handle adding new stages
+    $('#addStage').click(function() {
+        const totalForms = $('#id_stages-TOTAL_FORMS');
+        const currentFormCount = parseInt(totalForms.val());
+        const newFormIndex = currentFormCount;
+
+        // Clone the empty form template
+        const emptyForm = $('.stage-form').first().clone();
+
+        // Update form index in all fields
+        emptyForm.find(':input').each(function() {
+            const name = $(this).attr('name');
+            if (name) {
+                $(this).attr('name', name.replace(/stages-\d+/, 'stages-' + newFormIndex));
+                $(this).attr('id', 'id_' + name.replace(/stages-\d+/, 'stages-' + newFormIndex));
+            }
+        });
+
+        // Clear values
+        emptyForm.find(':input').not(':button, :submit, :reset').val('');
+        emptyForm.find(':checkbox').prop('checked', false);
+        emptyForm.find('textarea').val('');
+
+        // Set order to next number
+        emptyForm.find('input[name$="-order"]').val(currentFormCount);
+
+        // Update data attribute
+        emptyForm.attr('data-form-index', newFormIndex);
+        emptyForm.find('.remove-stage').attr('data-form-index', newFormIndex);
+
+        // Remove id field for new form
+        emptyForm.find('input[name$="-id"]').remove();
+
+        // Append to container
+        $('#stagesContainer').append(emptyForm);
+
+        // Increment total forms
+        totalForms.val(currentFormCount + 1);
+
+        updateStageNumbers();
+    });
+
+    function updateStageNumbers() {
+        let visibleIndex = 1;
+        $('.stage-form:visible').each(function() {
+            $(this).find('h6').first().text('Stage ' + visibleIndex);
+            visibleIndex++;
+        });
+    }
+});
+</script>
+{% endblock %}

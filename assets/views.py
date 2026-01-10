@@ -38,9 +38,19 @@ def asset_detail(request, pk):
         source_id=asset.id
     )
 
+    # Get asset images
+    from files.models import Attachment
+    asset_images = Attachment.objects.filter(
+        organization=org,
+        entity_type='asset',
+        entity_id=asset.id,
+        content_type__startswith='image/'
+    ).order_by('-created_at')
+
     return render(request, 'assets/asset_detail.html', {
         'asset': asset,
         'relationships': relationships,
+        'asset_images': asset_images,
     })
 
 
