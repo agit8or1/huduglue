@@ -158,20 +158,25 @@ def two_factor_setup(request):
 
             if secret and code:
                 import pyotp
+                import base64
                 from django_otp.plugins.otp_totp.models import TOTPDevice
 
                 totp = pyotp.TOTP(secret)
 
                 if totp.verify(code, valid_window=1):
+                    # Convert base32 secret to hex (TOTPDevice expects hex-encoded keys)
+                    key_bytes = base64.b32decode(secret)
+                    hex_key = key_bytes.hex()
+
                     # Create or update TOTPDevice for django-two-factor-auth
                     device, created = TOTPDevice.objects.get_or_create(
                         user=request.user,
                         name='default',
-                        defaults={'key': secret, 'confirmed': True}
+                        defaults={'key': hex_key, 'confirmed': True}
                     )
                     if not created:
                         # Update existing device
-                        device.key = secret
+                        device.key = hex_key
                         device.confirmed = True
                         device.save()
 
