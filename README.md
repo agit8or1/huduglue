@@ -67,15 +67,18 @@ git clone https://github.com/agit8or1/huduglue.git && cd huduglue && bash instal
 ```
 
 This automated installer will:
-- ✅ Install all prerequisites (Python 3.12, pip, venv, MariaDB client)
+- ✅ Install all prerequisites (Python 3.12, pip, venv, MariaDB server & client)
 - ✅ Create virtual environment and install dependencies
 - ✅ Generate secure encryption keys automatically
 - ✅ Create `.env` configuration file
 - ✅ Setup database and user
+- ✅ Create log directory
 - ✅ Run migrations
 - ✅ Create superuser account
 - ✅ Collect static files
-- ✅ Optionally start the development server
+- ✅ **Start production server automatically** (Gunicorn with systemd)
+
+**When the installer finishes, your server is RUNNING and ready to use!**
 
 **System Requirements:**
 - Ubuntu 20.04+ or Debian 11+

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.0] - 2026-01-10
 
+### 🚀 One-Line Installation
+
+**Major improvement:** Complete automated installation with zero manual steps!
+
+```bash
+git clone https://github.com/agit8or1/huduglue.git && cd huduglue && bash install.sh
+```
+
+The installer now does EVERYTHING:
+- Installs all system dependencies (Python, MariaDB, build tools, libraries)
+- Creates virtual environment and installs Python packages
+- Generates secure encryption keys automatically
+- Creates and configures .env file
+- Sets up database with proper schema
+- Creates log directory with correct permissions
+- Runs all database migrations
+- Creates superuser account (interactive prompt)
+- Collects static files
+- **Automatically starts production server with systemd**
+
+**When the installer finishes, the server is RUNNING!** No manual commands needed.
+
 ### ✨ Added
 - **Processes Feature** - Sequential workflow/runbook system for IT operations
   - Process CRUD operations with slug-based URLs
