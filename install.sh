@@ -52,6 +52,194 @@ cd "$SCRIPT_DIR"
 print_info "Installing from: $SCRIPT_DIR"
 echo ""
 
+# Detect existing installation
+EXISTING_INSTALL=false
+if [ -f "$SCRIPT_DIR/.env" ] || [ -f "$SCRIPT_DIR/venv/bin/activate" ] || sudo systemctl list-unit-files | grep -q huduglue-gunicorn.service; then
+    EXISTING_INSTALL=true
+    echo ""
+    print_warning "Existing HuduGlue installation detected!"
+    echo ""
+
+    # Check what exists
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        echo "  • Found: .env configuration file"
+    fi
+    if [ -d "$SCRIPT_DIR/venv" ]; then
+        echo "  • Found: Python virtual environment"
+    fi
+    if sudo systemctl list-unit-files | grep -q huduglue-gunicorn.service; then
+        echo "  • Found: systemd service"
+        if sudo systemctl is-active --quiet huduglue-gunicorn.service; then
+            echo "    Status: Running"
+        else
+            echo "    Status: Stopped"
+        fi
+    fi
+    if sudo mysql -e "SHOW DATABASES LIKE 'huduglue';" 2>/dev/null | grep -q huduglue; then
+        echo "  • Found: Database 'huduglue'"
+    fi
+
+    echo ""
+    echo "What would you like to do?"
+    echo ""
+    echo "  1) Upgrade/Update (pull latest code, run migrations, restart service)"
+    echo "  2) System Check (verify all components are working)"
+    echo "  3) Clean Install (remove everything and reinstall)"
+    echo "  4) Exit"
+    echo ""
+    read -p "Enter choice [1-4]: " choice
+
+    case $choice in
+        1)
+            print_info "Starting upgrade process..."
+
+            # Stop service
+            print_info "Stopping service..."
+            sudo systemctl stop huduglue-gunicorn.service 2>/dev/null || true
+
+            # Pull latest code
+            print_info "Pulling latest code from GitHub..."
+            cd "$SCRIPT_DIR"
+            git pull origin main || print_warning "Git pull failed or not a git repository"
+
+            # Activate venv and upgrade dependencies
+            print_info "Updating Python dependencies..."
+            source venv/bin/activate
+            pip install --upgrade pip -q
+            pip install -r requirements.txt --upgrade --progress-bar on
+
+            # Run migrations
+            print_info "Running database migrations..."
+            python3 manage.py migrate
+
+            # Collect static files
+            print_info "Collecting static files..."
+            python3 manage.py collectstatic --noinput
+
+            # Restart service
+            print_info "Restarting service..."
+            sudo systemctl start huduglue-gunicorn.service
+
+            # Check status
+            sleep 2
+            if sudo systemctl is-active --quiet huduglue-gunicorn.service; then
+                print_status "Upgrade complete! Service is running."
+                SERVER_IP=$(hostname -I | awk '{print $1}')
+                echo ""
+                echo "Access at: http://${SERVER_IP}:8000"
+            else
+                print_error "Service failed to start. Check logs:"
+                echo "  sudo journalctl -u huduglue-gunicorn.service -n 50"
+            fi
+            exit 0
+            ;;
+        2)
+            print_info "Running system check..."
+            echo ""
+
+            # Check Python
+            if [ -f "$SCRIPT_DIR/venv/bin/python3" ]; then
+                PYTHON_VERSION=$($SCRIPT_DIR/venv/bin/python3 --version 2>&1)
+                print_status "Python: $PYTHON_VERSION"
+            else
+                print_error "Python virtual environment not found"
+            fi
+
+            # Check database
+            if sudo mysql -e "SHOW DATABASES LIKE 'huduglue';" 2>/dev/null | grep -q huduglue; then
+                print_status "Database: huduglue exists"
+                TABLE_COUNT=$(sudo mysql -e "USE huduglue; SHOW TABLES;" 2>/dev/null | wc -l)
+                echo "  Tables: $((TABLE_COUNT - 1))"
+            else
+                print_error "Database: huduglue not found"
+            fi
+
+            # Check service
+            if sudo systemctl is-active --quiet huduglue-gunicorn.service; then
+                print_status "Service: Running"
+                echo "  $(sudo systemctl show huduglue-gunicorn.service -p MainPID --value) - $(sudo systemctl show huduglue-gunicorn.service -p ActiveState --value)"
+            elif sudo systemctl list-unit-files | grep -q huduglue-gunicorn.service; then
+                print_warning "Service: Installed but not running"
+                echo "  Start with: sudo systemctl start huduglue-gunicorn.service"
+            else
+                print_error "Service: Not installed"
+            fi
+
+            # Check port
+            if ss -tlnp 2>/dev/null | grep -q :8000; then
+                print_status "Port 8000: Listening"
+            else
+                print_warning "Port 8000: Not listening"
+            fi
+
+            # Check logs directory
+            if [ -d "/var/log/itdocs" ]; then
+                print_status "Log directory: /var/log/itdocs"
+            else
+                print_error "Log directory not found"
+            fi
+
+            # Test HTTP response
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/ 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "302" ] || [ "$HTTP_CODE" = "200" ]; then
+                print_status "HTTP Response: $HTTP_CODE (OK)"
+                SERVER_IP=$(hostname -I | awk '{print $1}')
+                echo ""
+                echo "Access at: http://${SERVER_IP}:8000"
+            else
+                print_error "HTTP Response: $HTTP_CODE (Failed)"
+            fi
+
+            echo ""
+            print_info "System check complete"
+            exit 0
+            ;;
+        3)
+            print_warning "This will DELETE all data and reinstall from scratch!"
+            read -p "Are you sure? Type 'yes' to confirm: " confirm
+            if [ "$confirm" != "yes" ]; then
+                echo "Aborted."
+                exit 0
+            fi
+
+            print_info "Removing existing installation..."
+
+            # Stop and remove service
+            sudo systemctl stop huduglue-gunicorn.service 2>/dev/null || true
+            sudo systemctl disable huduglue-gunicorn.service 2>/dev/null || true
+            sudo rm -f /etc/systemd/system/huduglue-gunicorn.service
+            sudo systemctl daemon-reload
+
+            # Drop database
+            print_info "Dropping database..."
+            sudo mysql << 'EOSQL'
+DROP DATABASE IF EXISTS huduglue;
+DROP USER IF EXISTS 'huduglue'@'localhost';
+FLUSH PRIVILEGES;
+EOSQL
+
+            # Remove directories
+            cd ~
+            rm -rf "$SCRIPT_DIR/venv"
+            rm -f "$SCRIPT_DIR/.env"
+            rm -f "$SCRIPT_DIR/.env.backup"
+            sudo rm -rf /var/log/itdocs/
+
+            print_status "Cleanup complete. Starting fresh installation..."
+            echo ""
+            # Continue to normal installation
+            ;;
+        4)
+            echo "Exiting."
+            exit 0
+            ;;
+        *)
+            print_error "Invalid choice. Exiting."
+            exit 1
+            ;;
+    esac
+fi
+
 # Step 1: Check and install system prerequisites
 print_info "Step 1/11: Checking system prerequisites..."
 
