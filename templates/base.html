@@ -47,7 +47,15 @@
                             <li><a class="dropdown-item" href="{% url 'core:secure_note_inbox' %}"><i class="fas fa-lock"></i> Secure Notes</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'docs:document_list' %}"><i class="fas fa-file-alt"></i> Docs</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="docsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-file-alt"></i> Docs
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'docs:document_list' %}"><i class="fas fa-file-alt"></i> Documents</a></li>
+                            <li><a class="dropdown-item" href="{% url 'docs:diagram_list' %}"><i class="fas fa-project-diagram"></i> Diagrams</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'processes:process_list' %}"><i class="fas fa-tasks"></i> Processes</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'core:favorite_list' %}"><i class="fas fa-star text-warning"></i> Favorites</a></li>
                     <li class="nav-item dropdown">

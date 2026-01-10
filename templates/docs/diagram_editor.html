@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Diagram - {{ diagram.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h4><i class="fas fa-edit"></i> Editing: {{ diagram.title }}</h4>
+    <div>
+        <button id="saveBtn" class="btn btn-success btn-sm" disabled>
+            <i class="fas fa-save"></i> Save
+        </button>
+        <a href="{% url 'docs:diagram_detail' diagram.slug %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-times"></i> Close
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info alert-dismissible fade show mb-2" role="alert">
+    <i class="fas fa-info-circle"></i> <strong>Draw.io Editor</strong> - Make your changes, then click Save. Auto-save every 60 seconds.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<!-- Draw.io iframe -->
+<div class="card border-0">
+    <div class="card-body p-0">
+        <iframe
+            id="drawio-iframe"
+            src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&saveAndExit=0&noSaveBtn=1&ui=kennedy&libraries=1&noExitBtn=1"
+            style="width: 100%; height: 85vh; border: none;"
+            allowfullscreen>
+        </iframe>
+    </div>
+</div>
+
+<div id="status" class="text-center text-muted small mt-2">
+    Loading editor...
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const iframe = document.getElementById('drawio-iframe');
+    const saveBtn = document.getElementById('saveBtn');
+    const statusDiv = document.getElementById('status');
+    const origin = 'https://embed.diagrams.net';
+
+    let currentDiagramXml = {{ diagram.diagram_xml|safe|default:"''" }};
+    let hasUnsavedChanges = false;
+    let editorReady = false;
+    let autoSaveInterval = null;
+
+    // Update status message
+    function updateStatus(message, isError = false) {
+        statusDiv.textContent = message;
+        statusDiv.className = `text-center small mt-2 ${isError ? 'text-danger' : 'text-muted'}`;
+    }
+
+    // Send message to draw.io iframe
+    function sendToDrawio(action, data = {}) {
+        const message = JSON.stringify({action, ...data});
+        iframe.contentWindow.postMessage(message, origin);
+    }
+
+    // Save diagram via AJAX
+    function saveDiagram() {
+        if (!hasUnsavedChanges) {
+            updateStatus('No changes to save');
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        updateStatus('Saving...');
+
+        fetch('{% url "docs:diagram_save" diagram.pk %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                diagram_xml: currentDiagramXml
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                hasUnsavedChanges = false;
+                updateStatus(`Saved successfully (v${data.version})`);
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+                }, 2000);
+            } else {
+                throw new Error(data.error || 'Save failed');
+            }
+        })
+        .catch(error => {
+            updateStatus('Error: ' + error.message, true);
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+        });
+    }
+
+    // Handle messages from draw.io
+    window.addEventListener('message', function(evt) {
+        if (evt.origin !== origin) return;
+
+        let msg;
+        try {
+            msg = JSON.parse(evt.data);
+        } catch (e) {
+            return;
+        }
+
+        console.log('Draw.io message:', msg.event);
+
+        switch (msg.event) {
+            case 'init':
+                editorReady = true;
+                updateStatus('Editor ready');
+
+                // Load existing diagram if available
+                if (currentDiagramXml) {
+                    sendToDrawio('load', {xml: currentDiagramXml});
+                    updateStatus('Diagram loaded');
+                } else {
+                    updateStatus('Ready to draw');
+                }
+
+                // Start auto-save
+                autoSaveInterval = setInterval(() => {
+                    if (hasUnsavedChanges) {
+                        sendToDrawio('export', {format: 'xml'});
+                    }
+                }, 60000); // Auto-save every 60 seconds
+                break;
+
+            case 'autosave':
+                // Diagram changed
+                if (msg.xml) {
+                    currentDiagramXml = msg.xml;
+                    hasUnsavedChanges = true;
+                    saveBtn.disabled = false;
+                    updateStatus('Unsaved changes');
+                }
+                break;
+
+            case 'save':
+                // User clicked internal save
+                if (msg.xml) {
+                    currentDiagramXml = msg.xml;
+                    hasUnsavedChanges = true;
+                    saveDiagram();
+                }
+                break;
+
+            case 'export':
+                // Export result (for auto-save)
+                if (msg.format === 'xml' && msg.data) {
+                    currentDiagramXml = msg.data;
+                    saveDiagram();
+                }
+                break;
+
+            case 'exit':
+                // User wants to exit
+                if (hasUnsavedChanges) {
+                    if (confirm('You have unsaved changes. Save before closing?')) {
+                        saveDiagram();
+                        setTimeout(() => {
+                            window.location.href = '{% url "docs:diagram_detail" diagram.slug %}';
+                        }, 1000);
+                    } else {
+                        window.location.href = '{% url "docs:diagram_detail" diagram.slug %}';
+                    }
+                } else {
+                    window.location.href = '{% url "docs:diagram_detail" diagram.slug %}';
+                }
+                break;
+        }
+    });
+
+    // Save button click
+    saveBtn.addEventListener('click', function() {
+        if (editorReady) {
+            // Request XML export, which will trigger save
+            sendToDrawio('export', {format: 'xml'});
+        }
+    });
+
+    // Warn about unsaved changes on page unload
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    });
+
+    // Clean up on unload
+    window.addEventListener('unload', function() {
+        if (autoSaveInterval) {
+            clearInterval(autoSaveInterval);
+        }
+    });
+})();
+</script>
+{% endblock %}

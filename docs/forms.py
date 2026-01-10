@@ -2,7 +2,7 @@
 Docs forms
 """
 from django import forms
-from .models import Document, DocumentCategory
+from .models import Document, DocumentCategory, Diagram
 
 
 class DocumentForm(forms.ModelForm):
@@ -35,3 +35,29 @@ class DocumentForm(forms.ModelForm):
             self.fields['tags'].queryset = self.organization.tags.all()
             self.fields['category'].queryset = DocumentCategory.objects.filter(organization=self.organization)
             self.fields['category'].required = False
+
+
+class DiagramForm(forms.ModelForm):
+    class Meta:
+        model = Diagram
+        fields = ['title', 'slug', 'description', 'diagram_type', 'is_published', 'is_template', 'tags']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Diagram Title'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'diagram-slug'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description of this diagram'}),
+            'diagram_type': forms.Select(attrs={'class': 'form-select'}),
+            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_template': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'tags': forms.CheckboxSelectMultiple(),
+        }
+        help_texts = {
+            'slug': 'URL-friendly identifier (auto-generated if empty)',
+            'is_template': 'Make this a reusable template',
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.organization = kwargs.pop('organization', None)
+        super().__init__(*args, **kwargs)
+
+        if self.organization:
+            self.fields['tags'].queryset = self.organization.tags.all()

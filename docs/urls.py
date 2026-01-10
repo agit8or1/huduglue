@@ -18,6 +18,16 @@ urlpatterns = [
     path('kb/<slug:slug>/', views.global_kb_detail, name='global_kb_detail'),
     path('kb/<slug:slug>/edit/', views.global_kb_edit, name='global_kb_edit'),
     path('kb/<slug:slug>/delete/', views.global_kb_delete, name='global_kb_delete'),
+
+    # Diagrams
+    path('diagrams/', views.diagram_list, name='diagram_list'),
+    path('diagrams/create/', views.diagram_create, name='diagram_create'),
+    path('diagrams/<slug:slug>/', views.diagram_detail, name='diagram_detail'),
+    path('diagrams/<slug:slug>/edit/', views.diagram_edit, name='diagram_edit'),
+    path('diagrams/<slug:slug>/delete/', views.diagram_delete, name='diagram_delete'),
+    path('diagrams/<int:pk>/save/', views.diagram_save, name='diagram_save'),
+
+    # Documents (must be last due to slug catch-all)
     path('<slug:slug>/', views.document_detail, name='document_detail'),
     path('<slug:slug>/edit/', views.document_edit, name='document_edit'),
     path('<slug:slug>/delete/', views.document_delete, name='document_delete'),

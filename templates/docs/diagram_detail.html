@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ diagram.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1><i class="fas fa-project-diagram"></i> {{ diagram.title }}</h1>
+        <div class="text-muted small">
+            {% if diagram.is_global %}
+            <span class="badge bg-success"><i class="fas fa-globe"></i> Global</span>
+            {% endif %}
+            <span class="badge bg-secondary">{{ diagram.get_diagram_type_display }}</span>
+            {% for tag in diagram.tags.all %}
+            <span class="badge bg-info">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="btn-group">
+        {% if not diagram.is_global %}
+        <a href="{% url 'docs:diagram_edit' diagram.slug %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'docs:diagram_delete' diagram.slug %}" class="btn btn-outline-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+        {% endif %}
+        <a href="{% url 'docs:diagram_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+{% if diagram.description %}
+<div class="alert alert-info">
+    {{ diagram.description }}
+</div>
+{% endif %}
+
+<!-- Diagram Display -->
+<div class="card mb-3">
+    <div class="card-header py-2">
+        <h5 class="mb-0"><i class="fas fa-image"></i> Diagram View</h5>
+    </div>
+    <div class="card-body text-center">
+        {% if diagram.png_export %}
+        <img src="{{ diagram.png_export.url }}" alt="{{ diagram.title }}" style="max-width: 100%; height: auto;" class="border">
+        {% elif diagram.svg_export %}
+        <img src="{{ diagram.svg_export.url }}" alt="{{ diagram.title }}" style="max-width: 100%; height: auto;" class="border">
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> No preview available. Edit the diagram to generate exports.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Downloads -->
+<div class="card mb-3">
+    <div class="card-header py-2">
+        <h5 class="mb-0"><i class="fas fa-download"></i> Downloads</h5>
+    </div>
+    <div class="card-body">
+        <div class="btn-group">
+            {% if diagram.diagram_xml %}
+            <a href="data:text/xml;charset=utf-8,{{ diagram.diagram_xml|urlencode }}" download="{{ diagram.slug }}.drawio" class="btn btn-outline-primary">
+                <i class="fas fa-file-code"></i> .drawio XML
+            </a>
+            {% endif %}
+            {% if diagram.png_export %}
+            <a href="{{ diagram.png_export.url }}" download="{{ diagram.slug }}.png" class="btn btn-outline-success">
+                <i class="fas fa-file-image"></i> PNG
+            </a>
+            {% endif %}
+            {% if diagram.svg_export %}
+            <a href="{{ diagram.svg_export.url }}" download="{{ diagram.slug }}.svg" class="btn btn-outline-info">
+                <i class="fas fa-file-image"></i> SVG
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Metadata -->
+<div class="card">
+    <div class="card-header py-2">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Metadata</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1"><strong>Created by:</strong> {{ diagram.created_by.username }}</p>
+                <p class="mb-1"><strong>Created:</strong> {{ diagram.created_at|date:"Y-m-d H:i" }}</p>
+                <p class="mb-1"><strong>Version:</strong> {{ diagram.version_number }}</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1"><strong>Last modified by:</strong> {{ diagram.last_modified_by.username }}</p>
+                <p class="mb-1"><strong>Last edited:</strong> {{ diagram.last_edited_at|date:"Y-m-d H:i" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

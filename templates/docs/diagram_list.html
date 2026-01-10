@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Diagrams{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-project-diagram"></i> Diagrams</h1>
+    <a href="{% url 'docs:diagram_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Diagram</a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small mb-1">Search</label>
+                <input type="text" name="q" class="form-control form-control-sm" placeholder="Search diagrams..." value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Type</label>
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">All Types</option>
+                    {% for type_value, type_label in diagram_types %}
+                    <option value="{{ type_value }}" {% if selected_type == type_value %}selected{% endif %}>
+                        {{ type_label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Tag</label>
+                <select name="tag" class="form-select form-select-sm">
+                    <option value="">All Tags</option>
+                    {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if selected_tag == tag.id|stringformat:"s" %}selected{% endif %}>
+                        {{ tag.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <a href="{% url 'docs:diagram_list' %}" class="btn btn-outline-secondary btn-sm w-100 mt-1">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Diagrams Grid -->
+<div class="row g-3">
+    {% for diagram in diagrams %}
+    <div class="col-md-4">
+        <div class="card h-100">
+            {% if diagram.png_export %}
+            <img src="{{ diagram.png_export.url }}" class="card-img-top" alt="{{ diagram.title }}" style="height: 200px; object-fit: contain; background: #f8f9fa;">
+            {% else %}
+            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                <i class="fas fa-project-diagram fa-4x text-muted"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'docs:diagram_detail' diagram.slug %}">{{ diagram.title }}</a>
+                </h5>
+                {% if diagram.description %}
+                <p class="card-text small text-muted">{{ diagram.description|truncatewords:15 }}</p>
+                {% endif %}
+                <div class="mb-2">
+                    <span class="badge bg-secondary">{{ diagram.get_diagram_type_display }}</span>
+                    {% if diagram.is_global %}
+                    <span class="badge bg-success"><i class="fas fa-globe"></i> Global</span>
+                    {% endif %}
+                    {% if diagram.is_template %}
+                    <span class="badge bg-info"><i class="fas fa-copy"></i> Template</span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% for tag in diagram.tags.all %}
+                    <span class="badge bg-light text-dark">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <small class="text-muted">
+                    <i class="fas fa-clock"></i> {{ diagram.last_edited_at|timesince }} ago
+                </small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-center text-muted">No diagrams found. <a href="{% url 'docs:diagram_create' %}">Create one</a></p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -473,3 +473,207 @@ def template_delete(request, pk):
     return render(request, 'docs/template_confirm_delete.html', {
         'template': template,
     })
+
+# ===== Diagram Views =====
+
+@login_required
+def diagram_list(request):
+    """
+    List all diagrams in current organization with filtering.
+    """
+    from django.db.models import Q
+    from .models import Diagram
+    
+    org = get_request_organization(request)
+
+    # Get org-specific and global diagrams
+    diagrams = Diagram.objects.filter(
+        Q(organization=org) | Q(is_global=True),
+        is_published=True
+    ).prefetch_related('tags')
+
+    # Filter by diagram type
+    diagram_type = request.GET.get('type')
+    if diagram_type:
+        diagrams = diagrams.filter(diagram_type=diagram_type)
+
+    # Filter by tag
+    tag_id = request.GET.get('tag')
+    if tag_id:
+        diagrams = diagrams.filter(tags__id=tag_id)
+
+    # Search query
+    query = request.GET.get('q', '').strip()
+    if query:
+        diagrams = diagrams.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        )
+
+    diagrams = diagrams.order_by('-last_edited_at')
+
+    # Get tags for filters
+    from core.models import Tag
+    tags = Tag.objects.filter(organization=org).order_by('name')
+
+    # Get diagram type choices
+    from .models import Diagram as DiagramModel
+    diagram_types = DiagramModel.DIAGRAM_TYPES
+
+    return render(request, 'docs/diagram_list.html', {
+        'diagrams': diagrams,
+        'current_organization': org,
+        'tags': tags,
+        'diagram_types': diagram_types,
+        'selected_type': diagram_type,
+        'selected_tag': tag_id,
+        'query': query,
+    })
+
+
+@login_required
+def diagram_detail(request, slug):
+    """
+    View diagram details with PNG/SVG export.
+    """
+    from django.db.models import Q
+    from .models import Diagram
+    
+    org = get_request_organization(request)
+    diagram = get_object_or_404(
+        Diagram.objects.filter(Q(organization=org) | Q(is_global=True)),
+        slug=slug
+    )
+
+    # Get versions
+    versions = diagram.versions.all()[:10]  # Last 10 versions
+
+    return render(request, 'docs/diagram_detail.html', {
+        'diagram': diagram,
+        'versions': versions,
+        'current_organization': org,
+    })
+
+
+@login_required
+@require_write
+def diagram_create(request):
+    """
+    Create new diagram - redirects to editor.
+    """
+    org = get_request_organization(request)
+
+    if request.method == 'POST':
+        from .forms import DiagramForm
+        form = DiagramForm(request.POST, organization=org)
+        if form.is_valid():
+            diagram = form.save(commit=False)
+            diagram.organization = org
+            diagram.created_by = request.user
+            diagram.last_modified_by = request.user
+            diagram.diagram_xml = ''  # Empty initially
+            diagram.save()
+            form.save_m2m()
+            messages.success(request, f"Diagram '{diagram.title}' created. You can now edit it.")
+            return redirect('docs:diagram_edit', slug=diagram.slug)
+    else:
+        from .forms import DiagramForm
+        form = DiagramForm(organization=org)
+
+    return render(request, 'docs/diagram_form.html', {
+        'form': form,
+        'action': 'Create',
+        'current_organization': org,
+    })
+
+
+@login_required
+@require_write
+def diagram_edit(request, slug):
+    """
+    Edit diagram with draw.io editor.
+    """
+    from .models import Diagram
+    from django.db.models import Q
+    
+    org = get_request_organization(request)
+    diagram = get_object_or_404(Diagram, slug=slug, organization=org)
+
+    return render(request, 'docs/diagram_editor.html', {
+        'diagram': diagram,
+        'current_organization': org,
+    })
+
+
+@login_required
+@require_write
+def diagram_save(request, pk):
+    """
+    AJAX endpoint to save diagram XML and metadata.
+    """
+    from django.http import JsonResponse
+    from .models import Diagram, DiagramVersion
+    import json
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=400)
+
+    org = get_request_organization(request)
+    diagram = get_object_or_404(Diagram, pk=pk, organization=org)
+
+    try:
+        data = json.loads(request.body)
+        diagram_xml = data.get('diagram_xml', '')
+        
+        if not diagram_xml:
+            return JsonResponse({'error': 'No diagram data provided'}, status=400)
+
+        # Create version snapshot before saving
+        DiagramVersion.objects.create(
+            diagram=diagram,
+            version_number=diagram.version_number,
+            diagram_xml=diagram.diagram_xml if diagram.diagram_xml else '',
+            created_by=request.user,
+            change_notes=data.get('change_notes', 'Auto-saved')
+        )
+
+        # Update diagram
+        diagram.diagram_xml = diagram_xml
+        diagram.last_modified_by = request.user
+        diagram.version_number += 1
+        diagram.save()
+
+        return JsonResponse({
+            'success': True,
+            'version': diagram.version_number
+        })
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_write
+def diagram_delete(request, slug):
+    """
+    Delete diagram.
+    """
+    from .models import Diagram
+    
+    org = get_request_organization(request)
+    diagram = get_object_or_404(Diagram, slug=slug, organization=org)
+
+    if request.method == 'POST':
+        title = diagram.title
+        diagram.delete()
+        messages.success(request, f"Diagram '{title}' deleted successfully.")
+        return redirect('docs:diagram_list')
+
+    # Get usage count (how many processes link to this diagram)
+    from processes.models import Process
+    linked_processes = Process.objects.filter(linked_diagram=diagram).count()
+
+    return render(request, 'docs/diagram_confirm_delete.html', {
+        'diagram': diagram,
+        'linked_processes': linked_processes,
+        'current_organization': org,
+    })
