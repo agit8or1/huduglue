@@ -25,7 +25,7 @@
     <div class="card-body p-0">
         <iframe
             id="drawio-iframe"
-            src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&saveAndExit=0&noSaveBtn=1&ui=kennedy&libraries=1&noExitBtn=1"
+            src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&saveAndExit=0&noSaveBtn=1&ui=kennedy&libraries=1&noExitBtn=1&autosave=1"
             style="width: 100%; height: 85vh; border: none;"
             allow="camera; microphone; clipboard-read; clipboard-write"
             sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"
@@ -68,12 +68,16 @@
     // Send message to draw.io iframe
     function sendToDrawio(action, data = {}) {
         const message = JSON.stringify({action, ...data});
+        console.log('Sending to draw.io:', action, data);
         iframe.contentWindow.postMessage(message, origin);
     }
 
     // Save diagram via AJAX
     function saveDiagram() {
+        console.log('saveDiagram() called, hasUnsavedChanges:', hasUnsavedChanges, 'xml length:', currentDiagramXml.length);
+
         if (!hasUnsavedChanges) {
+            console.log('No changes to save, aborting');
             updateStatus('No changes to save');
             return;
         }
@@ -81,6 +85,7 @@
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         updateStatus('Saving...');
+        console.log('Sending AJAX request to save diagram...');
 
         fetch('{% url "docs:diagram_save" diagram.pk %}', {
             method: 'POST',
@@ -92,13 +97,18 @@
                 diagram_xml: currentDiagramXml
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Save response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Save response data:', data);
             if (data.success) {
                 hasUnsavedChanges = false;
                 updateStatus(`Saved successfully (v${data.version})`);
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                console.log('Diagram saved successfully, version:', data.version);
                 setTimeout(() => {
                     saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
                 }, 2000);
@@ -107,6 +117,7 @@
             }
         })
         .catch(error => {
+            console.error('Save error:', error);
             updateStatus('Error: ' + error.message, true);
             saveBtn.disabled = false;
             saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
@@ -180,12 +191,16 @@
                 break;
 
             case 'autosave':
-                // Diagram changed
+                // Diagram changed - this fires whenever user makes a change
+                console.log('Autosave event received, xml length:', msg.xml ? msg.xml.length : 0);
                 if (msg.xml) {
                     currentDiagramXml = msg.xml;
                     hasUnsavedChanges = true;
                     saveBtn.disabled = false;
                     updateStatus('Unsaved changes');
+                    console.log('Save button enabled');
+                } else {
+                    console.warn('Autosave event missing xml data');
                 }
                 break;
 
@@ -199,10 +214,16 @@
                 break;
 
             case 'export':
-                // Export result (for auto-save)
+                // Export result (for manual save or auto-save)
+                console.log('Export event received, format:', msg.format, 'data length:', msg.data ? msg.data.length : 0);
                 if (msg.format === 'xml' && msg.data) {
+                    console.log('Valid XML export received, saving...');
                     currentDiagramXml = msg.data;
+                    hasUnsavedChanges = true; // Mark as changed so saveDiagram will proceed
                     saveDiagram();
+                } else {
+                    console.error('Export event missing xml data');
+                    updateStatus('Failed to export diagram data', true);
                 }
                 break;
 
@@ -226,9 +247,14 @@
 
     // Save button click
     saveBtn.addEventListener('click', function() {
+        console.log('Save button clicked, editorReady:', editorReady);
         if (editorReady) {
             // Request XML export, which will trigger save
+            console.log('Requesting XML export from draw.io...');
             sendToDrawio('export', {format: 'xml'});
+        } else {
+            console.error('Cannot save - editor not ready');
+            updateStatus('Editor not ready yet', true);
         }
     });
 
