@@ -81,10 +81,34 @@ if ! command -v mysql &> /dev/null; then
     PACKAGES_TO_INSTALL+=("mariadb-client")
 fi
 
-# Check for build essentials (needed for Python packages like cryptography)
+# Check for build essentials (needed for Python packages like cryptography, mysqlclient)
 if ! dpkg -l | grep -q build-essential; then
     print_warning "build-essential not found (needed for Python packages)"
-    PACKAGES_TO_INSTALL+=("build-essential" "python3.12-dev" "libssl-dev" "libffi-dev")
+    PACKAGES_TO_INSTALL+=("build-essential")
+fi
+
+if ! dpkg -l | grep -q python3.12-dev; then
+    PACKAGES_TO_INSTALL+=("python3.12-dev")
+fi
+
+if ! dpkg -l | grep -q libssl-dev; then
+    PACKAGES_TO_INSTALL+=("libssl-dev")
+fi
+
+if ! dpkg -l | grep -q libffi-dev; then
+    PACKAGES_TO_INSTALL+=("libffi-dev")
+fi
+
+# Check for pkg-config (needed for mysqlclient)
+if ! command -v pkg-config &> /dev/null; then
+    print_warning "pkg-config not found (needed for mysqlclient)"
+    PACKAGES_TO_INSTALL+=("pkg-config")
+fi
+
+# Check for MySQL development headers (needed for mysqlclient Python package)
+if ! dpkg -l | grep -q libmysqlclient-dev && ! dpkg -l | grep -q default-libmysqlclient-dev; then
+    print_warning "MySQL development headers not found (needed for mysqlclient)"
+    PACKAGES_TO_INSTALL+=("default-libmysqlclient-dev")
 fi
 
 # Install missing packages
