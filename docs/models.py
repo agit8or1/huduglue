@@ -56,6 +56,14 @@ class Document(BaseModel):
     category = models.ForeignKey(DocumentCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
     tags = models.ManyToManyField(Tag, blank=True, related_name='documents')
 
+    # Preview image for templates
+    preview_image = models.ImageField(
+        upload_to='documents/previews/',
+        null=True,
+        blank=True,
+        help_text='Preview image for template (300x200)'
+    )
+
     # Metadata
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='documents_created')
     last_modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='documents_modified')
