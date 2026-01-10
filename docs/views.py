@@ -677,3 +677,116 @@ def diagram_delete(request, slug):
         'linked_processes': linked_processes,
         'current_organization': org,
     })
+
+
+# Diagram Template Views
+
+@login_required
+def diagram_template_list(request):
+    """
+    List all diagram templates in current organization.
+    """
+    from .models import Diagram
+
+    org = get_request_organization(request)
+
+    templates = Diagram.objects.filter(
+        organization=org,
+        is_template=True
+    ).order_by('title')
+
+    return render(request, 'docs/diagram_template_list.html', {
+        'templates': templates,
+    })
+
+
+@login_required
+@require_write
+def diagram_template_create(request):
+    """
+    Create new diagram template.
+    """
+    from .models import Diagram
+    from .forms import DiagramForm
+
+    org = get_request_organization(request)
+
+    if request.method == 'POST':
+        form = DiagramForm(request.POST, organization=org)
+        if form.is_valid():
+            template = form.save(commit=False)
+            template.organization = org
+            template.slug = slugify(template.title)
+            template.created_by = request.user
+            template.last_modified_by = request.user
+            template.is_template = True  # Force as template
+            template.is_published = True
+            template.version = 1
+            template.diagram_xml = ''  # Start with empty diagram
+            template.save()
+            form.save_m2m()
+            messages.success(request, f"Template '{template.title}' created successfully.")
+            # Redirect to editor to create the template diagram
+            return redirect('docs:diagram_edit', slug=template.slug)
+    else:
+        initial_data = {'is_template': True}
+        form = DiagramForm(organization=org, initial=initial_data)
+
+    return render(request, 'docs/diagram_template_form.html', {
+        'form': form,
+        'action': 'Create',
+    })
+
+
+@login_required
+@require_write
+def diagram_template_edit(request, pk):
+    """
+    Edit diagram template metadata (not the diagram itself).
+    """
+    from .models import Diagram
+    from .forms import DiagramForm
+
+    org = get_request_organization(request)
+    template = get_object_or_404(Diagram, pk=pk, organization=org, is_template=True)
+
+    if request.method == 'POST':
+        form = DiagramForm(request.POST, instance=template, organization=org)
+        if form.is_valid():
+            template = form.save(commit=False)
+            template.is_template = True  # Ensure it stays a template
+            template.last_modified_by = request.user
+            template.save()
+            form.save_m2m()
+            messages.success(request, f"Template '{template.title}' updated successfully.")
+            return redirect('docs:diagram_template_list')
+    else:
+        form = DiagramForm(instance=template, organization=org)
+
+    return render(request, 'docs/diagram_template_form.html', {
+        'form': form,
+        'template': template,
+        'action': 'Edit',
+    })
+
+
+@login_required
+@require_write
+def diagram_template_delete(request, pk):
+    """
+    Delete diagram template.
+    """
+    from .models import Diagram
+
+    org = get_request_organization(request)
+    template = get_object_or_404(Diagram, pk=pk, organization=org, is_template=True)
+
+    if request.method == 'POST':
+        title = template.title
+        template.delete()
+        messages.success(request, f"Template '{title}' deleted successfully.")
+        return redirect('docs:diagram_template_list')
+
+    return render(request, 'docs/diagram_template_confirm_delete.html', {
+        'template': template,
+    })

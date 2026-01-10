@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1><i class="fas fa-shield-alt"></i> Two-Factor Authentication</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}">Profile</a></li>
+            <li class="breadcrumb-item active">2FA Settings</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {% if profile.two_factor_enabled %}
+                    <i class="fas fa-check-circle text-success"></i> 2FA Enabled
+                    {% else %}
+                    <i class="fas fa-exclamation-triangle text-warning"></i> 2FA Not Enabled
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if step == 'initial' %}
+                <!-- Initial State - Show enable/disable -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>What is Two-Factor Authentication?</strong><br>
+                    Two-Factor Authentication (2FA) adds an extra layer of security to your account. In addition to your password, you'll need to enter a code from an authenticator app on your phone.
+                </div>
+
+                {% if profile.two_factor_enabled %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Your account is currently protected with 2FA using TOTP (Time-based One-Time Password).
+                </div>
+
+                <h6 class="mt-4">Disable Two-Factor Authentication</h6>
+                <p class="text-muted">
+                    Warning: Disabling 2FA will make your account less secure. Only disable if necessary.
+                </p>
+
+                <form method="post" onsubmit="return confirm('Are you sure you want to disable 2FA?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="disable">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Disable 2FA
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Your account is not protected with 2FA. We strongly recommend enabling it.
+                </div>
+
+                <h6 class="mt-4">Enable Two-Factor Authentication</h6>
+                <p class="text-muted">
+                    You'll need an authenticator app on your phone such as:
+                </p>
+                <ul>
+                    <li><strong>Google Authenticator</strong> (iOS/Android)</li>
+                    <li><strong>Microsoft Authenticator</strong> (iOS/Android)</li>
+                    <li><strong>Authy</strong> (iOS/Android/Desktop)</li>
+                    <li><strong>1Password</strong>, <strong>Bitwarden</strong>, or other password managers with TOTP support</li>
+                </ul>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="enable">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-shield-alt"></i> Enable 2FA
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+                {% endif %}
+
+                {% elif step == 'verify' %}
+                <!-- Verify Step - Show QR code and verification -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Step 1:</strong> Scan the QR code below with your authenticator app.
+                </div>
+
+                <div class="text-center my-4">
+                    <!-- Generate QR code using external service -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ totp_uri|urlencode }}"
+                         alt="2FA QR Code"
+                         class="border rounded p-2">
+                </div>
+
+                <div class="alert alert-secondary">
+                    <strong>Can't scan the QR code?</strong><br>
+                    Enter this code manually in your authenticator app:
+                    <div class="mt-2">
+                        <code class="user-select-all" style="font-size: 1.2em; letter-spacing: 0.2em;">{{ secret }}</code>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Step 2:</strong> Enter the 6-digit code from your authenticator app to verify.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="verify">
+
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Verification Code</label>
+                        <input type="text"
+                               class="form-control form-control-lg text-center"
+                               id="code"
+                               name="code"
+                               placeholder="000000"
+                               pattern="[0-9]{6}"
+                               maxlength="6"
+                               autofocus
+                               required
+                               style="font-size: 2em; letter-spacing: 0.5em;">
+                        <small class="form-text text-muted">Enter the 6-digit code from your authenticator app</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Verify and Enable
+                        </button>
+                        <a href="{% url 'accounts:two_factor_setup' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Security Tips -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Security Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Keep your authenticator app on a secure device</li>
+                    <li>Consider backing up your 2FA codes in a secure password manager</li>
+                    <li>Never share your 2FA codes with anyone</li>
+                    <li>If you lose access to your authenticator, contact your organization administrator</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

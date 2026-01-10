@@ -22,6 +22,10 @@ urlpatterns = [
     # Diagrams
     path('diagrams/', views.diagram_list, name='diagram_list'),
     path('diagrams/create/', views.diagram_create, name='diagram_create'),
+    path('diagrams/templates/', views.diagram_template_list, name='diagram_template_list'),
+    path('diagrams/templates/create/', views.diagram_template_create, name='diagram_template_create'),
+    path('diagrams/templates/<int:pk>/edit/', views.diagram_template_edit, name='diagram_template_edit'),
+    path('diagrams/templates/<int:pk>/delete/', views.diagram_template_delete, name='diagram_template_delete'),
     path('diagrams/<slug:slug>/', views.diagram_detail, name='diagram_detail'),
     path('diagrams/<slug:slug>/edit/', views.diagram_edit, name='diagram_edit'),
     path('diagrams/<slug:slug>/delete/', views.diagram_delete, name='diagram_delete'),

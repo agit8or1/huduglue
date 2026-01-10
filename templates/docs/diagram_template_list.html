@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Diagram Templates - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="fas fa-th-large"></i> Diagram Templates</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'docs:diagram_list' %}">Diagrams</a></li>
+                <li class="breadcrumb-item active">Templates</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="{% url 'docs:diagram_template_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create Template
+        </a>
+        <a href="{% url 'docs:diagram_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Diagrams
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> <strong>Diagram Templates</strong> are reusable diagram designs that can be cloned to quickly create new diagrams. Templates are shared across your organization.
+</div>
+
+{% if templates %}
+<div class="row">
+    {% for template in templates %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-th-large"></i> {{ template.title }}
+                    </h5>
+                    <span class="badge bg-info">Template</span>
+                </div>
+
+                {% if template.description %}
+                <p class="card-text text-muted small">{{ template.description|truncatewords:20 }}</p>
+                {% else %}
+                <p class="card-text text-muted small fst-italic">No description</p>
+                {% endif %}
+
+                <div class="mb-2">
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-folder"></i> {{ template.get_diagram_type_display }}
+                    </span>
+                    {% if template.tags.all %}
+                    {% for tag in template.tags.all|slice:":3" %}
+                    <span class="badge bg-light text-dark">{{ tag.name }}</span>
+                    {% endfor %}
+                    {% if template.tags.count > 3 %}
+                    <span class="badge bg-light text-dark">+{{ template.tags.count|add:"-3" }}</span>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="small text-muted mb-3">
+                    <div><i class="fas fa-calendar"></i> Created: {{ template.created_at|date:"M d, Y" }}</div>
+                    {% if template.created_by %}
+                    <div><i class="fas fa-user"></i> By: {{ template.created_by.username }}</div>
+                    {% endif %}
+                    <div><i class="fas fa-code-branch"></i> Version: {{ template.version }}</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'docs:diagram_detail' template.slug %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    <a href="{% url 'docs:diagram_edit' template.slug %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-edit"></i> Edit Diagram
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'docs:diagram_template_edit' template.pk %}">
+                                    <i class="fas fa-cog"></i> Edit Metadata
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'docs:diagram_template_delete' template.pk %}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-secondary text-center py-5">
+    <i class="fas fa-th-large fa-3x mb-3 text-muted"></i>
+    <h5>No Diagram Templates Yet</h5>
+    <p class="text-muted">Create your first diagram template to get started.</p>
+    <a href="{% url 'docs:diagram_template_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create Template
+    </a>
+</div>
+{% endif %}
+{% endblock %}

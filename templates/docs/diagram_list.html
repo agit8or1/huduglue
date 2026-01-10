@@ -5,7 +5,10 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1><i class="fas fa-project-diagram"></i> Diagrams</h1>
-    <a href="{% url 'docs:diagram_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Diagram</a>
+    <div class="btn-group">
+        <a href="{% url 'docs:diagram_template_list' %}" class="btn btn-outline-secondary"><i class="fas fa-th-large"></i> Templates</a>
+        <a href="{% url 'docs:diagram_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Diagram</a>
+    </div>
 </div>
 
 <!-- Filters -->
