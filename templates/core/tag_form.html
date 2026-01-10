@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Tag{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'core:tag_list' %}">Tags</a></li>
+        <li class="breadcrumb-item active">{{ action }} Tag</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="fas fa-tags"></i> {{ action }} Tag</h2>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label"><strong>Tag Name</strong> <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{% if tag %}{{ tag.name }}{% elif name %}{{ name }}{% endif %}" required placeholder="e.g. Production, Critical, VIP">
+                    <small class="form-text text-muted">Choose a descriptive name for this tag</small>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label"><strong>Color</strong></label>
+                    <input type="color" name="color" class="form-control form-control-color" value="{% if tag %}{{ tag.color }}{% elif color %}{{ color }}{% else %}#6c757d{% endif %}" title="Choose tag color">
+                    <small class="form-text text-muted">Select a color for this tag</small>
+                </div>
+
+                {% if tag %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> <strong>Preview:</strong>
+                        <span class="badge ms-2" style="background-color: {% if tag %}{{ tag.color }}{% elif color %}{{ color }}{% else %}#6c757d{% endif %}; color: white; font-size: 14px;">
+                            {% if tag %}{{ tag.name }}{% elif name %}{{ name }}{% else %}Tag Preview{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ action }} Tag
+                </button>
+                <a href="{% url 'core:tag_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Live preview update
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.querySelector('input[name="name"]');
+    const colorInput = document.querySelector('input[name="color"]');
+    const previewBadge = document.querySelector('.badge');
+
+    if (nameInput && colorInput && previewBadge) {
+        function updatePreview() {
+            previewBadge.textContent = nameInput.value || 'Tag Preview';
+            previewBadge.style.backgroundColor = colorInput.value;
+        }
+
+        nameInput.addEventListener('input', updatePreview);
+        colorInput.addEventListener('input', updatePreview);
+    }
+});
+</script>
+{% endblock %}
