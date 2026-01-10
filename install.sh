@@ -144,9 +144,11 @@ if [ "$EXISTING_INSTALL" = true ]; then
         1)
             print_info "Starting upgrade process..."
 
-            # Stop service
+            # Stop service and kill any gunicorn processes
             print_info "Stopping service..."
             sudo systemctl stop huduglue-gunicorn.service 2>/dev/null || true
+            sudo pkill -9 gunicorn 2>/dev/null || true
+            sleep 1
 
             # Pull latest code
             print_info "Pulling latest code from GitHub..."
@@ -532,6 +534,10 @@ print_status "Static files collected"
 # Step 11: Start the server automatically
 echo ""
 print_info "Step 11/11: Starting production server..."
+
+# Kill any existing gunicorn processes first
+sudo pkill -9 gunicorn 2>/dev/null || true
+sleep 1
 
 # Create systemd service file
 sudo tee /etc/systemd/system/huduglue-gunicorn.service > /dev/null << 'SVCEOF'
