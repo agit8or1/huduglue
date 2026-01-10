@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Organization - {{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Delete Organization
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-circle"></i> WARNING: This action cannot be undone!</h5>
+                    <p class="mb-0">
+                        You are about to permanently delete the organization <strong>{{ organization.name }}</strong>
+                        and <strong>ALL</strong> associated data. This includes:
+                    </p>
+                </div>
+
+                <h5>Data to be deleted:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-users"></i> Members</span>
+                                <span class="badge bg-primary rounded-pill">{{ data_counts.members }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-box"></i> Assets</span>
+                                <span class="badge bg-primary rounded-pill">{{ data_counts.assets }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-file-alt"></i> Documents</span>
+                                <span class="badge bg-primary rounded-pill">{{ data_counts.documents }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-key"></i> Passwords</span>
+                                <span class="badge bg-primary rounded-pill">{{ data_counts.passwords }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-tasks"></i> Processes</span>
+                                <span class="badge bg-primary rounded-pill">{{ data_counts.processes }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-running"></i> Process Executions</span>
+                                <span class="badge bg-primary rounded-pill">{{ data_counts.process_executions }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-project-diagram"></i> Diagrams</span>
+                                <span class="badge bg-primary rounded-pill">{{ data_counts.diagrams }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-database"></i> All other data</span>
+                                <span class="badge bg-warning rounded-pill">All</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Note:</strong> This includes:
+                    <ul class="mb-0">
+                        <li>All relationships and connections</li>
+                        <li>All tags and categories</li>
+                        <li>All audit logs for this organization</li>
+                        <li>All attachments and files</li>
+                        <li>All monitoring configurations</li>
+                        <li>All integrations and sync settings</li>
+                    </ul>
+                </div>
+
+                <div class="bg-light p-3 rounded mb-3">
+                    <h6>Organization Details:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Name:</strong> {{ organization.name }}</li>
+                        <li><strong>Slug:</strong> {{ organization.slug }}</li>
+                        <li><strong>Created:</strong> {{ organization.created_at|date:"F j, Y" }}</li>
+                        {% if organization.description %}
+                        <li><strong>Description:</strong> {{ organization.description }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> <strong>Tip:</strong> Consider exporting critical data before deletion.
+                    Once deleted, this data cannot be recovered.
+                </div>
+
+                <form method="post" id="deleteForm">
+                    {% csrf_token %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                        <label class="form-check-label" for="confirmDelete">
+                            <strong>I understand that this action is permanent and cannot be undone</strong>
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'accounts:organization_detail' organization.id %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg" id="deleteButton" disabled>
+                            <i class="fas fa-trash"></i> Delete Organization Permanently
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enable delete button only when checkbox is checked
+document.getElementById('confirmDelete').addEventListener('change', function() {
+    document.getElementById('deleteButton').disabled = !this.checked;
+});
+
+// Add confirmation dialog on form submit
+document.getElementById('deleteForm').addEventListener('submit', function(e) {
+    if (!confirm('Are you ABSOLUTELY SURE you want to delete "{{ organization.name }}" and ALL its data? This cannot be undone!')) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

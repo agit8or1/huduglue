@@ -19,8 +19,13 @@ from audit.models import AuditLog
 def dashboard(request):
     """
     Main dashboard with widgets and stats.
+    Routes to global dashboard if superuser and no org context.
     """
     org = get_request_organization(request)
+
+    # If superuser and explicitly accessing dashboard without org context, show global dashboard
+    if request.user.is_superuser and not org:
+        return global_dashboard(request)
 
     # If no organization context, redirect to organization selection
     if not org:
@@ -105,4 +110,88 @@ def dashboard(request):
         'monitors_active': monitors_active,
         'activity_feed': activity_feed,
         'has_2fa': has_2fa,
+    })
+
+
+@login_required
+def global_dashboard(request):
+    """
+    Global system dashboard - superuser only.
+    Shows system-wide statistics across all organizations.
+    """
+    # Only accessible to superusers
+    if not request.user.is_superuser:
+        messages.error(request, 'You do not have permission to access the global dashboard.')
+        return redirect('core:dashboard')
+
+    from core.models import Organization
+    from accounts.models import Membership
+    from django.contrib.auth.models import User
+    from processes.models import Process, ProcessExecution
+
+    # System-wide stats
+    stats = {
+        'organizations': Organization.objects.filter(is_active=True).count(),
+        'users': User.objects.filter(is_active=True).count(),
+        'total_passwords': Password.objects.count(),
+        'total_assets': Asset.objects.count(),
+        'total_documents': Document.objects.filter(is_published=True).count(),
+        'total_processes': Process.objects.count(),
+        'total_monitors': WebsiteMonitor.objects.count(),
+    }
+
+    # Organization stats (top 10 by member count)
+    top_orgs = Organization.objects.filter(is_active=True).annotate(
+        member_count=Count('memberships', filter=Q(memberships__is_active=True)),
+        asset_count=Count('assets'),
+        document_count=Count('documents'),
+    ).order_by('-member_count')[:10]
+
+    # Recent global activity (last 20 actions)
+    global_activity = AuditLog.objects.select_related(
+        'user', 'organization'
+    ).order_by('-timestamp')[:20]
+
+    # System health indicators
+    now = timezone.now()
+    thirty_days_ago = now - timedelta(days=30)
+
+    health_stats = {
+        'active_users_30d': AuditLog.objects.filter(
+            timestamp__gte=thirty_days_ago
+        ).values('user').distinct().count(),
+        'new_orgs_30d': Organization.objects.filter(
+            created_at__gte=thirty_days_ago
+        ).count(),
+        'active_processes': ProcessExecution.objects.filter(
+            status='in_progress'
+        ).count(),
+        'monitors_down': WebsiteMonitor.objects.filter(status='down').count(),
+    }
+
+    # Global processes stats
+    process_stats = {
+        'total': Process.objects.count(),
+        'global': Process.objects.filter(is_global=True).count(),
+        'org_specific': Process.objects.filter(is_global=False).count(),
+        'active_executions': ProcessExecution.objects.filter(
+            status__in=['not_started', 'in_progress']
+        ).count(),
+    }
+
+    # Storage stats (approximate)
+    from files.models import Attachment
+    total_attachments = Attachment.objects.count()
+    total_storage = Attachment.objects.aggregate(
+        total=Count('id')
+    )['total'] or 0
+
+    return render(request, 'core/global_dashboard.html', {
+        'stats': stats,
+        'top_orgs': top_orgs,
+        'global_activity': global_activity,
+        'health_stats': health_stats,
+        'process_stats': process_stats,
+        'total_attachments': total_attachments,
+        'total_storage': total_storage,
     })
