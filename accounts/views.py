@@ -147,10 +147,25 @@ def two_factor_setup(request):
 
             if secret and code:
                 import pyotp
+                from two_factor.models import get_available_methods
+                from django_otp.plugins.otp_totp.models import TOTPDevice
+
                 totp = pyotp.TOTP(secret)
 
                 if totp.verify(code, valid_window=1):
-                    # Save to profile
+                    # Create or update TOTPDevice for django-two-factor-auth
+                    device, created = TOTPDevice.objects.get_or_create(
+                        user=request.user,
+                        name='default',
+                        defaults={'key': secret, 'confirmed': True}
+                    )
+                    if not created:
+                        # Update existing device
+                        device.key = secret
+                        device.confirmed = True
+                        device.save()
+
+                    # Save to profile for compatibility
                     profile.two_factor_enabled = True
                     profile.two_factor_method = 'totp'
                     profile.save()
@@ -158,15 +173,21 @@ def two_factor_setup(request):
                     # Clear session
                     del request.session['totp_secret']
 
-                    messages.success(request, '2FA enabled successfully!')
+                    messages.success(request, '2FA enabled successfully! You will now be prompted for a code when logging in.')
                     return redirect('accounts:profile')
                 else:
                     messages.error(request, 'Invalid code. Please try again.')
 
         elif action == 'disable':
+            # Delete TOTPDevice
+            from django_otp.plugins.otp_totp.models import TOTPDevice
+            TOTPDevice.objects.filter(user=request.user).delete()
+
+            # Update profile
             profile.two_factor_enabled = False
             profile.save()
-            messages.success(request, '2FA disabled.')
+
+            messages.success(request, '2FA disabled. You will no longer be prompted for a code when logging in.')
             return redirect('accounts:profile')
 
     return render(request, 'accounts/two_factor_setup.html', {
