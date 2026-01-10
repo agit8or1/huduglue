@@ -53,7 +53,7 @@ print_info "Installing from: $SCRIPT_DIR"
 echo ""
 
 # Step 1: Check and install system prerequisites
-print_info "Step 1/10: Checking system prerequisites..."
+print_info "Step 1/11: Checking system prerequisites..."
 
 PACKAGES_TO_INSTALL=()
 
@@ -142,7 +142,7 @@ else
 fi
 
 # Step 2: Create virtual environment
-print_info "Step 2/10: Creating Python virtual environment..."
+print_info "Step 2/11: Creating Python virtual environment..."
 
 if [ -d "venv" ]; then
     print_warning "Virtual environment already exists, removing old one..."
@@ -153,7 +153,7 @@ python3.12 -m venv venv
 print_status "Virtual environment created"
 
 # Step 3: Activate virtual environment and install dependencies
-print_info "Step 3/10: Installing Python dependencies (this may take 2-3 minutes)..."
+print_info "Step 3/11: Installing Python dependencies (this may take 2-3 minutes)..."
 source venv/bin/activate
 
 echo -e "${YELLOW}Upgrading pip...${NC}"
@@ -165,7 +165,7 @@ pip install -r requirements.txt --progress-bar on
 print_status "Python dependencies installed"
 
 # Step 4: Generate secrets
-print_info "Step 4/10: Generating secure secrets..."
+print_info "Step 4/11: Generating secure secrets..."
 
 APP_MASTER_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
@@ -174,7 +174,7 @@ API_KEY_SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
 print_status "Secrets generated"
 
 # Step 5: Create .env file
-print_info "Step 5/10: Creating environment configuration..."
+print_info "Step 5/11: Creating environment configuration..."
 
 if [ -f ".env" ]; then
     print_warning ".env file already exists, backing up to .env.backup"
@@ -216,7 +216,7 @@ print_warning "Default database password is 'ChangeMe123!' - you should change t
 
 # Step 6: Database setup
 echo ""
-print_info "Step 6/10: Database setup..."
+print_info "Step 6/11: Database setup..."
 print_info "We'll now create the database and user."
 
 # Check if MariaDB/MySQL is running
@@ -263,14 +263,21 @@ else
     read -p "Press Enter once you've created the database manually..."
 fi
 
-# Step 7: Run migrations
-print_info "Step 7/10: Running database migrations..."
+# Step 7: Create log directory
+print_info "Step 7/10: Creating log directory..."
+sudo mkdir -p /var/log/itdocs
+sudo chown $USER:$USER /var/log/itdocs
+sudo chmod 755 /var/log/itdocs
+print_status "Log directory created"
+
+# Step 8: Run migrations
+print_info "Step 8/10: Running database migrations..."
 python3 manage.py migrate
 print_status "Database migrations completed"
 
-# Step 8: Create superuser
+# Step 9: Create superuser
 echo ""
-print_info "Step 8/10: Creating superuser account..."
+print_info "Step 9/10: Creating superuser account..."
 print_info "You'll be prompted to create an admin account."
 echo ""
 
@@ -278,14 +285,14 @@ python3 manage.py createsuperuser
 
 print_status "Superuser created"
 
-# Step 9: Collect static files
-print_info "Step 9/10: Collecting static files..."
+# Step 10: Collect static files
+print_info "Step 10/10: Collecting static files..."
 python3 manage.py collectstatic --noinput > /dev/null 2>&1
 print_status "Static files collected"
 
-# Step 10: Setup complete
+# Step 11: Setup complete
 echo ""
-print_status "Step 10/10: Installation complete!"
+print_status "Installation complete!"
 echo ""
 
 # Print summary
