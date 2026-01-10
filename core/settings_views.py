@@ -344,6 +344,113 @@ def system_status(request):
     except Exception as e:
         services_status['error'] = str(e)
 
+    # Calculate projected capacity
+    capacity = {}
+    try:
+        from core.models import Organization
+        from django.contrib.auth import get_user_model
+        from vault.models import Password
+        from assets.models import Asset
+        from docs.models import Document
+
+        User = get_user_model()
+
+        # Current usage counts
+        capacity['organizations'] = Organization.objects.count()
+        capacity['users'] = User.objects.count()
+        capacity['passwords'] = Password.objects.count()
+        capacity['assets'] = Asset.objects.count()
+        capacity['documents'] = Document.objects.count()
+
+        # Resource-based capacity estimates
+        # These are conservative estimates based on typical usage patterns
+
+        # Memory-based capacity (assume 50MB per active user session)
+        if memory_info.get('available_gb'):
+            capacity['estimated_concurrent_users'] = int(memory_info['available_gb'] * 1024 / 50)
+        else:
+            capacity['estimated_concurrent_users'] = 0
+
+        # Database size-based capacity (warn at 80% of typical limits)
+        if db_info.get('size_mb'):
+            db_size_gb = db_info['size_mb'] / 1024
+            # SQLite: warn at 140GB (max 2TB theoretical)
+            # MySQL/PostgreSQL: warn at 800GB (typical deployment)
+            if 'sqlite' in db_info.get('engine', ''):
+                max_recommended_gb = 140
+            else:
+                max_recommended_gb = 800
+
+            capacity['db_size_gb'] = round(db_size_gb, 2)
+            capacity['db_max_recommended_gb'] = max_recommended_gb
+            capacity['db_percent_used'] = round((db_size_gb / max_recommended_gb) * 100, 1)
+        else:
+            capacity['db_size_gb'] = 0
+            capacity['db_percent_used'] = 0
+
+        # CPU-based capacity (estimate users per core)
+        if cpu_info.get('count'):
+            # Assume 10 concurrent users per CPU core at normal load
+            users_per_core = 10
+            capacity['estimated_users_per_core'] = users_per_core
+            capacity['max_recommended_users'] = cpu_info['count'] * users_per_core
+
+        # Disk space-based capacity
+        if disk_usage.get('free_gb'):
+            # Estimate file uploads: average 100MB per organization
+            capacity['estimated_orgs_disk_capacity'] = int(disk_usage['free_gb'] * 1024 / 100)
+
+        # Overall capacity score (0-100)
+        # Weight different factors
+        scores = []
+
+        # CPU score (load average vs cores)
+        if cpu_info.get('load_5') is not None and cpu_info.get('count'):
+            cpu_score = max(0, 100 - (cpu_info['load_5'] / cpu_info['count'] * 50))
+            scores.append(('cpu', cpu_score))
+
+        # Memory score
+        if memory_info.get('percent') is not None:
+            memory_score = 100 - memory_info['percent']
+            scores.append(('memory', memory_score))
+
+        # Disk score
+        if disk_usage.get('percent') is not None:
+            disk_score = 100 - disk_usage['percent']
+            scores.append(('disk', disk_score))
+
+        # Database score
+        if capacity.get('db_percent_used') is not None:
+            db_score = 100 - capacity['db_percent_used']
+            scores.append(('database', db_score))
+
+        # Calculate weighted average
+        if scores:
+            total_score = sum(score for _, score in scores)
+            capacity['overall_score'] = round(total_score / len(scores), 1)
+            capacity['score_breakdown'] = scores
+
+            # Capacity status
+            if capacity['overall_score'] >= 70:
+                capacity['status'] = 'healthy'
+                capacity['status_text'] = 'System has ample capacity'
+            elif capacity['overall_score'] >= 50:
+                capacity['status'] = 'moderate'
+                capacity['status_text'] = 'System capacity is adequate'
+            elif capacity['overall_score'] >= 30:
+                capacity['status'] = 'limited'
+                capacity['status_text'] = 'System capacity is limited'
+            else:
+                capacity['status'] = 'critical'
+                capacity['status_text'] = 'System capacity is critical'
+        else:
+            capacity['overall_score'] = 0
+            capacity['status'] = 'unknown'
+            capacity['status_text'] = 'Unable to calculate capacity'
+
+    except Exception as e:
+        capacity['error'] = str(e)
+
     return render(request, 'core/system_status.html', {
         'system_info': system_info,
         'db_info': db_info,
@@ -353,6 +460,7 @@ def system_status(request):
         'upload_info': upload_info,
         'tasks_status': tasks_status,
         'services_status': services_status,
+        'capacity': capacity,
         'current_tab': 'system_status',
     })
 
