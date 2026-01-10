@@ -14,6 +14,7 @@ app_name = 'core'
 
 urlpatterns = [
     path('dashboard/', dashboard_views.dashboard, name='dashboard'),
+    path('global-dashboard/', dashboard_views.global_dashboard, name='global_dashboard'),
     path('documentation/', views.documentation, name='documentation'),
     path('about/', views.about, name='about'),
     path('search/', search_views.global_search, name='search'),

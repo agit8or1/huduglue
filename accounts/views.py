@@ -284,6 +284,53 @@ def organization_edit(request, org_id):
 
 
 @login_required
+@require_owner
+def organization_delete(request, org_id):
+    """
+    Delete organization. Only owners can delete.
+    WARNING: This will cascade delete ALL data associated with the organization.
+    """
+    org = get_object_or_404(Organization, id=org_id)
+
+    if request.method == 'POST':
+        org_name = org.name
+
+        # Check if this is the user's current organization
+        current_org_id = request.session.get('organization_id')
+
+        # Delete the organization (cascade will handle related data)
+        org.delete()
+
+        # Clear session if this was the current org
+        if current_org_id == org_id:
+            request.session.pop('organization_id', None)
+
+        messages.success(request, f"Organization '{org_name}' and all associated data have been deleted.")
+        return redirect('accounts:organization_list')
+
+    # Get counts of data that will be deleted
+    from assets.models import Asset
+    from docs.models import Document, Diagram
+    from vault.models import Password
+    from processes.models import Process, ProcessExecution
+
+    data_counts = {
+        'members': Membership.objects.filter(organization=org).count(),
+        'assets': Asset.objects.filter(organization=org).count(),
+        'documents': Document.objects.filter(organization=org).count(),
+        'passwords': Password.objects.filter(organization=org).count(),
+        'processes': Process.objects.filter(organization=org).count(),
+        'process_executions': ProcessExecution.objects.filter(organization=org).count(),
+        'diagrams': Diagram.objects.filter(organization=org).count(),
+    }
+
+    return render(request, 'accounts/organization_confirm_delete.html', {
+        'organization': org,
+        'data_counts': data_counts,
+    })
+
+
+@login_required
 def member_list(request):
     """
     List all members in the current organization.

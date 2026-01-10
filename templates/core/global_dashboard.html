@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Global Dashboard - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="fas fa-globe"></i> Global Dashboard</h2>
+    <span class="badge bg-danger">Superuser Only</span>
+</div>
+
+<!-- System-wide Stats Cards -->
+<div class="row g-2 mb-3">
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'accounts:organization_list' %}" class="text-decoration-none">
+            <div class="card bg-primary text-white h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{{ stats.organizations }}</h4>
+                            <small>Organizations</small>
+                        </div>
+                        <i class="fas fa-building fa-lg opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'accounts:user_list' %}" class="text-decoration-none">
+            <div class="card bg-success text-white h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{{ stats.users }}</h4>
+                            <small>Users</small>
+                        </div>
+                        <i class="fas fa-users fa-lg opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ stats.total_assets }}</h4>
+                        <small>Total Assets</small>
+                    </div>
+                    <i class="fas fa-box fa-lg opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ stats.total_documents }}</h4>
+                        <small>Total Documents</small>
+                    </div>
+                    <i class="fas fa-file-alt fa-lg opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ stats.total_passwords }}</h4>
+                        <small>Total Passwords</small>
+                    </div>
+                    <i class="fas fa-key fa-lg opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a href="{% url 'processes:global_process_list' %}" class="text-decoration-none">
+            <div class="card bg-secondary text-white h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{{ stats.total_processes }}</h4>
+                            <small>Total Processes</small>
+                        </div>
+                        <i class="fas fa-tasks fa-lg opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card bg-dark text-white h-100">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ stats.total_monitors }}</h4>
+                        <small>Total Monitors</small>
+                    </div>
+                    <i class="fas fa-chart-line fa-lg opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-primary">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ total_attachments }}</h4>
+                        <small>Total Files</small>
+                    </div>
+                    <i class="fas fa-paperclip fa-lg text-primary opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Health -->
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header py-2">
+                <h5 class="mb-0"><i class="fas fa-heartbeat"></i> System Health (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-success">{{ health_stats.active_users_30d }}</h3>
+                        <p class="text-muted mb-0">Active Users</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-primary">{{ health_stats.new_orgs_30d }}</h3>
+                        <p class="text-muted mb-0">New Organizations</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="text-info">{{ health_stats.active_processes }}</h3>
+                        <p class="text-muted mb-0">Active Process Executions</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 class="{% if health_stats.monitors_down > 0 %}text-danger{% else %}text-success{% endif %}">
+                            {{ health_stats.monitors_down }}
+                        </h3>
+                        <p class="text-muted mb-0">Monitors Down</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Process Stats -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header py-2">
+                <h5 class="mb-0"><i class="fas fa-tasks"></i> Process Statistics</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Processes
+                        <span class="badge bg-primary rounded-pill">{{ process_stats.total }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Global Processes
+                        <span class="badge bg-success rounded-pill">{{ process_stats.global }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Organization-Specific
+                        <span class="badge bg-info rounded-pill">{{ process_stats.org_specific }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Active Executions
+                        <span class="badge bg-warning rounded-pill">{{ process_stats.active_executions }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Organizations -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header py-2">
+                <h5 class="mb-0"><i class="fas fa-building"></i> Top Organizations</h5>
+            </div>
+            <div class="card-body">
+                {% if top_orgs %}
+                <div class="list-group list-group-flush">
+                    {% for org in top_orgs %}
+                    <a href="{% url 'accounts:organization_detail' org.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ org.name }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {{ org.member_count }} members |
+                                {{ org.asset_count }} assets |
+                                {{ org.document_count }} docs
+                            </small>
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No organizations found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Global Activity Feed -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header py-2">
+                <h5 class="mb-0"><i class="fas fa-stream"></i> Recent Global Activity</h5>
+            </div>
+            <div class="card-body">
+                {% if global_activity %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Organization</th>
+                                <th>Action</th>
+                                <th>Object</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in global_activity %}
+                            <tr>
+                                <td><small>{{ log.timestamp|timesince }} ago</small></td>
+                                <td>{{ log.user.username }}</td>
+                                <td>
+                                    {% if log.organization %}
+                                    <span class="badge bg-secondary">{{ log.organization.name }}</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if log.action == 'create' %}bg-success
+                                        {% elif log.action == 'update' %}bg-info
+                                        {% elif log.action == 'delete' %}bg-danger
+                                        {% else %}bg-secondary
+                                        {% endif %}">
+                                        {{ log.get_action_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>
+                                        {% if log.object_repr %}
+                                        {{ log.object_type }}: {{ log.object_repr|truncatechars:40 }}
+                                        {% else %}
+                                        {{ log.description|truncatechars:50 }}
+                                        {% endif %}
+                                    </small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No recent activity.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

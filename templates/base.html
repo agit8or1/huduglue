@@ -93,8 +93,9 @@
                             <li><a class="dropdown-item" href="{% url 'integrations:psa_contacts' %}"><i class="fas fa-users"></i> PSA Contacts</a></li>
                             <li><a class="dropdown-item" href="{% url 'integrations:psa_tickets' %}"><i class="fas fa-ticket-alt"></i> PSA Tickets</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Global Content</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-globe"></i> Global Processes</a></li>
+                            <li><h6 class="dropdown-header">Global View</h6></li>
+                            <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}"><i class="fas fa-globe"></i> Global Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-tasks"></i> Global Processes</a></li>
                         </ul>
                     </li>
                     {% endif %}
