@@ -123,6 +123,11 @@
                     <input class="form-control form-control-sm me-1" type="search" name="q" placeholder="Search..." aria-label="Search" style="width: 200px;">
                     <button class="btn btn-outline-light btn-sm" type="submit"><i class="fas fa-search"></i></button>
                 </form>
+                {% if is_staff_user or user.is_superuser %}
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'docs:global_kb_list' %}"><i class="fas fa-book"></i> Global KB</a></li>
+                </ul>
+                {% endif %}
                 {% endif %}
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}

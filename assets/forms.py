@@ -108,5 +108,65 @@ class QuickPCForm(forms.ModelForm):
         self.fields['model'].required = False
         self.fields['hostname'].required = False
         self.fields['ip_address'].required = False
+
+
+class QuickServerForm(forms.ModelForm):
+    """
+    Quick form for creating a new server asset with essential fields only.
+    """
+    class Meta:
+        model = Asset
+        fields = ['name', 'asset_type', 'serial_number', 'manufacturer', 'model',
+                  'hostname', 'ip_address', 'primary_contact', 'notes']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., prod-web-01, dc-sql-server-01'
+            }),
+            'asset_type': forms.Select(attrs={'class': 'form-select'}),
+            'serial_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Serial number or service tag'
+            }),
+            'manufacturer': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Dell, HPE, Lenovo, etc.'
+            }),
+            'model': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'PowerEdge R740, ProLiant DL380, etc.'
+            }),
+            'hostname': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'prod-web-01.company.com'
+            }),
+            'ip_address': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '10.0.1.10'
+            }),
+            'primary_contact': forms.Select(attrs={'class': 'form-select'}),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Purpose, location, warranty info, etc.'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.organization = kwargs.pop('organization', None)
+        super().__init__(*args, **kwargs)
+
+        if self.organization:
+            self.fields['primary_contact'].queryset = Contact.objects.for_organization(self.organization)
+
+        # Set default asset_type to server
+        self.fields['asset_type'].initial = 'server'
+
+        # Make some fields optional for quick entry
+        self.fields['serial_number'].required = False
+        self.fields['manufacturer'].required = False
+        self.fields['model'].required = False
+        self.fields['hostname'].required = False
+        self.fields['ip_address'].required = False
         self.fields['primary_contact'].required = False
         self.fields['notes'].required = False

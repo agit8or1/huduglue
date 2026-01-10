@@ -12,6 +12,7 @@ urlpatterns = [
     path('', views.asset_list, name='asset_list'),
     path('create/', views.asset_create, name='asset_create'),
     path('quick/pc/', quick_views.quick_pc_add, name='quick_pc_add'),
+    path('quick/server/', quick_views.quick_server_add, name='quick_server_add'),
     path('<int:pk>/', views.asset_detail, name='asset_detail'),
     path('<int:pk>/edit/', views.asset_edit, name='asset_edit'),
     path('contacts/', views.contact_list, name='contact_list'),
