@@ -414,7 +414,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- **Version**: 2.10.6
+- **Version**: 2.11.7
 - **Release Date**: January 2026
 - **Status**: Production Ready
 - **Maintained**: Yes
