@@ -63,11 +63,12 @@ class RackForm(forms.ModelForm):
     class Meta:
         model = Rack
         fields = [
-            'name', 'datacenter', 'aisle', 'location', 'units', 'width_inches', 'depth_inches',
+            'name', 'rack_type', 'datacenter', 'aisle', 'location', 'units', 'width_inches', 'depth_inches',
             'power_capacity_watts', 'cooling_capacity_btu', 'notes',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'rack_type': forms.Select(attrs={'class': 'form-control'}),
             'datacenter': forms.TextInput(attrs={'class': 'form-control'}),
             'aisle': forms.TextInput(attrs={'class': 'form-control'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
