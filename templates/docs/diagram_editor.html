@@ -73,12 +73,18 @@
     }
 
     // Save diagram via AJAX
-    function saveDiagram() {
-        console.log('saveDiagram() called, hasUnsavedChanges:', hasUnsavedChanges, 'xml length:', currentDiagramXml.length);
+    function saveDiagram(forceSave = false) {
+        console.log('saveDiagram() called, forceSave:', forceSave, 'hasUnsavedChanges:', hasUnsavedChanges, 'xml length:', currentDiagramXml.length);
 
-        if (!hasUnsavedChanges) {
+        if (!forceSave && !hasUnsavedChanges) {
             console.log('No changes to save, aborting');
             updateStatus('No changes to save');
+            return;
+        }
+
+        if (!currentDiagramXml || currentDiagramXml.length === 0) {
+            console.error('No diagram XML to save');
+            updateStatus('Error: No diagram data', true);
             return;
         }
 
@@ -163,6 +169,10 @@
                 editorReady = true;
                 console.log('Editor ready, diagram XML length:', currentDiagramXml.length);
                 updateStatus('Editor ready');
+
+                // Enable save button now that editor is ready
+                saveBtn.disabled = false;
+                console.log('Save button enabled (editor ready)');
 
                 // Load existing diagram if available, otherwise load blank diagram
                 if (currentDiagramXml && currentDiagramXml.length > 0) {
