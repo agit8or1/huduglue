@@ -515,11 +515,13 @@ def floor_plan_import(request):
     """Import floor plans from MagicPlan JSON export."""
     from imports.models import ImportJob
     from imports.forms import ImportJobForm
-    
+
+    organization = request.current_organization
+
     if request.method == 'POST':
         # Create import job form with MagicPlan pre-selected
-        form = ImportJobForm(request.POST, request.FILES, user=request.user)
-        
+        form = ImportJobForm(request.POST, request.FILES, user=request.user, organization=organization)
+
         if form.is_valid():
             job = form.save(commit=False)
             job.source_type = 'magicplan'  # Force MagicPlan type
@@ -533,13 +535,14 @@ def floor_plan_import(request):
             job.import_locations = False
             job.import_networks = False
             job.save()
-            
+
             messages.success(request, 'Floor plan import job created. Review and start the import.')
             return redirect('imports:import_detail', pk=job.pk)
     else:
         # Initialize form for MagicPlan import
         initial_data = {
             'source_type': 'magicplan',
+            'target_organization': organization,
             'import_floor_plans': True,
             'import_assets': False,
             'import_passwords': False,
@@ -549,8 +552,12 @@ def floor_plan_import(request):
             'import_networks': False,
             'dry_run': True,  # Default to dry run
         }
-        form = ImportJobForm(initial=initial_data, user=request.user)
-    
+        form = ImportJobForm(initial=initial_data, user=request.user, organization=organization)
+
+    # Get locations for the organization
+    locations = Location.objects.filter(organization=organization)
+
     return render(request, 'locations/floor_plan_import.html', {
         'form': form,
+        'locations': locations,
     })

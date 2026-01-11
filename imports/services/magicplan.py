@@ -158,6 +158,11 @@ class MagicPlanImportService(BaseImportService):
         if not self.organization:
             raise ValueError("Target organization must be specified for MagicPlan imports")
 
+        # If target_location is specified, use it
+        if self.job.target_location:
+            self.job.add_log(f"Using specified location: {self.job.target_location.name}")
+            return self.job.target_location
+
         # Extract address components
         street = address_data.get('street', '')
         city = address_data.get('city', 'Unknown')

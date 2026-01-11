@@ -12,6 +12,7 @@ class ImportJobForm(forms.ModelForm):
         model = ImportJob
         fields = [
             'source_type', 'source_url', 'source_api_key', 'source_file', 'target_organization',
+            'target_location',
             'use_fuzzy_matching', 'fuzzy_match_threshold',
             'import_assets', 'import_passwords', 'import_documents',
             'import_contacts', 'import_locations', 'import_networks', 'import_floor_plans',
@@ -22,7 +23,8 @@ class ImportJobForm(forms.ModelForm):
             'source_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://api.itglue.com or https://your-hudu.com'}),
             'source_api_key': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Your API key'}),
             'source_file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.json'}),
-            'target_organization': forms.Select(attrs={'class': 'form-control'}),
+            'target_organization': forms.Select(attrs={'class': 'form-control', 'id': 'id_target_organization'}),
+            'target_location': forms.Select(attrs={'class': 'form-control', 'id': 'id_target_location'}),
             'use_fuzzy_matching': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'fuzzy_match_threshold': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '100'}),
             'import_assets': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -39,6 +41,7 @@ class ImportJobForm(forms.ModelForm):
             'source_api_key': 'API key for authentication (not needed for MagicPlan)',
             'source_file': 'Upload MagicPlan JSON export file',
             'target_organization': 'Required for MagicPlan. Optional for IT Glue/Hudu (leave blank to import all organizations).',
+            'target_location': 'Optional: Link floor plans to existing location. Leave blank to create new location from MagicPlan data.',
             'use_fuzzy_matching': 'Match existing organizations with similar names (e.g., "ABC LLC" matches "ABC Corporation")',
             'fuzzy_match_threshold': 'Similarity threshold (0-100, default 85). Higher = stricter matching.',
             'import_floor_plans': 'Import floor plans (MagicPlan only)',
@@ -47,10 +50,12 @@ class ImportJobForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        organization = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
 
-        # Make target_organization optional
+        # Make target_organization and target_location optional
         self.fields['target_organization'].required = False
+        self.fields['target_location'].required = False
 
         # Filter organizations based on user permissions
         if user:
@@ -60,6 +65,16 @@ class ImportJobForm(forms.ModelForm):
             else:
                 # Regular users only see their organizations
                 self.fields['target_organization'].queryset = user.organizations.all()
+
+        # Filter locations by organization
+        from locations.models import Location
+        if organization:
+            self.fields['target_location'].queryset = Location.objects.filter(organization=organization)
+        elif self.instance and self.instance.target_organization:
+            self.fields['target_location'].queryset = Location.objects.filter(organization=self.instance.target_organization)
+        else:
+            # Show empty queryset until organization is selected
+            self.fields['target_location'].queryset = Location.objects.none()
 
     def clean(self):
         cleaned_data = super().clean()

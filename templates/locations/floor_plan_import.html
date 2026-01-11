@@ -56,6 +56,19 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="{{ form.target_location.id_for_label }}" class="form-label">
+                            Link to Existing Location (Optional)
+                        </label>
+                        {{ form.target_location }}
+                        {% if form.target_location.errors %}
+                        <div class="text-danger">{{ form.target_location.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Select an existing location to add floor plans to, or leave blank to create a new location from MagicPlan data
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="{{ form.source_file.id_for_label }}" class="form-label">
                             MagicPlan JSON File <span class="text-danger">*</span>
                         </label>
