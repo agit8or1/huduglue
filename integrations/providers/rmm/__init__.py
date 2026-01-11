@@ -3,17 +3,20 @@ RMM Provider Registry
 Maps RMM provider types to their implementation classes.
 """
 import logging
+from .ninjaone import NinjaOneProvider
+from .datto import DattoRMMProvider
+from .atera import AteraProvider
+from .connectwise_automate import ConnectWiseAutomateProvider
 
 logger = logging.getLogger('integrations')
 
 
-# Provider registry will be populated as providers are implemented
+# Provider registry - maps provider_type to implementation class
 RMM_PROVIDER_REGISTRY = {
-    # Providers will be added in subsequent phases:
-    # 'ninjaone': NinjaOneProvider,
-    # 'datto_rmm': DattoRMMProvider,
-    # 'connectwise_automate': ConnectWiseAutomateProvider,
-    # 'atera': AteraProvider,
+    'ninjaone': NinjaOneProvider,
+    'datto_rmm': DattoRMMProvider,
+    'atera': AteraProvider,
+    'connectwise_automate': ConnectWiseAutomateProvider,
 }
 
 
@@ -47,4 +50,12 @@ def get_rmm_provider(connection):
 # Export base provider for subclassing
 from ..rmm_base import BaseRMMProvider
 
-__all__ = ['BaseRMMProvider', 'get_rmm_provider', 'RMM_PROVIDER_REGISTRY']
+__all__ = [
+    'BaseRMMProvider',
+    'get_rmm_provider',
+    'RMM_PROVIDER_REGISTRY',
+    'NinjaOneProvider',
+    'DattoRMMProvider',
+    'AteraProvider',
+    'ConnectWiseAutomateProvider',
+]
