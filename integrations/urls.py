@@ -22,4 +22,11 @@ urlpatterns = [
     path('contacts/<int:pk>/', views.psa_contact_detail, name='psa_contact_detail'),
     path('tickets/', views.psa_tickets, name='psa_tickets'),
     path('tickets/<int:pk>/', views.psa_ticket_detail, name='psa_ticket_detail'),
+
+    # RMM Views
+    path('rmm/create/', views.rmm_create, name='rmm_create'),
+    path('rmm/<int:pk>/', views.rmm_detail, name='rmm_detail'),
+    path('rmm/<int:pk>/edit/', views.rmm_edit, name='rmm_edit'),
+    path('rmm/<int:pk>/delete/', views.rmm_delete, name='rmm_delete'),
+    path('rmm/devices/', views.rmm_devices, name='rmm_devices'),
 ]

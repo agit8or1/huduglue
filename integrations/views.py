@@ -7,20 +7,22 @@ from django.contrib import messages
 from django.http import JsonResponse
 from core.middleware import get_request_organization
 from core.decorators import require_admin
-from .models import PSAConnection, PSACompany, PSAContact, PSATicket
-from .forms import PSAConnectionForm
+from .models import PSAConnection, PSACompany, PSAContact, PSATicket, RMMConnection, RMMDevice
+from .forms import PSAConnectionForm, RMMConnectionForm
 from .sync import PSASync
 from .providers import get_provider
 
 
 @login_required
 def integration_list(request):
-    """List PSA connections."""
+    """List PSA and RMM connections."""
     org = get_request_organization(request)
-    connections = PSAConnection.objects.for_organization(org)
+    psa_connections = PSAConnection.objects.for_organization(org)
+    rmm_connections = RMMConnection.objects.for_organization(org)
 
     return render(request, 'integrations/integration_list.html', {
-        'connections': connections,
+        'psa_connections': psa_connections,
+        'rmm_connections': rmm_connections,
     })
 
 
@@ -224,4 +226,98 @@ def psa_ticket_detail(request, pk):
 
     return render(request, 'integrations/psa_ticket_detail.html', {
         'ticket': ticket,
+    })
+
+
+# RMM Views
+@login_required
+@require_admin
+def rmm_create(request):
+    """Create new RMM connection."""
+    org = get_request_organization(request)
+
+    if request.method == 'POST':
+        form = RMMConnectionForm(request.POST, organization=org)
+        if form.is_valid():
+            connection = form.save(commit=False)
+            connection.organization = org
+            connection.save()
+            messages.success(request, f"RMM connection '{connection.name}' created successfully.")
+            return redirect('integrations:rmm_detail', pk=connection.pk)
+    else:
+        form = RMMConnectionForm(organization=org)
+
+    return render(request, 'integrations/rmm_form.html', {
+        'form': form,
+        'action': 'Create',
+    })
+
+
+@login_required
+def rmm_detail(request, pk):
+    """View RMM connection details."""
+    org = get_request_organization(request)
+    connection = get_object_or_404(RMMConnection, pk=pk, organization=org)
+
+    devices = RMMDevice.objects.filter(connection=connection).order_by('-last_seen')[:20]
+    total_devices = RMMDevice.objects.filter(connection=connection).count()
+    online_devices = RMMDevice.objects.filter(connection=connection, is_online=True).count()
+
+    return render(request, 'integrations/rmm_detail.html', {
+        'connection': connection,
+        'devices': devices,
+        'total_devices': total_devices,
+        'online_devices': online_devices,
+    })
+
+
+@login_required
+@require_admin
+def rmm_edit(request, pk):
+    """Edit RMM connection."""
+    org = get_request_organization(request)
+    connection = get_object_or_404(RMMConnection, pk=pk, organization=org)
+
+    if request.method == 'POST':
+        form = RMMConnectionForm(request.POST, instance=connection, organization=org)
+        if form.is_valid():
+            connection = form.save()
+            messages.success(request, f"RMM connection '{connection.name}' updated successfully.")
+            return redirect('integrations:rmm_detail', pk=connection.pk)
+    else:
+        form = RMMConnectionForm(instance=connection, organization=org)
+
+    return render(request, 'integrations/rmm_form.html', {
+        'form': form,
+        'connection': connection,
+        'action': 'Edit',
+    })
+
+
+@login_required
+@require_admin
+def rmm_delete(request, pk):
+    """Delete RMM connection."""
+    org = get_request_organization(request)
+    connection = get_object_or_404(RMMConnection, pk=pk, organization=org)
+
+    if request.method == 'POST':
+        name = connection.name
+        connection.delete()
+        messages.success(request, f"RMM connection '{name}' deleted successfully.")
+        return redirect('integrations:integration_list')
+
+    return render(request, 'integrations/rmm_confirm_delete.html', {
+        'connection': connection,
+    })
+
+
+@login_required
+def rmm_devices(request):
+    """List all RMM devices."""
+    org = get_request_organization(request)
+    devices = RMMDevice.objects.for_organization(org).select_related('connection', 'linked_asset')
+
+    return render(request, 'integrations/rmm_devices.html', {
+        'devices': devices,
     })

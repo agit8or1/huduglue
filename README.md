@@ -57,6 +57,14 @@ Full implementations for:
 - **Freshservice** - Departments, Requesters, Tickets
 - **Zendesk** - Organizations, Users, Tickets
 
+### 🖥️ RMM Integrations
+Full implementations for:
+- **NinjaOne** - Device management, monitoring, and alerts
+- **Datto RMM** - Device sync, software inventory, and asset mapping
+- **ConnectWise Automate** - Device management and automation
+- **Atera** - Device monitoring and ticketing integration
+- **Auto Asset Mapping** - Automatically link RMM devices to asset records
+
 ## 🚀 Quick Start
 
 ### One-Line Installation (Recommended)
@@ -272,7 +280,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- **Version**: 2.4.0
+- **Version**: 2.7.0
 - **Release Date**: January 2026
 - **Status**: Production Ready
 - **Maintained**: Yes
@@ -295,9 +303,9 @@ Your support allows me to continue developing open-source tools like HuduGlue an
 - [ ] Advanced reporting and analytics
 - [ ] Backup/restore functionality
 - [ ] Docker deployment option (optional)
-- [ ] Additional PSA integrations
+- [ ] Additional PSA/RMM integrations
 - [ ] API v2 with GraphQL
-- [ ] Real-time collaboration
+- [ ] MagicPlan floor plan integration
 - [ ] Mobile app
 
 ## ⚡ Performance

@@ -2,7 +2,7 @@
 Integrations forms
 """
 from django import forms
-from .models import PSAConnection
+from .models import PSAConnection, RMMConnection
 
 
 class PSAConnectionForm(forms.ModelForm):
@@ -255,6 +255,167 @@ class PSAConnectionForm(forms.ModelForm):
                 'email': self.cleaned_data.get('zendesk_email', ''),
                 'api_token': self.cleaned_data.get('zendesk_api_token', ''),
                 'subdomain': self.cleaned_data.get('zendesk_subdomain', ''),
+            }
+
+        connection.set_credentials(credentials)
+
+        if commit:
+            connection.save()
+
+        return connection
+
+
+class RMMConnectionForm(forms.ModelForm):
+    """Form for creating/editing RMM connections."""
+
+    # NinjaOne credentials
+    ninja_client_id = forms.CharField(
+        label='Client ID',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your OAuth2 client ID'})
+    )
+    ninja_client_secret = forms.CharField(
+        label='Client Secret',
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Your OAuth2 client secret'})
+    )
+    ninja_refresh_token = forms.CharField(
+        label='Refresh Token',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your refresh token'})
+    )
+
+    # Datto RMM credentials
+    datto_api_key = forms.CharField(
+        label='API Key',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your API key'})
+    )
+    datto_api_secret = forms.CharField(
+        label='API Secret',
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Your API secret'})
+    )
+
+    # ConnectWise Automate credentials
+    cwa_server = forms.CharField(
+        label='Server URL',
+        required=False,
+        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://your-automate.server.com'})
+    )
+    cwa_username = forms.CharField(
+        label='Username',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'API username'})
+    )
+    cwa_password = forms.CharField(
+        label='Password',
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'API password'})
+    )
+
+    # Atera credentials
+    atera_api_key = forms.CharField(
+        label='API Key',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your X-API-KEY'})
+    )
+
+    class Meta:
+        model = RMMConnection
+        fields = ['provider_type', 'name', 'base_url', 'sync_enabled', 'sync_devices',
+                  'sync_alerts', 'sync_software', 'map_to_assets', 'sync_interval_minutes']
+        widgets = {
+            'provider_type': forms.Select(attrs={'class': 'form-control', 'id': 'id_rmm_provider_type'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'base_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'sync_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sync_devices': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sync_alerts': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sync_software': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'map_to_assets': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sync_interval_minutes': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        help_texts = {
+            'map_to_assets': 'Automatically create/update Assets from RMM devices',
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.organization = kwargs.pop('organization', None)
+        super().__init__(*args, **kwargs)
+
+        # If editing existing connection, populate credential fields
+        if self.instance and self.instance.pk:
+            creds = self.instance.get_credentials()
+            provider = self.instance.provider_type
+
+            if provider == 'ninjaone':
+                self.fields['ninja_client_id'].initial = creds.get('client_id', '')
+                self.fields['ninja_client_secret'].initial = creds.get('client_secret', '')
+                self.fields['ninja_refresh_token'].initial = creds.get('refresh_token', '')
+            elif provider == 'datto_rmm':
+                self.fields['datto_api_key'].initial = creds.get('api_key', '')
+                self.fields['datto_api_secret'].initial = creds.get('api_secret', '')
+            elif provider == 'connectwise_automate':
+                self.fields['cwa_server'].initial = creds.get('server', '')
+                self.fields['cwa_username'].initial = creds.get('username', '')
+                self.fields['cwa_password'].initial = creds.get('password', '')
+            elif provider == 'atera':
+                self.fields['atera_api_key'].initial = creds.get('api_key', '')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        provider_type = cleaned_data.get('provider_type')
+
+        # Validate that required credentials are provided for selected provider
+        if provider_type == 'ninjaone':
+            required_fields = ['ninja_client_id', 'ninja_client_secret', 'ninja_refresh_token']
+            for field in required_fields:
+                if not cleaned_data.get(field):
+                    self.add_error(field, 'This field is required for NinjaOne')
+        elif provider_type == 'datto_rmm':
+            required_fields = ['datto_api_key', 'datto_api_secret']
+            for field in required_fields:
+                if not cleaned_data.get(field):
+                    self.add_error(field, 'This field is required for Datto RMM')
+        elif provider_type == 'connectwise_automate':
+            required_fields = ['cwa_server', 'cwa_username', 'cwa_password']
+            for field in required_fields:
+                if not cleaned_data.get(field):
+                    self.add_error(field, 'This field is required for ConnectWise Automate')
+        elif provider_type == 'atera':
+            if not cleaned_data.get('atera_api_key'):
+                self.add_error('atera_api_key', 'This field is required for Atera')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        connection = super().save(commit=False)
+
+        # Build credentials dict based on provider type
+        provider_type = self.cleaned_data.get('provider_type')
+        credentials = {}
+
+        if provider_type == 'ninjaone':
+            credentials = {
+                'client_id': self.cleaned_data.get('ninja_client_id', ''),
+                'client_secret': self.cleaned_data.get('ninja_client_secret', ''),
+                'refresh_token': self.cleaned_data.get('ninja_refresh_token', ''),
+            }
+        elif provider_type == 'datto_rmm':
+            credentials = {
+                'api_key': self.cleaned_data.get('datto_api_key', ''),
+                'api_secret': self.cleaned_data.get('datto_api_secret', ''),
+            }
+        elif provider_type == 'connectwise_automate':
+            credentials = {
+                'server': self.cleaned_data.get('cwa_server', ''),
+                'username': self.cleaned_data.get('cwa_username', ''),
+                'password': self.cleaned_data.get('cwa_password', ''),
+            }
+        elif provider_type == 'atera':
+            credentials = {
+                'api_key': self.cleaned_data.get('atera_api_key', ''),
             }
 
         connection.set_credentials(credentials)

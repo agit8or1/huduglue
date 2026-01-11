@@ -5,6 +5,131 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-01-11
+
+### ✨ New Features
+
+- **RMM Integrations UI**
+  - Complete user interface for RMM (Remote Monitoring and Management) integrations
+  - Support for 4 RMM providers:
+    - NinjaOne (OAuth2 with refresh tokens)
+    - Datto RMM (API key/secret)
+    - ConnectWise Automate (server URL + credentials)
+    - Atera (API key)
+  - Provider-specific credential forms with dynamic field display
+  - Connection testing and device syncing
+  - Device list view with online/offline status
+  - Auto-mapping of RMM devices to Asset records
+  - Sync scheduling with configurable intervals
+  - Comprehensive device details (type, OS, IP, MAC, serial)
+  - Asset linking for unified device management
+
+- **Enhanced Organization Management**
+  - Full company profile fields added:
+    - Legal name and Tax ID/EIN
+    - Complete address fields (street, city, state, postal code, country)
+    - Contact information (phone, email, website)
+    - Primary contact person details
+    - Company logo upload
+  - Organization detail page now displays locations
+  - Location cards showing floor plans and status
+  - Improved organization form with sectioned layout
+
+- **Shared Location Support**
+  - Locations can now be shared across multiple organizations
+  - `is_shared` flag for data centers, co-location facilities, etc.
+  - ManyToMany relationship for `associated_organizations`
+  - Organization field made optional for shared/global locations
+  - Helper methods: `get_all_organizations()`, `can_organization_access()`
+  - Updated constraints to handle nullable organization field
+
+- **Navigation Improvements**
+  - Moved Organizations and Locations to Admin menu for better organization
+  - Admin menu now organized into sections:
+    - System (Settings, Status)
+    - Management (Organizations, Locations, Access, Integrations)
+    - Global Views (Dashboard, Processes)
+  - Cleaner navigation structure for administrators
+
+### 🔧 Improvements
+
+- **Integration List UI**
+  - Redesigned to show both PSA and RMM integrations
+  - Card-based layout with separate sections
+  - Device count displayed for RMM connections
+  - Link to view all synced devices
+  - Improved visual hierarchy
+
+- **Member Management**
+  - User assignment now restricted to unassigned users only
+  - Prevents seeing or adding users from other organizations
+  - Enhanced multi-tenancy isolation
+  - Clear help text on member forms
+
+- **System Status Page**
+  - Fixed Gunicorn service status detection
+  - Corrected service names from `itdocs-*` to `huduglue-*`
+  - Now accurately shows running services
+  - Fixed PSA/Monitor timer status checks
+
+### 🏗️ Database Changes
+
+- **Locations Migration (0002)**
+  - Removed old unique_together constraint
+  - Added `is_shared` BooleanField (default=False)
+  - Added `associated_organizations` ManyToManyField
+  - Changed `organization` to nullable ForeignKey
+  - Added index on `is_shared` field
+  - Added UniqueConstraint for (organization, name) when organization is not null
+
+- **Organization Model Updates**
+  - Added 16 new fields for complete company profiles
+  - Added `full_address` property method
+  - Migration applied successfully
+
+### 📚 Documentation
+
+- **README Updates**
+  - Updated version to 2.7.0
+  - Added RMM Integrations section with all 4 providers
+  - Removed "Real-time collaboration" from roadmap
+  - Added "MagicPlan floor plan integration" to roadmap
+  - Updated feature highlights
+
+- **Version Info**
+  - Updated `config/version.py` to 2.7.0
+  - Version displayed in system status and footer
+
+### 🔌 Templates Created
+
+- `templates/integrations/rmm_form.html` - RMM connection create/edit form
+- `templates/integrations/rmm_detail.html` - RMM connection details with device stats
+- `templates/integrations/rmm_confirm_delete.html` - Delete confirmation page
+- `templates/integrations/rmm_devices.html` - All devices list view
+- `templates/accounts/organization_form.html` - Redesigned org form
+- Updated `templates/accounts/organization_detail.html` - Added locations section
+- Updated `templates/integrations/integration_list.html` - PSA + RMM sections
+- Updated `templates/base.html` - Reorganized Admin menu
+
+### 🛤️ URL Routes Added
+
+- `integrations/rmm/create/` - Create new RMM connection
+- `integrations/rmm/<int:pk>/` - View RMM connection details
+- `integrations/rmm/<int:pk>/edit/` - Edit RMM connection
+- `integrations/rmm/<int:pk>/delete/` - Delete RMM connection
+- `integrations/rmm/devices/` - View all RMM devices
+
+### 🔐 Security
+
+- No security changes in this release
+- All existing encryption and authentication mechanisms maintained
+
+### 🎯 Next Up
+
+- MagicPlan data export integration for automated floor plan generation
+- Additional PSA/RMM provider implementations
+- Mobile-responsive improvements
+
 ## [2.5.0] - 2026-01-11
 
 ### 🐛 Bug Fixes

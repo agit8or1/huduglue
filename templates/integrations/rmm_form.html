@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} RMM Integration - HuduGlue{% endblock %}
+
+{% block extra_css %}
+<style>
+    .credential-section {
+        display: none;
+    }
+    .credential-section.active {
+        display: block;
+    }
+    .provider-info {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .provider-docs-link {
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'integrations:integration_list' %}">Integrations</a></li>
+        <li class="breadcrumb-item active">{{ action }} RMM Integration</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-desktop"></i> {{ action }} RMM Integration</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" id="rmm-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Provider Type Selection -->
+                    <div class="mb-3">
+                        <label for="{{ form.provider_type.id_for_label }}" class="form-label">RMM Provider *</label>
+                        {{ form.provider_type }}
+                        {% if form.provider_type.errors %}
+                        <div class="invalid-feedback d-block">{{ form.provider_type.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Select your RMM platform</small>
+                    </div>
+
+                    <!-- Provider-specific info boxes -->
+                    <div id="info-ninjaone" class="provider-info credential-section">
+                        <h5><i class="fas fa-info-circle"></i> NinjaOne Setup</h5>
+                        <p class="mb-2">To connect to NinjaOne, you'll need:</p>
+                        <ul class="mb-2">
+                            <li><strong>Client ID & Client Secret:</strong> OAuth2 application credentials</li>
+                            <li><strong>Refresh Token:</strong> Long-lived token for authentication</li>
+                            <li><strong>Base URL:</strong> Your NinjaOne instance URL (e.g., https://app.ninjarmm.com)</li>
+                        </ul>
+                        <a href="https://eu.ninjarmm.com/apidocs-beta/" target="_blank" class="provider-docs-link">
+                            <i class="fas fa-external-link-alt"></i> View NinjaOne API Documentation
+                        </a>
+                    </div>
+
+                    <div id="info-datto" class="provider-info credential-section">
+                        <h5><i class="fas fa-info-circle"></i> Datto RMM Setup</h5>
+                        <p class="mb-2">To connect to Datto RMM, you'll need:</p>
+                        <ul class="mb-2">
+                            <li><strong>API Key:</strong> Your Datto RMM API key</li>
+                            <li><strong>API Secret:</strong> Your Datto RMM API secret</li>
+                            <li><strong>Base URL:</strong> Datto RMM API endpoint (e.g., https://concord-api.centrastage.net)</li>
+                        </ul>
+                        <a href="https://help.aem.autotask.com/en/Content/2SETUP/APIv2.htm" target="_blank" class="provider-docs-link">
+                            <i class="fas fa-external-link-alt"></i> View Datto RMM API Documentation
+                        </a>
+                    </div>
+
+                    <div id="info-cw_automate" class="provider-info credential-section">
+                        <h5><i class="fas fa-info-circle"></i> ConnectWise Automate Setup</h5>
+                        <p class="mb-2">To connect to ConnectWise Automate, you'll need:</p>
+                        <ul class="mb-2">
+                            <li><strong>Server URL:</strong> Your Automate server URL</li>
+                            <li><strong>Username:</strong> API user account</li>
+                            <li><strong>Password:</strong> API user password</li>
+                        </ul>
+                        <a href="https://docs.connectwise.com/ConnectWise_Automate/ConnectWise_Automate_Documentation/070/050" target="_blank" class="provider-docs-link">
+                            <i class="fas fa-external-link-alt"></i> View ConnectWise Automate API Documentation
+                        </a>
+                    </div>
+
+                    <div id="info-atera" class="provider-info credential-section">
+                        <h5><i class="fas fa-info-circle"></i> Atera Setup</h5>
+                        <p class="mb-2">To connect to Atera, you'll need:</p>
+                        <ul class="mb-2">
+                            <li><strong>API Key:</strong> Your X-API-KEY from Atera settings</li>
+                            <li><strong>Base URL:</strong> Atera API endpoint (https://app.atera.com/api/v3)</li>
+                        </ul>
+                        <a href="https://support.atera.com/hc/en-us/articles/360011027680-Atera-API-Introduction" target="_blank" class="provider-docs-link">
+                            <i class="fas fa-external-link-alt"></i> View Atera API Documentation
+                        </a>
+                    </div>
+
+                    <!-- Connection Name -->
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Connection Name *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Friendly name for this connection (e.g., "Main RMM", "Production")</small>
+                    </div>
+
+                    <!-- Base URL -->
+                    <div class="mb-3">
+                        <label for="{{ form.base_url.id_for_label }}" class="form-label">Base URL *</label>
+                        {{ form.base_url }}
+                        {% if form.base_url.errors %}
+                        <div class="invalid-feedback d-block">{{ form.base_url.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Your RMM instance URL</small>
+                    </div>
+
+                    <hr class="my-4">
+                    <h4 class="mb-3">API Credentials</h4>
+
+                    <!-- NinjaOne Credentials -->
+                    <div id="creds-ninjaone" class="credential-section">
+                        <div class="mb-3">
+                            <label for="{{ form.ninja_client_id.id_for_label }}" class="form-label">Client ID *</label>
+                            {{ form.ninja_client_id }}
+                            {% if form.ninja_client_id.errors %}
+                            <div class="invalid-feedback d-block">{{ form.ninja_client_id.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.ninja_client_secret.id_for_label }}" class="form-label">Client Secret *</label>
+                            {{ form.ninja_client_secret }}
+                            {% if form.ninja_client_secret.errors %}
+                            <div class="invalid-feedback d-block">{{ form.ninja_client_secret.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.ninja_refresh_token.id_for_label }}" class="form-label">Refresh Token *</label>
+                            {{ form.ninja_refresh_token }}
+                            {% if form.ninja_refresh_token.errors %}
+                            <div class="invalid-feedback d-block">{{ form.ninja_refresh_token.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Datto RMM Credentials -->
+                    <div id="creds-datto" class="credential-section">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.datto_api_key.id_for_label }}" class="form-label">API Key *</label>
+                                {{ form.datto_api_key }}
+                                {% if form.datto_api_key.errors %}
+                                <div class="invalid-feedback d-block">{{ form.datto_api_key.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.datto_api_secret.id_for_label }}" class="form-label">API Secret *</label>
+                                {{ form.datto_api_secret }}
+                                {% if form.datto_api_secret.errors %}
+                                <div class="invalid-feedback d-block">{{ form.datto_api_secret.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ConnectWise Automate Credentials -->
+                    <div id="creds-cw_automate" class="credential-section">
+                        <div class="mb-3">
+                            <label for="{{ form.cwa_server.id_for_label }}" class="form-label">Server URL *</label>
+                            {{ form.cwa_server }}
+                            {% if form.cwa_server.errors %}
+                            <div class="invalid-feedback d-block">{{ form.cwa_server.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.cwa_username.id_for_label }}" class="form-label">Username *</label>
+                                {{ form.cwa_username }}
+                                {% if form.cwa_username.errors %}
+                                <div class="invalid-feedback d-block">{{ form.cwa_username.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.cwa_password.id_for_label }}" class="form-label">Password *</label>
+                                {{ form.cwa_password }}
+                                {% if form.cwa_password.errors %}
+                                <div class="invalid-feedback d-block">{{ form.cwa_password.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Atera Credentials -->
+                    <div id="creds-atera" class="credential-section">
+                        <div class="mb-3">
+                            <label for="{{ form.atera_api_key.id_for_label }}" class="form-label">API Key *</label>
+                            {{ form.atera_api_key }}
+                            {% if form.atera_api_key.errors %}
+                            <div class="invalid-feedback d-block">{{ form.atera_api_key.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h4 class="mb-3">Sync Settings</h4>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ form.sync_enabled }}
+                                <label class="form-check-label" for="{{ form.sync_enabled.id_for_label }}">
+                                    Sync Enabled
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ form.sync_devices }}
+                                <label class="form-check-label" for="{{ form.sync_devices.id_for_label }}">
+                                    Sync Devices
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ form.sync_alerts }}
+                                <label class="form-check-label" for="{{ form.sync_alerts.id_for_label }}">
+                                    Sync Alerts
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ form.sync_software }}
+                                <label class="form-check-label" for="{{ form.sync_software.id_for_label }}">
+                                    Sync Software
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.map_to_assets }}
+                                <label class="form-check-label" for="{{ form.map_to_assets.id_for_label }}">
+                                    Auto-map to Assets
+                                </label>
+                                <small class="form-text text-muted d-block">Automatically link RMM devices to asset records</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.sync_interval_minutes.id_for_label }}" class="form-label">Sync Interval (Minutes)</label>
+                            {{ form.sync_interval_minutes }}
+                            {% if form.sync_interval_minutes.errors %}
+                            <div class="invalid-feedback d-block">{{ form.sync_interval_minutes.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">How often to sync data (default: 60 minutes)</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'integrations:integration_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Integration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const providerSelect = document.getElementById('id_provider_type');
+
+    // Map provider types to their credential/info section IDs
+    const providerMapping = {
+        'ninjaone': 'ninjaone',
+        'datto': 'datto',
+        'cw_automate': 'cw_automate',
+        'atera': 'atera'
+    };
+
+    function updateVisibleSections() {
+        const selectedProvider = providerSelect.value;
+        const mappedProvider = providerMapping[selectedProvider];
+
+        // Hide all credential sections
+        document.querySelectorAll('.credential-section').forEach(section => {
+            section.classList.remove('active');
+        });
+
+        // Show sections for selected provider
+        if (mappedProvider) {
+            const infoSection = document.getElementById(`info-${mappedProvider}`);
+            const credsSection = document.getElementById(`creds-${mappedProvider}`);
+
+            if (infoSection) infoSection.classList.add('active');
+            if (credsSection) credsSection.classList.add('active');
+        }
+    }
+
+    // Initialize on page load
+    updateVisibleSections();
+
+    // Update when provider changes
+    providerSelect.addEventListener('change', updateVisibleSections);
+</script>
+{% endblock %}

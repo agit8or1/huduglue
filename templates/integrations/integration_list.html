@@ -3,48 +3,106 @@
 {% block title %}Integrations{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>PSA Integrations</h1>
-    <a href="{% url 'integrations:integration_create' %}" class="btn btn-primary">Add Integration</a>
+<h1 class="mb-4">Integrations</h1>
+
+<!-- PSA Integrations Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-ticket-alt"></i> PSA Integrations</h5>
+        <a href="{% url 'integrations:integration_create' %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus"></i> Add PSA Integration
+        </a>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Provider</th>
+                    <th>Status</th>
+                    <th>Last Sync</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conn in psa_connections %}
+                <tr>
+                    <td><a href="{% url 'integrations:integration_detail' conn.pk %}">{{ conn.name }}</a></td>
+                    <td>{{ conn.get_provider_type_display }}</td>
+                    <td>
+                        {% if conn.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ conn.last_sync_at|date:"Y-m-d H:i"|default:"Never" }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info test-conn" data-id="{{ conn.pk }}">Test</button>
+                        <button class="btn btn-sm btn-primary sync-conn" data-id="{{ conn.pk }}">Sync</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">No PSA integrations configured.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="mt-3">
+            <a href="{% url 'integrations:psa_companies' %}" class="btn btn-outline-primary btn-sm">View Synced Companies</a>
+            <a href="{% url 'integrations:psa_tickets' %}" class="btn btn-outline-primary btn-sm">View Synced Tickets</a>
+        </div>
+    </div>
 </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Provider</th>
-            <th>Status</th>
-            <th>Last Sync</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for conn in connections %}
-        <tr>
-            <td><a href="{% url 'integrations:integration_detail' conn.pk %}">{{ conn.name }}</a></td>
-            <td>{{ conn.get_provider_type_display }}</td>
-            <td>
-                {% if conn.is_active %}
-                <span class="badge bg-success">Active</span>
-                {% else %}
-                <span class="badge bg-secondary">Inactive</span>
-                {% endif %}
-            </td>
-            <td>{{ conn.last_sync_at|date:"Y-m-d H:i"|default:"Never" }}</td>
-            <td>
-                <button class="btn btn-sm btn-info test-conn" data-id="{{ conn.pk }}">Test</button>
-                <button class="btn btn-sm btn-primary sync-conn" data-id="{{ conn.pk }}">Sync</button>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="text-center">No integrations configured.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<div class="mt-4">
-    <a href="{% url 'integrations:psa_companies' %}" class="btn btn-outline-primary">View Synced Companies</a>
-    <a href="{% url 'integrations:psa_tickets' %}" class="btn btn-outline-primary">View Synced Tickets</a>
+<!-- RMM Integrations Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-desktop"></i> RMM Integrations</h5>
+        <a href="{% url 'integrations:rmm_create' %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus"></i> Add RMM Integration
+        </a>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Provider</th>
+                    <th>Status</th>
+                    <th>Last Sync</th>
+                    <th>Devices</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conn in rmm_connections %}
+                <tr>
+                    <td><a href="{% url 'integrations:rmm_detail' conn.pk %}">{{ conn.name }}</a></td>
+                    <td>{{ conn.get_provider_type_display }}</td>
+                    <td>
+                        {% if conn.sync_enabled %}
+                        <span class="badge bg-success">Enabled</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ conn.last_sync_at|date:"Y-m-d H:i"|default:"Never" }}</td>
+                    <td>{{ conn.devices.count }}</td>
+                    <td>
+                        <a href="{% url 'integrations:rmm_edit' conn.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center">No RMM integrations configured.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if rmm_connections %}
+        <div class="mt-3">
+            <a href="{% url 'integrations:rmm_devices' %}" class="btn btn-outline-primary btn-sm">View All Devices</a>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
 

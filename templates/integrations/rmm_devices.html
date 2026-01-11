@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}RMM Devices - HuduGlue{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'integrations:integration_list' %}">Integrations</a></li>
+        <li class="breadcrumb-item active">RMM Devices</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-desktop"></i> RMM Devices</h1>
+</div>
+
+<!-- Filters (future enhancement) -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <p class="text-muted mb-0">
+                    Showing {{ devices|length }} devices from all RMM integrations
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Devices Table -->
+<div class="card">
+    <div class="card-body">
+        {% if devices %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Device Name</th>
+                        <th>RMM Provider</th>
+                        <th>Type</th>
+                        <th>OS</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                        <th>Asset Link</th>
+                        <th>Last Seen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td>
+                            <strong>{{ device.device_name }}</strong>
+                            {% if device.hostname %}
+                            <br><small class="text-muted">{{ device.hostname }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'integrations:rmm_detail' device.connection.pk %}">
+                                {{ device.connection.get_provider_type_display }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ device.get_device_type_display }}</span>
+                        </td>
+                        <td>
+                            {% if device.os_version %}
+                            {{ device.os_version }}
+                            {% elif device.os_type %}
+                            {{ device.os_type|title }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if device.ip_address %}
+                            <code>{{ device.ip_address }}</code>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if device.is_online %}
+                            <span class="badge bg-success">Online</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Offline</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if device.linked_asset %}
+                            <a href="{% url 'assets:asset_detail' device.linked_asset.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-link"></i> {{ device.linked_asset.name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Not linked</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ device.last_seen|date:"Y-m-d H:i"|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-desktop fa-3x mb-3"></i>
+            <p>No devices found</p>
+            <p class="small">Devices will appear here after RMM integrations are configured and synced</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

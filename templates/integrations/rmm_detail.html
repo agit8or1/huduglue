@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ connection.name }} - RMM Integration - HuduGlue{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'integrations:integration_list' %}">Integrations</a></li>
+        <li class="breadcrumb-item active">{{ connection.name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-desktop"></i> {{ connection.name }}</h1>
+    <div>
+        <a href="{% url 'integrations:rmm_edit' connection.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'integrations:rmm_delete' connection.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Connection Details -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Connection Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Provider:</th>
+                        <td>{{ connection.get_provider_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Base URL:</th>
+                        <td><code>{{ connection.base_url }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            {% if connection.sync_enabled %}
+                            <span class="badge bg-success">Enabled</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Disabled</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Last Sync:</th>
+                        <td>{{ connection.last_sync_at|date:"Y-m-d H:i:s"|default:"Never" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Sync Status:</th>
+                        <td>
+                            {% if connection.last_sync_status == 'success' %}
+                            <span class="badge bg-success">Success</span>
+                            {% elif connection.last_sync_status == 'failed' %}
+                            <span class="badge bg-danger">Failed</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                {% if connection.last_error %}
+                <div class="alert alert-danger">
+                    <strong>Last Error:</strong> {{ connection.last_error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Settings -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Sync Settings</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="50%">Sync Devices:</th>
+                        <td>
+                            {% if connection.sync_devices %}
+                            <i class="fas fa-check-circle text-success"></i> Enabled
+                            {% else %}
+                            <i class="fas fa-times-circle text-muted"></i> Disabled
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Sync Alerts:</th>
+                        <td>
+                            {% if connection.sync_alerts %}
+                            <i class="fas fa-check-circle text-success"></i> Enabled
+                            {% else %}
+                            <i class="fas fa-times-circle text-muted"></i> Disabled
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Sync Software:</th>
+                        <td>
+                            {% if connection.sync_software %}
+                            <i class="fas fa-check-circle text-success"></i> Enabled
+                            {% else %}
+                            <i class="fas fa-times-circle text-muted"></i> Disabled
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Auto-map to Assets:</th>
+                        <td>
+                            {% if connection.map_to_assets %}
+                            <i class="fas fa-check-circle text-success"></i> Enabled
+                            {% else %}
+                            <i class="fas fa-times-circle text-muted"></i> Disabled
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Sync Interval:</th>
+                        <td>Every {{ connection.sync_interval_minutes }} minutes</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Device Statistics -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="mb-0">{{ total_devices }}</h2>
+                <p class="text-muted mb-0">Total Devices</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="mb-0 text-success">{{ online_devices }}</h2>
+                <p class="text-muted mb-0">Online</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="mb-0 text-muted">{{ total_devices|add:"-"|add:online_devices }}</h2>
+                <p class="text-muted mb-0">Offline</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="mb-0">{{ devices|length }}</h2>
+                <p class="text-muted mb-0">Recent Devices</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Devices -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Devices</h5>
+        <a href="{% url 'integrations:rmm_devices' %}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        {% if devices %}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Device Name</th>
+                    <th>Type</th>
+                    <th>OS</th>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                    <th>Last Seen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                <tr>
+                    <td>
+                        <strong>{{ device.device_name }}</strong>
+                        {% if device.linked_asset %}
+                        <br><small class="text-muted">
+                            <i class="fas fa-link"></i> Linked to <a href="{% url 'assets:asset_detail' device.linked_asset.pk %}">{{ device.linked_asset.name }}</a>
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td>{{ device.get_device_type_display }}</td>
+                    <td>
+                        {% if device.os_version %}
+                        {{ device.os_version }}
+                        {% else %}
+                        {{ device.os_type|title }}
+                        {% endif %}
+                    </td>
+                    <td>{{ device.ip_address|default:"-" }}</td>
+                    <td>
+                        {% if device.is_online %}
+                        <span class="badge bg-success">Online</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Offline</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ device.last_seen|date:"Y-m-d H:i"|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-desktop fa-3x mb-3"></i>
+            <p>No devices synced yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
