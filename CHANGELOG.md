@@ -5,6 +5,33 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.3] - 2026-01-11
+
+### ✨ New Features
+
+- **Floor Plan Import - Location Linking**
+  - Added ability to link floor plans to existing locations during MagicPlan import
+  - New `target_location` field in ImportJob model
+  - Location dropdown in floor plan import form (filtered by organization)
+  - Option to either create new location or link to existing one
+  - Import service automatically uses specified location if provided
+  - Falls back to creating new location from MagicPlan data if not specified
+
+### 🔧 Improvements
+
+- Floor plan import form now shows locations for selected organization
+- Import service logs which location is being used
+- Better user experience for managing floor plans across multiple locations
+- Form dynamically filters locations based on selected organization
+
+### Technical Details
+
+- Added `target_location` ForeignKey to ImportJob model
+- Updated ImportJobForm to include location field with organization-based filtering
+- Modified MagicPlanImportService._get_or_create_location() to prioritize target_location
+- Migration 0004: Added target_location field to import_jobs table
+- Updated floor_plan_import view to pass organization context to form
+
 ## [2.10.2] - 2026-01-11
 
 ### 🐛 Critical Bug Fixes

@@ -57,6 +57,16 @@ class ImportJob(BaseModel):
         help_text="Optional: Import into specific organization. Leave blank to import all organizations from source."
     )
 
+    # Floor plan import settings
+    target_location = models.ForeignKey(
+        'locations.Location',
+        on_delete=models.CASCADE,
+        related_name='import_jobs',
+        null=True,
+        blank=True,
+        help_text="Optional: Link floor plans to existing location. Leave blank to create new location from MagicPlan data."
+    )
+
     # Organization matching settings
     use_fuzzy_matching = models.BooleanField(
         default=True,
