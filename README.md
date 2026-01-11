@@ -47,7 +47,7 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 - **Contact Management** - Organization-specific contacts
 - **Audit Logging** - Complete activity tracking
 
-### 🔌 PSA Integrations
+### 🔌 PSA Integrations (8 Providers)
 Full implementations for:
 - **ConnectWise Manage** - Companies, Contacts, Tickets, Projects, Agreements
 - **Autotask PSA** - Companies, Contacts, Tickets, Projects, Agreements
@@ -56,13 +56,15 @@ Full implementations for:
 - **Syncro** - Customers, Contacts, Tickets
 - **Freshservice** - Departments, Requesters, Tickets
 - **Zendesk** - Organizations, Users, Tickets
+- **ITFlow** - Open-source PSA with full API support
 
-### 🖥️ RMM Integrations
+### 🖥️ RMM Integrations (5 Providers)
 Full implementations for:
 - **NinjaOne** - Device management, monitoring, and alerts
 - **Datto RMM** - Device sync, software inventory, and asset mapping
 - **ConnectWise Automate** - Device management and automation
 - **Atera** - Device monitoring and ticketing integration
+- **Tactical RMM** - Open-source RMM with full API support
 - **Auto Asset Mapping** - Automatically link RMM devices to asset records
 
 ## 🚀 Quick Start
@@ -219,7 +221,14 @@ Visit `http://localhost:8000` and log in with the credentials you created in ste
 
 ## 🔒 Security
 
-HuduGlue has undergone comprehensive security auditing:
+HuduGlue has undergone comprehensive security auditing and continuous vulnerability monitoring:
+
+### Continuous Security Monitoring
+- ✅ **Automated CVE Scanning** - Codebase scanned for known vulnerabilities and CVEs
+- ✅ **AI-Assisted Detection** - Pattern matching for SQL injection, XSS, CSRF, path traversal
+- ✅ **Dependency Monitoring** - Python packages checked against security advisories
+- ✅ **Weekly Manual Audits** - Regular security reviews by development team
+- ✅ **Alert-Only System** - No automated code changes, human verification required
 
 ### Fixed Vulnerabilities
 - ✅ SQL Injection - Parameterized queries and identifier quoting
@@ -239,6 +248,7 @@ HuduGlue has undergone comprehensive security auditing:
 - Security headers (CSP, HSTS)
 - Private file serving
 - Audit logging
+- Password breach detection (HaveIBeenPwned integration)
 
 **Security Disclosure**: If you discover a vulnerability, please email agit8or@agit8or.net. See [SECURITY.md](SECURITY.md) for details.
 
