@@ -76,6 +76,10 @@ class PropertyDataService:
         if not property_data:
             property_data = self._fetch_local_government_data(geo_data)
 
+        # Try municipal tax collector / public records (FREE!)
+        if not property_data:
+            property_data = self._fetch_municipal_data(geo_data, address)
+
         # Fallback to basic data from geocoding
         if not property_data:
             property_data = self._create_basic_property_data(geo_data)
@@ -206,6 +210,37 @@ class PropertyDataService:
         # Example: San Francisco has open data portal
 
         logger.debug(f"No local government API integration for {state}, {county}")
+        return None
+
+    def _fetch_municipal_data(self, geo_data: dict, address: str) -> Optional[Dict]:
+        """
+        Fetch property data from municipal tax collector / public records.
+
+        This is FREE - uses public property records from county websites.
+        """
+        try:
+            from .municipal_data import get_municipal_service
+
+            components = geo_data.get('address_components', {})
+            city = components.get('city')
+            state = components.get('state')
+            zip_code = components.get('zip_code')
+
+            municipal_service = get_municipal_service()
+            municipal_data = municipal_service.get_property_data(
+                address=address,
+                city=city,
+                state=state,
+                zip_code=zip_code
+            )
+
+            if municipal_data:
+                logger.info(f"Successfully fetched municipal data for {address}")
+                return municipal_data
+
+        except Exception as e:
+            logger.error(f"Municipal data fetch failed: {e}")
+
         return None
 
     def _create_basic_property_data(self, geo_data: dict) -> Dict:

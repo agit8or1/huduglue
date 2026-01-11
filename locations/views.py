@@ -339,7 +339,17 @@ def generate_floor_plan(request, location_id):
             location.floorplan_generation_status = 'failed'
             location.floorplan_error = str(e)
             location.save()
-            messages.error(request, f"Floor plan generation failed: {e}")
+
+            # Check if it's an API key issue
+            if 'api key' in str(e).lower() or 'anthropic' in str(e).lower():
+                messages.error(
+                    request,
+                    f"Floor plan generation failed: {e}. "
+                    f"Please check your Anthropic API key in Settings → AI & LLM."
+                )
+            else:
+                messages.error(request, f"Floor plan generation failed: {e}")
+
             return redirect('locations:location_detail', location_id=location.id)
 
     else:
