@@ -1,6 +1,6 @@
 # HuduGlue 🐕
 
-[![Version 2.10.5](https://img.shields.io/badge/version-2.10.5-brightgreen)](https://github.com/agit8or1/huduglue)
+[![Version 2.10.6](https://img.shields.io/badge/version-2.10.6-brightgreen)](https://github.com/agit8or1/huduglue)
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-green)](https://github.com/agit8or1/huduglue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Django 6.0](https://img.shields.io/badge/django-6.0-blue)](https://www.djangoproject.com/)
@@ -419,7 +419,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- **Version**: 2.10.5
+- **Version**: 2.10.6
 - **Release Date**: January 2026
 - **Status**: Production Ready
 - **Maintained**: Yes
