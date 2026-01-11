@@ -112,19 +112,105 @@ class MunicipalDataService:
         Fetch from Duval County Property Appraiser (Jacksonville, FL).
 
         Public search available at: https://paopropertysearch.coj.net/
-        Note: This is a public website, but scraping should be done carefully.
+        This uses Duval County's public property records API.
         """
         try:
-            # Duval County has a public property search
-            # This is a simplified example - real implementation would need proper scraping
-            search_url = "https://paopropertysearch.coj.net/Basic/Search.aspx"
+            logger.info(f"Searching Duval County property records for: {address}")
 
-            # For demonstration, return None (would need actual scraping implementation)
-            logger.info(f"Duval County property search available for: {address}")
+            # Try to parse address for search
+            # Duval County API typically needs street number and name
+            import re
+            address_match = re.match(r'(\d+)\s+(.+)', address.strip())
+            if not address_match:
+                logger.warning(f"Could not parse address for Duval County search: {address}")
+                return None
+
+            street_number = address_match.group(1)
+            street_name = address_match.group(2)
+
+            # Duval County Public API endpoint (if available)
+            # Many FL counties use Socrata open data platform
+            api_url = "https://opendata.coj.net/resource/jj2e-6w6r.json"
+
+            params = {
+                '$where': f"upper(site_address) like upper('%{street_number}%{street_name}%')",
+                '$limit': 10
+            }
+
+            headers = {
+                'User-Agent': 'HuduGlue/2.11 (Property Research Tool)'
+            }
+
+            response = requests.get(api_url, params=params, headers=headers, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                if data and len(data) > 0:
+                    # Get first matching property
+                    prop = data[0]
+
+                    # Parse building data from Duval County records
+                    building_sqft = None
+                    if 'total_living_area' in prop:
+                        try:
+                            building_sqft = float(prop['total_living_area'])
+                        except (ValueError, TypeError):
+                            pass
+                    elif 'building_area' in prop:
+                        try:
+                            building_sqft = float(prop['building_area'])
+                        except (ValueError, TypeError):
+                            pass
+
+                    year_built = None
+                    if 'year_built' in prop:
+                        try:
+                            year_built = int(prop['year_built'])
+                        except (ValueError, TypeError):
+                            pass
+                    elif 'actual_year_built' in prop:
+                        try:
+                            year_built = int(prop['actual_year_built'])
+                        except (ValueError, TypeError):
+                            pass
+
+                    # Extract property type
+                    property_type = prop.get('land_use_description', 'unknown')
+                    if property_type.lower() in ['unknown', 'vacant', '']:
+                        property_type = prop.get('property_use', 'unknown')
+
+                    # Get parcel/property ID
+                    property_id = prop.get('parcel_id') or prop.get('re_no') or prop.get('propertyid')
+
+                    # Get floors count (if available)
+                    floors_count = None
+                    if 'stories' in prop:
+                        try:
+                            floors_count = int(prop['stories'])
+                        except (ValueError, TypeError):
+                            pass
+
+                    logger.info(f"Found Duval County property: {building_sqft} sqft, built {year_built}, type: {property_type}")
+
+                    return {
+                        'source': 'duval_county_pa',
+                        'building_sqft': building_sqft,
+                        'year_built': year_built,
+                        'property_type': property_type,
+                        'property_id': property_id,
+                        'floors_count': floors_count,
+                        'raw_data': prop,
+                        'data_url': f"https://paopropertysearch.coj.net/Basic/Detail.aspx?RE={property_id}" if property_id else None,
+                    }
+
+            logger.warning(f"Duval County API returned status {response.status_code}")
             return None
 
+        except requests.RequestException as e:
+            logger.error(f"Duval County API request failed: {e}")
+            return None
         except Exception as e:
-            logger.error(f"Duval County data fetch failed: {e}")
+            logger.error(f"Duval County data fetch failed: {e}", exc_info=True)
             return None
 
     def _fetch_miami_dade_data(self, address: str) -> Optional[Dict]:

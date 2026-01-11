@@ -164,6 +164,11 @@ class Location(BaseModel):
         blank=True,
         help_text="Area map showing surrounding context"
     )
+    property_diagram = models.ImageField(
+        upload_to='locations/diagrams/%Y/%m/',
+        blank=True,
+        help_text="Property diagram/floor plan from tax collector or property appraiser records"
+    )
 
     # Floor plan generation tracking
     floorplan_generated = models.BooleanField(
