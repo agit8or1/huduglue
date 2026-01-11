@@ -1,44 +1,159 @@
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{% csrf_token %}">
+    <title>Edit Diagram - {{ diagram.title }}</title>
 
-{% block title %}Edit Diagram - {{ diagram.title }}{% endblock %}
+    <!-- Force browser to reload JavaScript by disabling cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-{% block extra_head %}
-<!-- Force browser to reload JavaScript by disabling cache -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-{% endblock %}
+    <!-- Minimal CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <h4><i class="fas fa-edit"></i> Editing: {{ diagram.title }} <small class="text-muted" style="font-size: 0.7em;">[Editor v2.9]</small></h4>
-    <div>
-        <button id="saveBtn" class="btn btn-success btn-sm" disabled>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        #fullscreen-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        #fullscreen-toolbar .title {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #fullscreen-toolbar .title small {
+            opacity: 0.8;
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        #fullscreen-toolbar .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        #fullscreen-toolbar button,
+        #fullscreen-toolbar a {
+            padding: 6px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        #saveBtn {
+            background: #10b981;
+            color: white;
+        }
+
+        #saveBtn:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        #saveBtn:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        #closeBtn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #closeBtn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        #status {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            margin-left: 20px;
+        }
+
+        #iframe-container {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f5f5f5;
+        }
+
+        #drawio-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Full-screen floating toolbar -->
+<div id="fullscreen-toolbar">
+    <div class="title">
+        <i class="fas fa-edit"></i>
+        <span>{{ diagram.title }}</span>
+        <small>[Editor v3.0 Full-Screen]</small>
+        <span id="status">Loading editor...</span>
+    </div>
+    <div class="actions">
+        <button id="saveBtn" disabled>
             <i class="fas fa-save"></i> Save
         </button>
-        <a href="{% url 'docs:diagram_detail' diagram.slug %}" id="closeBtn" class="btn btn-outline-secondary btn-sm">
+        <a href="{% url 'docs:diagram_detail' diagram.slug %}" id="closeBtn">
             <i class="fas fa-times"></i> Close
         </a>
     </div>
 </div>
 
-<div class="alert alert-info alert-dismissible fade show mb-2" role="alert">
-    <i class="fas fa-info-circle"></i> <strong>Draw.io Editor</strong> - Make your changes, then click Save. Auto-save every 60 seconds.
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-
-<!-- Draw.io iframe -->
-<div class="card border-0">
-    <div class="card-body p-0">
-        <iframe
-            id="drawio-iframe"
-            src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&saveAndExit=0&noSaveBtn=1&ui=kennedy&libraries=1&noExitBtn=1&autosave=1&xml=1&format=xml"
-            style="width: 100%; height: calc(100vh - 180px); min-height: 700px; border: none;"
-            allow="camera; microphone; clipboard-read; clipboard-write"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"
-            allowfullscreen>
-        </iframe>
-    </div>
+<!-- Full-screen iframe container -->
+<div id="iframe-container">
+    <iframe
+        id="drawio-iframe"
+        src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&saveAndExit=0&noSaveBtn=1&ui=kennedy&libraries=1&noExitBtn=1&autosave=1&xml=1&format=xml"
+        allow="camera; microphone; clipboard-read; clipboard-write"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"
+        allowfullscreen>
+    </iframe>
 </div>
 
 <!-- Store diagram XML in a script tag to avoid escaping issues -->
@@ -46,15 +161,9 @@
 {{ diagram.diagram_xml|default:""|safe }}
 </script>
 
-<div id="status" class="text-center text-muted small mt-2">
-    Loading editor...
-</div>
-{% endblock %}
-
-{% block extra_js %}
 <script>
-// Diagram Editor v2.9 - 2026-01-11 - Remove iframe before navigation
-console.log('🔄 Diagram Editor v2.9 loaded - Removes draw.io iframe from DOM before navigating to prevent its beforeunload');
+// Diagram Editor v3.0 - 2026-01-11 - Full-screen editor with floating toolbar
+console.log('🔄 Diagram Editor v3.0 loaded - Full-screen mode with floating toolbar');
 (function() {
     const iframe = document.getElementById('drawio-iframe');
     const saveBtn = document.getElementById('saveBtn');
@@ -522,4 +631,6 @@ console.log('🔄 Diagram Editor v2.9 loaded - Removes draw.io iframe from DOM b
     });
 })();
 </script>
-{% endblock %}
+
+</body>
+</html>
