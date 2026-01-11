@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-8 offset-md-2">
+    <div class="col-md-10 offset-md-1">
         <div class="card">
             <div class="card-header">
                 <h3 class="mb-0">
@@ -12,7 +12,7 @@
                 </h3>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
@@ -21,53 +21,140 @@
                     </div>
                     {% endif %}
 
-                    <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Organization Name *</label>
-                        {{ form.name }}
-                        {% if form.name.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.name.errors }}
+                    <!-- Basic Information -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Organization Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors }}</div>{% endif %}
                         </div>
-                        {% endif %}
-                        <small class="form-text text-muted">{{ form.name.help_text }}</small>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.legal_name.id_for_label }}" class="form-label">Legal Business Name</label>
+                            {{ form.legal_name }}
+                            {% if form.legal_name.errors %}<div class="invalid-feedback d-block">{{ form.legal_name.errors }}</div>{% endif %}
+                            <small class="form-text text-muted">{{ form.legal_name.help_text }}</small>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="{{ form.slug.id_for_label }}" class="form-label">Slug *</label>
-                        {{ form.slug }}
-                        {% if form.slug.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.slug.errors }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.tax_id.id_for_label }}" class="form-label">Tax ID / EIN</label>
+                            {{ form.tax_id }}
+                            {% if form.tax_id.errors %}<div class="invalid-feedback d-block">{{ form.tax_id.errors }}</div>{% endif %}
+                            <small class="form-text text-muted">{{ form.tax_id.help_text }}</small>
                         </div>
-                        {% endif %}
-                        <small class="form-text text-muted">{{ form.slug.help_text }}</small>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
+                            {{ form.logo }}
+                            {% if form.logo.errors %}<div class="invalid-feedback d-block">{{ form.logo.errors }}</div>{% endif %}
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
                         {{ form.description }}
-                        {% if form.description.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.description.errors }}
-                        </div>
-                        {% endif %}
-                        <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                        {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors }}</div>{% endif %}
                     </div>
 
+                    <!-- Address Information -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-map-marker-alt"></i> Address</h5>
+                    <div class="mb-3">
+                        <label for="{{ form.street_address.id_for_label }}" class="form-label">Street Address</label>
+                        {{ form.street_address }}
+                        {% if form.street_address.errors %}<div class="invalid-feedback d-block">{{ form.street_address.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.street_address_2.id_for_label }}" class="form-label">Street Address 2</label>
+                        {{ form.street_address_2 }}
+                        {% if form.street_address_2.errors %}<div class="invalid-feedback d-block">{{ form.street_address_2.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}<div class="invalid-feedback d-block">{{ form.city.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.state.id_for_label }}" class="form-label">State / Province</label>
+                            {{ form.state }}
+                            {% if form.state.errors %}<div class="invalid-feedback d-block">{{ form.state.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code</label>
+                            {{ form.postal_code }}
+                            {% if form.postal_code.errors %}<div class="invalid-feedback d-block">{{ form.postal_code.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
+                        {{ form.country }}
+                        {% if form.country.errors %}<div class="invalid-feedback d-block">{{ form.country.errors }}</div>{% endif %}
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-phone"></i> Contact Information</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="invalid-feedback d-block">{{ form.phone.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.website.id_for_label }}" class="form-label">Website</label>
+                            {{ form.website }}
+                            {% if form.website.errors %}<div class="invalid-feedback d-block">{{ form.website.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Primary Contact -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-user"></i> Primary Contact</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.primary_contact_name.id_for_label }}" class="form-label">Name</label>
+                            {{ form.primary_contact_name }}
+                            {% if form.primary_contact_name.errors %}<div class="invalid-feedback d-block">{{ form.primary_contact_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.primary_contact_title.id_for_label }}" class="form-label">Title</label>
+                            {{ form.primary_contact_title }}
+                            {% if form.primary_contact_title.errors %}<div class="invalid-feedback d-block">{{ form.primary_contact_title.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.primary_contact_email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.primary_contact_email }}
+                            {% if form.primary_contact_email.errors %}<div class="invalid-feedback d-block">{{ form.primary_contact_email.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.primary_contact_phone.id_for_label }}" class="form-label">Phone</label>
+                            {{ form.primary_contact_phone }}
+                            {% if form.primary_contact_phone.errors %}<div class="invalid-feedback d-block">{{ form.primary_contact_phone.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-toggle-on"></i> Status</h5>
                     <div class="mb-3 form-check">
                         {{ form.is_active }}
                         <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
                             Active
                         </label>
-                        {% if form.is_active.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.is_active.errors }}
-                        </div>
-                        {% endif %}
+                        {% if form.is_active.errors %}<div class="invalid-feedback d-block">{{ form.is_active.errors }}</div>{% endif %}
                         <small class="form-text text-muted d-block">{{ form.is_active.help_text }}</small>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="d-flex justify-content-end gap-2 mt-4">
                         <a href="{% if organization %}{% url 'accounts:organization_detail' organization.id %}{% else %}{% url 'accounts:organization_list' %}{% endif %}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Cancel
                         </a>

@@ -26,26 +26,43 @@
 </div>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="card">
+    <!-- Company Information -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
             <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-info-circle"></i> Organization Details</h3>
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Company Information</h5>
             </div>
             <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-4">Name:</dt>
-                    <dd class="col-sm-8">{{ organization.name }}</dd>
+                {% if organization.logo %}
+                <div class="text-center mb-3">
+                    <img src="{{ organization.logo.url }}" alt="{{ organization.name }} Logo" class="img-fluid" style="max-height: 150px;">
+                </div>
+                {% endif %}
 
-                    <dt class="col-sm-4">Slug:</dt>
-                    <dd class="col-sm-8"><code>{{ organization.slug }}</code></dd>
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Organization Name:</dt>
+                    <dd class="col-sm-7">{{ organization.name }}</dd>
 
-                    {% if organization.description %}
-                    <dt class="col-sm-4">Description:</dt>
-                    <dd class="col-sm-8">{{ organization.description }}</dd>
+                    {% if organization.legal_name %}
+                    <dt class="col-sm-5">Legal Name:</dt>
+                    <dd class="col-sm-7">{{ organization.legal_name }}</dd>
                     {% endif %}
 
-                    <dt class="col-sm-4">Status:</dt>
-                    <dd class="col-sm-8">
+                    {% if organization.tax_id %}
+                    <dt class="col-sm-5">Tax ID / EIN:</dt>
+                    <dd class="col-sm-7">{{ organization.tax_id }}</dd>
+                    {% endif %}
+
+                    <dt class="col-sm-5">Slug:</dt>
+                    <dd class="col-sm-7"><code>{{ organization.slug }}</code></dd>
+
+                    {% if organization.description %}
+                    <dt class="col-sm-5">Description:</dt>
+                    <dd class="col-sm-7">{{ organization.description }}</dd>
+                    {% endif %}
+
+                    <dt class="col-sm-5">Status:</dt>
+                    <dd class="col-sm-7">
                         {% if organization.is_active %}
                         <span class="badge bg-success">Active</span>
                         {% else %}
@@ -53,11 +70,11 @@
                         {% endif %}
                     </dd>
 
-                    <dt class="col-sm-4">Created:</dt>
-                    <dd class="col-sm-8">{{ organization.created_at|date:"F j, Y" }}</dd>
+                    <dt class="col-sm-5">Created:</dt>
+                    <dd class="col-sm-7">{{ organization.created_at|date:"F j, Y" }}</dd>
 
-                    <dt class="col-sm-4">Members:</dt>
-                    <dd class="col-sm-8">
+                    <dt class="col-sm-5">Members:</dt>
+                    <dd class="col-sm-7">
                         <strong>{{ members|length }}</strong> active member{{ members|length|pluralize }}
                     </dd>
                 </dl>
@@ -65,10 +82,79 @@
         </div>
     </div>
 
-    <div class="col-md-6">
+    <!-- Contact & Address Information -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-address-card"></i> Contact & Address</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="border-bottom pb-2 mb-3"><i class="fas fa-map-marker-alt"></i> Address</h6>
+                {% if organization.full_address %}
+                <address class="mb-3">
+                    {% if organization.street_address %}{{ organization.street_address }}<br>{% endif %}
+                    {% if organization.street_address_2 %}{{ organization.street_address_2 }}<br>{% endif %}
+                    {% if organization.city or organization.state or organization.postal_code %}
+                        {{ organization.city }}{% if organization.city and organization.state %}, {% endif %}{{ organization.state }} {{ organization.postal_code }}<br>
+                    {% endif %}
+                    {% if organization.country %}{{ organization.country }}{% endif %}
+                </address>
+                {% else %}
+                <p class="text-muted">No address on file</p>
+                {% endif %}
+
+                <h6 class="border-bottom pb-2 mb-3"><i class="fas fa-phone"></i> Contact Information</h6>
+                <dl class="row mb-3">
+                    {% if organization.phone %}
+                    <dt class="col-sm-4">Phone:</dt>
+                    <dd class="col-sm-8"><a href="tel:{{ organization.phone }}">{{ organization.phone }}</a></dd>
+                    {% endif %}
+
+                    {% if organization.email %}
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8"><a href="mailto:{{ organization.email }}">{{ organization.email }}</a></dd>
+                    {% endif %}
+
+                    {% if organization.website %}
+                    <dt class="col-sm-4">Website:</dt>
+                    <dd class="col-sm-8"><a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a></dd>
+                    {% endif %}
+
+                    {% if not organization.phone and not organization.email and not organization.website %}
+                    <dd class="col-sm-12 text-muted">No contact information on file</dd>
+                    {% endif %}
+                </dl>
+
+                <h6 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Primary Contact</h6>
+                <dl class="row mb-0">
+                    {% if organization.primary_contact_name %}
+                    <dt class="col-sm-4">Name:</dt>
+                    <dd class="col-sm-8">{{ organization.primary_contact_name }}{% if organization.primary_contact_title %}, {{ organization.primary_contact_title }}{% endif %}</dd>
+                    {% endif %}
+
+                    {% if organization.primary_contact_email %}
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8"><a href="mailto:{{ organization.primary_contact_email }}">{{ organization.primary_contact_email }}</a></dd>
+                    {% endif %}
+
+                    {% if organization.primary_contact_phone %}
+                    <dt class="col-sm-4">Phone:</dt>
+                    <dd class="col-sm-8"><a href="tel:{{ organization.primary_contact_phone }}">{{ organization.primary_contact_phone }}</a></dd>
+                    {% endif %}
+
+                    {% if not organization.primary_contact_name and not organization.primary_contact_email and not organization.primary_contact_phone %}
+                    <dd class="col-sm-12 text-muted">No primary contact on file</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Members -->
+    <div class="col-md-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0"><i class="fas fa-users"></i> Members</h3>
+                <h5 class="mb-0"><i class="fas fa-users"></i> Members</h5>
                 {% if user_membership.role == 'owner' or user.is_superuser %}
                 <a href="{% url 'accounts:member_add' organization.id %}" class="btn btn-sm btn-primary">
                     <i class="fas fa-user-plus"></i> Add Member
@@ -77,38 +163,42 @@
             </div>
             <div class="card-body">
                 {% if members %}
-                <div class="list-group">
+                <div class="row">
                     {% for member in members %}
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">
-                                    <i class="fas fa-user"></i> {{ member.user.username }}
-                                    {% if member.user.email %}
-                                    <small class="text-muted">({{ member.user.email }})</small>
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <i class="fas fa-user"></i> {{ member.user.get_full_name|default:member.user.username }}
+                                        </h6>
+                                        {% if member.user.email %}
+                                        <small class="text-muted d-block">{{ member.user.email }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge
+                                        {% if member.role == 'owner' %}bg-danger
+                                        {% elif member.role == 'admin' %}bg-warning
+                                        {% elif member.role == 'editor' %}bg-info
+                                        {% else %}bg-secondary
+                                        {% endif %}">
+                                        {{ member.get_role_display }}
+                                    </span>
+                                </div>
+                                {% if user_membership.role == 'owner' or user.is_superuser %}
+                                <div class="btn-group btn-group-sm w-100 mt-2">
+                                    <a href="{% url 'accounts:member_edit' organization.id member.id %}" class="btn btn-outline-secondary" title="Edit Role">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    {% if member.user != user %}
+                                    <a href="{% url 'accounts:member_remove' organization.id member.id %}" class="btn btn-outline-danger" title="Remove">
+                                        <i class="fas fa-user-times"></i> Remove
+                                    </a>
                                     {% endif %}
-                                </h6>
-                                <span class="badge
-                                    {% if member.role == 'owner' %}bg-danger
-                                    {% elif member.role == 'admin' %}bg-warning
-                                    {% elif member.role == 'editor' %}bg-info
-                                    {% else %}bg-secondary
-                                    {% endif %}">
-                                    {{ member.get_role_display }}
-                                </span>
-                            </div>
-                            {% if user_membership.role == 'owner' or user.is_superuser %}
-                            <div class="btn-group btn-group-sm">
-                                <a href="{% url 'accounts:member_edit' organization.id member.id %}" class="btn btn-outline-secondary" title="Edit Role">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                {% if member.user != user %}
-                                <a href="{% url 'accounts:member_remove' organization.id member.id %}" class="btn btn-outline-danger" title="Remove">
-                                    <i class="fas fa-user-times"></i>
-                                </a>
+                                </div>
                                 {% endif %}
                             </div>
-                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}

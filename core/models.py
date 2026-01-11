@@ -15,6 +15,34 @@ class Organization(models.Model):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(blank=True)
+
+    # Company Information
+    legal_name = models.CharField(max_length=255, blank=True, help_text="Full legal business name")
+    tax_id = models.CharField(max_length=50, blank=True, help_text="Tax ID / EIN")
+
+    # Address
+    street_address = models.CharField(max_length=255, blank=True)
+    street_address_2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=100, default='United States', blank=True)
+
+    # Contact Information
+    phone = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(blank=True)
+    website = models.URLField(blank=True)
+
+    # Primary Contact Person
+    primary_contact_name = models.CharField(max_length=255, blank=True)
+    primary_contact_title = models.CharField(max_length=100, blank=True)
+    primary_contact_email = models.EmailField(blank=True)
+    primary_contact_phone = models.CharField(max_length=50, blank=True)
+
+    # Branding
+    logo = models.ImageField(upload_to='organizations/logos/', blank=True, null=True)
+
+    # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
@@ -25,6 +53,22 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def full_address(self):
+        """Get full formatted address."""
+        parts = []
+        if self.street_address:
+            parts.append(self.street_address)
+        if self.street_address_2:
+            parts.append(self.street_address_2)
+        if self.city and self.state and self.postal_code:
+            parts.append(f"{self.city}, {self.state} {self.postal_code}")
+        elif self.city:
+            parts.append(self.city)
+        if self.country and self.country != 'United States':
+            parts.append(self.country)
+        return ', '.join(parts) if parts else ''
 
     def save(self, *args, **kwargs):
         if not self.slug:

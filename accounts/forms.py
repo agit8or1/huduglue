@@ -14,10 +14,31 @@ class OrganizationForm(forms.ModelForm):
 
     class Meta:
         model = Organization
-        fields = ['name', 'description', 'is_active']
+        fields = [
+            'name', 'legal_name', 'tax_id', 'description',
+            'street_address', 'street_address_2', 'city', 'state', 'postal_code', 'country',
+            'phone', 'email', 'website',
+            'primary_contact_name', 'primary_contact_title', 'primary_contact_email', 'primary_contact_phone',
+            'logo', 'is_active'
+        ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Organization Name'}),
+            'legal_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full Legal Business Name'}),
+            'tax_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Tax ID / EIN'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Description'}),
+            'street_address': forms.TextInput(attrs={'class': 'form-control'}),
+            'street_address_2': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'country': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'website': forms.URLInput(attrs={'class': 'form-control'}),
+            'primary_contact_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'primary_contact_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'primary_contact_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'primary_contact_phone': forms.TextInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         help_texts = {
