@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ action }} Import Job - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h1><i class="fas fa-download"></i> {{ action }} Import Job</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'imports:import_list' %}">Import Jobs</a></li>
+                    <li class="breadcrumb-item active">{{ action }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Import Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.source_type.id_for_label }}" class="form-label">
+                                Source Type <span class="text-danger">*</span>
+                            </label>
+                            {{ form.source_type }}
+                            {% if form.source_type.errors %}
+                            <div class="text-danger">{{ form.source_type.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.source_type.help_text }}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.source_url.id_for_label }}" class="form-label">
+                                Source URL <span class="text-danger">*</span>
+                            </label>
+                            {{ form.source_url }}
+                            {% if form.source_url.errors %}
+                            <div class="text-danger">{{ form.source_url.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.source_url.help_text }}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.source_api_key.id_for_label }}" class="form-label">
+                                API Key <span class="text-danger">*</span>
+                            </label>
+                            {{ form.source_api_key }}
+                            {% if form.source_api_key.errors %}
+                            <div class="text-danger">{{ form.source_api_key.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.source_api_key.help_text }}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.target_organization.id_for_label }}" class="form-label">
+                                Target Organization <span class="text-danger">*</span>
+                            </label>
+                            {{ form.target_organization }}
+                            {% if form.target_organization.errors %}
+                            <div class="text-danger">{{ form.target_organization.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Data will be imported into this organization</small>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="mb-3">Data Types to Import</h6>
+
+                        <div class="form-check mb-2">
+                            {{ form.import_assets }}
+                            <label class="form-check-label" for="{{ form.import_assets.id_for_label }}">
+                                Import Assets/Configuration Items
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            {{ form.import_passwords }}
+                            <label class="form-check-label" for="{{ form.import_passwords.id_for_label }}">
+                                Import Passwords
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            {{ form.import_documents }}
+                            <label class="form-check-label" for="{{ form.import_documents.id_for_label }}">
+                                Import Documents/Articles
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            {{ form.import_contacts }}
+                            <label class="form-check-label" for="{{ form.import_contacts.id_for_label }}">
+                                Import Contacts
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            {{ form.import_locations }}
+                            <label class="form-check-label" for="{{ form.import_locations.id_for_label }}">
+                                Import Locations
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            {{ form.import_networks }}
+                            <label class="form-check-label" for="{{ form.import_networks.id_for_label }}">
+                                Import Networks
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <div class="form-check mb-3">
+                            {{ form.dry_run }}
+                            <label class="form-check-label" for="{{ form.dry_run.id_for_label }}">
+                                <strong>Dry Run (Preview Only)</strong>
+                            </label>
+                            <br>
+                            <small class="form-text text-muted">{{ form.dry_run.help_text }}</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Import Job
+                            </button>
+                            <a href="{% url 'imports:import_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Import Information</h6>
+                </div>
+                <div class="card-body">
+                    <h6>IT Glue</h6>
+                    <p class="small">
+                        Import data from IT Glue documentation platform. Supports assets, passwords,
+                        documents, contacts, and locations.
+                    </p>
+                    <p class="small">
+                        <strong>API URL:</strong> <code>https://api.itglue.com</code>
+                    </p>
+                    <p class="small">
+                        <a href="https://api.itglue.com/developer/" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> IT Glue API Documentation
+                        </a>
+                    </p>
+
+                    <hr>
+
+                    <h6>Hudu</h6>
+                    <p class="small">
+                        Import data from Hudu documentation platform. Supports assets, passwords,
+                        articles, and companies.
+                    </p>
+                    <p class="small">
+                        <strong>API URL:</strong> <code>https://your-hudu.com</code>
+                    </p>
+                    <p class="small">
+                        <a href="https://github.com/hudu-team/hudu-api-docs" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Hudu API Documentation
+                        </a>
+                    </p>
+
+                    <hr>
+
+                    <h6>Import Process</h6>
+                    <ol class="small">
+                        <li>Configure source and target settings</li>
+                        <li>Select data types to import</li>
+                        <li>Run as dry run first to preview</li>
+                        <li>Review results and adjust settings</li>
+                        <li>Run actual import</li>
+                    </ol>
+
+                    <div class="alert alert-warning small">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Recommendation:</strong> Always run a dry run first to preview
+                        what will be imported without actually saving any data.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

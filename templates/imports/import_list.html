@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Import Jobs - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h1><i class="fas fa-download"></i> Import Jobs</h1>
+            <p class="text-muted">Import data from IT Glue or Hudu</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'imports:import_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Import
+            </a>
+        </div>
+    </div>
+
+    {% if jobs %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Target Organization</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Dry Run</th>
+                            <th>Started</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr>
+                            <td>
+                                <strong>{{ job.get_source_type_display }}</strong><br>
+                                <small class="text-muted">{{ job.source_url }}</small>
+                            </td>
+                            <td>
+                                <a href="{% url 'core:organization_detail' job.target_organization.pk %}">
+                                    {{ job.target_organization.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if job.status == 'pending' %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-clock"></i> Pending
+                                    </span>
+                                {% elif job.status == 'running' %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-spinner fa-spin"></i> Running
+                                    </span>
+                                {% elif job.status == 'completed' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check"></i> Completed
+                                    </span>
+                                {% elif job.status == 'failed' %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times"></i> Failed
+                                    </span>
+                                {% elif job.status == 'cancelled' %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-ban"></i> Cancelled
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if job.total_items > 0 %}
+                                    <div class="progress" style="height: 20px;">
+                                        {% with pct=job.items_imported|add:job.items_skipped|add:job.items_failed %}
+                                        {% with progress_pct=pct|floatformat:0 %}
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                             style="width: {{ job.items_imported|floatformat:0 }}%"
+                                             aria-valuenow="{{ job.items_imported }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="{{ job.total_items }}">
+                                            {{ job.items_imported }}
+                                        </div>
+                                        <div class="progress-bar bg-warning" role="progressbar"
+                                             style="width: {{ job.items_skipped|floatformat:0 }}%"
+                                             aria-valuenow="{{ job.items_skipped }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="{{ job.total_items }}">
+                                            {{ job.items_skipped }}
+                                        </div>
+                                        <div class="progress-bar bg-danger" role="progressbar"
+                                             style="width: {{ job.items_failed|floatformat:0 }}%"
+                                             aria-valuenow="{{ job.items_failed }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="{{ job.total_items }}">
+                                            {{ job.items_failed }}
+                                        </div>
+                                        {% endwith %}
+                                        {% endwith %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ job.items_imported }} / {{ job.total_items }} items
+                                    </small>
+                                {% else %}
+                                    <span class="text-muted">Not started</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if job.dry_run %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-eye"></i> Yes
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ job.created_at|date:"Y-m-d H:i" }}<br>
+                                <small class="text-muted">by {{ job.started_by.username }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'imports:import_detail' job.pk %}"
+                                       class="btn btn-outline-primary"
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if job.status == 'pending' %}
+                                    <a href="{% url 'imports:import_edit' job.pk %}"
+                                       class="btn btn-outline-secondary"
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'imports:import_delete' job.pk %}"
+                                       class="btn btn-outline-danger"
+                                       title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        No import jobs yet. <a href="{% url 'imports:import_create' %}">Create your first import</a>.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

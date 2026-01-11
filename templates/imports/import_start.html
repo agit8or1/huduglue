@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Start Import Job #{{ job.id }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h1><i class="fas fa-play"></i> Start Import Job</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'imports:import_list' %}">Import Jobs</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'imports:import_detail' job.pk %}">Job #{{ job.id }}</a></li>
+                    <li class="breadcrumb-item active">Start</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirm Import</h5>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        You are about to start the following import job:
+                    </p>
+
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th width="30%">Source</th>
+                                <td>{{ job.get_source_type_display }} ({{ job.source_url }})</td>
+                            </tr>
+                            <tr>
+                                <th>Target Organization</th>
+                                <td>{{ job.target_organization.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Import Mode</th>
+                                <td>
+                                    {% if job.dry_run %}
+                                        <span class="badge bg-info">Dry Run (Preview Only)</span>
+                                        <br><small class="text-muted">No data will be saved</small>
+                                    {% else %}
+                                        <span class="badge bg-warning">Live Import</span>
+                                        <br><small class="text-muted">Data will be saved to database</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Data Types</th>
+                                <td>
+                                    <ul class="mb-0">
+                                        {% if job.import_assets %}
+                                        <li>Assets / Configuration Items</li>
+                                        {% endif %}
+                                        {% if job.import_passwords %}
+                                        <li>Passwords</li>
+                                        {% endif %}
+                                        {% if job.import_documents %}
+                                        <li>Documents / Articles</li>
+                                        {% endif %}
+                                        {% if job.import_contacts %}
+                                        <li>Contacts</li>
+                                        {% endif %}
+                                        {% if job.import_locations %}
+                                        <li>Locations</li>
+                                        {% endif %}
+                                        {% if job.import_networks %}
+                                        <li>Networks</li>
+                                        {% endif %}
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    {% if not job.dry_run %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This is a live import. Data will be created in your database.
+                        Make sure you have reviewed the configuration carefully.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Dry Run Mode:</strong> This import will preview what would be imported
+                        without actually saving any data. This is useful for testing your configuration.
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-secondary">
+                        <h6><i class="fas fa-clock"></i> Import Duration</h6>
+                        <p class="mb-0">
+                            Depending on the amount of data, this import may take several minutes
+                            to complete. Please do not close this page during the import process.
+                        </p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play"></i>
+                                {% if job.dry_run %}
+                                    Start Dry Run
+                                {% else %}
+                                    Start Import
+                                {% endif %}
+                            </button>
+                            <a href="{% url 'imports:import_detail' job.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if job.dry_run %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Dry Run Tips</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <strong>What happens during a dry run?</strong>
+                    </p>
+                    <ul class="small">
+                        <li>API connections are tested</li>
+                        <li>Data is retrieved from the source</li>
+                        <li>Import mappings are processed</li>
+                        <li>Statistics are calculated</li>
+                        <li><strong>No data is saved to the database</strong></li>
+                    </ul>
+                    <p class="small mb-0">
+                        After reviewing the dry run results, you can edit the job to disable
+                        dry run mode and perform the actual import.
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-shield-alt"></i> Duplicate Prevention</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">
+                        Import mappings will track which items have already been imported.
+                        If you run this import again, items that were already imported will
+                        be skipped automatically.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Import Job #{{ job.id }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h1><i class="fas fa-download"></i> Import Job #{{ job.id }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'imports:import_list' %}">Import Jobs</a></li>
+                    <li class="breadcrumb-item active">Job #{{ job.id }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if job.status == 'pending' or job.status == 'failed' %}
+            <a href="{% url 'imports:import_start' job.pk %}" class="btn btn-success">
+                <i class="fas fa-play"></i> Start Import
+            </a>
+            {% endif %}
+            {% if job.status == 'pending' %}
+            <a href="{% url 'imports:import_edit' job.pk %}" class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            {% endif %}
+            <a href="{% url 'imports:import_delete' job.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Status Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong>
+                                {% if job.status == 'pending' %}
+                                    <span class="badge bg-secondary">Pending</span>
+                                {% elif job.status == 'running' %}
+                                    <span class="badge bg-primary">Running</span>
+                                {% elif job.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif job.status == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                {% elif job.status == 'cancelled' %}
+                                    <span class="badge bg-warning">Cancelled</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Dry Run:</strong>
+                                {% if job.dry_run %}
+                                    <span class="badge bg-info">Yes (Preview Only)</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Created:</strong> {{ job.created_at|date:"Y-m-d H:i:s" }}</p>
+                            <p><strong>Started By:</strong> {{ job.started_by.username }}</p>
+                            {% if job.started_at %}
+                            <p><strong>Started:</strong> {{ job.started_at|date:"Y-m-d H:i:s" }}</p>
+                            {% endif %}
+                            {% if job.completed_at %}
+                            <p><strong>Completed:</strong> {{ job.completed_at|date:"Y-m-d H:i:s" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Source Type:</strong> {{ job.get_source_type_display }}</p>
+                            <p><strong>Source URL:</strong> <code>{{ job.source_url }}</code></p>
+                            <p><strong>Target Organization:</strong>
+                                <a href="{% url 'core:organization_detail' job.target_organization.pk %}">
+                                    {{ job.target_organization.name }}
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Data Types:</strong></p>
+                            <ul class="list-unstyled">
+                                {% if job.import_assets %}
+                                <li><i class="fas fa-check text-success"></i> Assets</li>
+                                {% endif %}
+                                {% if job.import_passwords %}
+                                <li><i class="fas fa-check text-success"></i> Passwords</li>
+                                {% endif %}
+                                {% if job.import_documents %}
+                                <li><i class="fas fa-check text-success"></i> Documents</li>
+                                {% endif %}
+                                {% if job.import_contacts %}
+                                <li><i class="fas fa-check text-success"></i> Contacts</li>
+                                {% endif %}
+                                {% if job.import_locations %}
+                                <li><i class="fas fa-check text-success"></i> Locations</li>
+                                {% endif %}
+                                {% if job.import_networks %}
+                                <li><i class="fas fa-check text-success"></i> Networks</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Import Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-primary">{{ job.total_items }}</h3>
+                                    <p class="mb-0">Total Items</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-success">{{ job.items_imported }}</h3>
+                                    <p class="mb-0">Imported</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-warning">{{ job.items_skipped }}</h3>
+                                    <p class="mb-0">Skipped</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-danger">{{ job.items_failed }}</h3>
+                                    <p class="mb-0">Failed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if job.total_items > 0 %}
+                    <div class="mt-3">
+                        <div class="progress" style="height: 30px;">
+                            {% widthratio job.items_imported job.total_items 100 as imported_pct %}
+                            {% widthratio job.items_skipped job.total_items 100 as skipped_pct %}
+                            {% widthratio job.items_failed job.total_items 100 as failed_pct %}
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width: {{ imported_pct }}%"
+                                 title="{{ job.items_imported }} imported">
+                                {% if imported_pct > 10 %}{{ imported_pct }}%{% endif %}
+                            </div>
+                            <div class="progress-bar bg-warning" role="progressbar"
+                                 style="width: {{ skipped_pct }}%"
+                                 title="{{ job.items_skipped }} skipped">
+                                {% if skipped_pct > 10 %}{{ skipped_pct }}%{% endif %}
+                            </div>
+                            <div class="progress-bar bg-danger" role="progressbar"
+                                 style="width: {{ failed_pct }}%"
+                                 title="{{ job.items_failed }} failed">
+                                {% if failed_pct > 10 %}{{ failed_pct }}%{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Log Card -->
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Import Log</h5>
+                    <a href="{% url 'imports:import_log' job.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-expand"></i> View Full Log
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if job.log_messages %}
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <pre class="mb-0" style="white-space: pre-wrap;">{{ job.log_messages }}</pre>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No log messages yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Actions Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-cogs"></i> Actions</h6>
+                </div>
+                <div class="card-body">
+                    {% if job.status == 'pending' or job.status == 'failed' %}
+                    <a href="{% url 'imports:import_start' job.pk %}" class="btn btn-success w-100 mb-2">
+                        <i class="fas fa-play"></i> Start Import
+                    </a>
+                    {% endif %}
+
+                    {% if job.status == 'pending' %}
+                    <a href="{% url 'imports:import_edit' job.pk %}" class="btn btn-secondary w-100 mb-2">
+                        <i class="fas fa-edit"></i> Edit Configuration
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'imports:import_log' job.pk %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-file-alt"></i> View Full Log
+                    </a>
+
+                    <hr>
+
+                    <a href="{% url 'imports:import_delete' job.pk %}" class="btn btn-danger w-100">
+                        <i class="fas fa-trash"></i> Delete Job
+                    </a>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Information</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Import Process</h6>
+                    <p class="small">
+                        The import process connects to your source platform, retrieves data,
+                        and creates corresponding records in HuduGlue.
+                    </p>
+
+                    <h6>Dry Run</h6>
+                    <p class="small">
+                        When dry run is enabled, the import process will retrieve and process
+                        data but will not save anything to the database. This allows you to
+                        preview what will be imported.
+                    </p>
+
+                    <h6>Duplicate Prevention</h6>
+                    <p class="small">
+                        Import mappings track source IDs to prevent duplicate imports. If you
+                        run the same import again, already-imported items will be skipped.
+                    </p>
+
+                    {% if job.status == 'failed' %}
+                    <div class="alert alert-danger small">
+                        <strong>Import Failed</strong><br>
+                        Check the log messages above for error details. You can edit the
+                        configuration and try again.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

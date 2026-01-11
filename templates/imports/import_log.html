@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Import Log - Job #{{ job.id }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h1><i class="fas fa-file-alt"></i> Import Log</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'imports:import_list' %}">Import Jobs</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'imports:import_detail' job.pk %}">Job #{{ job.id }}</a></li>
+                    <li class="breadcrumb-item active">Log</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'imports:import_detail' job.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Job Details
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Import Job #{{ job.id }}</h5>
+                        <small class="text-muted">
+                            {{ job.get_source_type_display }} → {{ job.target_organization.name }}
+                        </small>
+                    </div>
+                    <div>
+                        {% if job.status == 'pending' %}
+                            <span class="badge bg-secondary">Pending</span>
+                        {% elif job.status == 'running' %}
+                            <span class="badge bg-primary">Running</span>
+                        {% elif job.status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% elif job.status == 'failed' %}
+                            <span class="badge bg-danger">Failed</span>
+                        {% elif job.status == 'cancelled' %}
+                            <span class="badge bg-warning">Cancelled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if job.log_messages %}
+                    <div class="log-viewer" style="background-color: #1e1e1e; color: #d4d4d4; font-family: 'Courier New', monospace; font-size: 14px; padding: 20px; max-height: 600px; overflow-y: auto;">
+                        <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">{{ job.log_messages }}</pre>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-info-circle fa-3x mb-3"></i>
+                        <p>No log messages yet. The import has not been started.</p>
+                        {% if job.status == 'pending' %}
+                        <a href="{% url 'imports:import_start' job.pk %}" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Start Import
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% if job.log_messages %}
+                <div class="card-footer">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <strong>Total:</strong> {{ job.total_items }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong class="text-success">Imported:</strong> {{ job.items_imported }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong class="text-warning">Skipped:</strong> {{ job.items_skipped }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong class="text-danger">Failed:</strong> {{ job.items_failed }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if job.status == 'running' %}
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-spinner fa-spin"></i>
+                <strong>Import in progress...</strong>
+                This page will auto-refresh every 5 seconds to show updated log messages.
+            </div>
+        </div>
+    </div>
+    <script>
+        // Auto-refresh page every 5 seconds if import is running
+        setTimeout(function() {
+            window.location.reload();
+        }, 5000);
+    </script>
+    {% endif %}
+</div>
+
+<style>
+    .log-viewer {
+        scrollbar-width: thin;
+        scrollbar-color: #555 #1e1e1e;
+    }
+
+    .log-viewer::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .log-viewer::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+
+    .log-viewer::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 5px;
+    }
+
+    .log-viewer::-webkit-scrollbar-thumb:hover {
+        background: #777;
+    }
+</style>
+{% endblock %}
