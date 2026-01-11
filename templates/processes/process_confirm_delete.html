@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Delete Process{% endblock %}
+{% block title %}Delete Workflow{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -16,8 +16,8 @@
                 {% if active_executions > 0 %}
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Warning:</strong> This process has {{ active_executions }} active execution(s).
-                    Deleting this process will also delete all associated executions.
+                    <strong>Warning:</strong> This workflow has {{ active_executions }} active execution(s).
+                    Deleting this workflow will also delete all associated executions.
                 </div>
                 {% endif %}
 
@@ -36,7 +36,7 @@
                             <i class="fas fa-times"></i> Cancel
                         </a>
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Delete Process
+                            <i class="fas fa-trash"></i> Delete Workflow
                         </button>
                     </div>
                 </form>
