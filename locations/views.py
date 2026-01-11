@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.utils import timezone
+from django.conf import settings
 
 from .models import Location, LocationFloorPlan
 from .forms import LocationForm, LocationFloorPlanForm
