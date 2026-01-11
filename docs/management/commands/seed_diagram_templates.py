@@ -29,12 +29,9 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f"Organization with slug '{org_slug}' not found"))
                 return
         else:
-            # Create global templates (no organization)
-            organization = Organization.objects.first()
-            if not organization:
-                self.stdout.write(self.style.ERROR("No organizations found. Create an organization first."))
-                return
-            self.stdout.write("Creating global diagram templates")
+            # Create global templates (no organization required)
+            organization = None
+            self.stdout.write("Creating global diagram templates (no organization required)")
             is_global = True
 
         # Get superuser for created_by field

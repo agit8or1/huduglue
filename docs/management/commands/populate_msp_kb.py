@@ -12,18 +12,15 @@ class Command(BaseCommand):
     help = 'Populate Global KB with MSP-related knowledge base articles'
 
     def handle(self, *args, **options):
-        # Get or create first organization (required for FK)
-        org = Organization.objects.first()
-        if not org:
-            self.stdout.write(self.style.ERROR('No organizations found. Please create at least one organization first.'))
-            return
+        # Global KB articles don't require an organization
+        org = None
 
         # Get admin user for created_by
         admin_user = User.objects.filter(is_superuser=True).first()
         if not admin_user:
             admin_user = User.objects.first()
 
-        self.stdout.write('Creating Global KB categories...')
+        self.stdout.write('Creating Global KB categories (no organization required)...')
 
         # Create categories
         categories_data = [
