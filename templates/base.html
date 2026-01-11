@@ -42,15 +42,6 @@
                     {% endif %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'assets:asset_list' %}"><i class="fas fa-box"></i> Assets</a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="orgsDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-building"></i> Organizations
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'accounts:organization_list' %}"><i class="fas fa-building"></i> Organizations</a></li>
-                            <li><a class="dropdown-item" href="{% url 'locations:location_list' %}"><i class="fas fa-map-marker-alt"></i> Locations</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="vaultDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-key"></i> Vault
                         </a>
@@ -94,11 +85,17 @@
                             <i class="fas fa-cog"></i> Admin
                         </a>
                         <ul class="dropdown-menu">
+                            <li><h6 class="dropdown-header">System</h6></li>
                             <li><a class="dropdown-item" href="{% url 'core:settings_general' %}"><i class="fas fa-sliders-h"></i> Settings</a></li>
                             <li><a class="dropdown-item" href="{% url 'core:system_status' %}"><i class="fas fa-heartbeat"></i> System Status</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Management</h6></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:organization_list' %}"><i class="fas fa-building"></i> Organizations</a></li>
+                            <li><a class="dropdown-item" href="{% url 'locations:location_list' %}"><i class="fas fa-map-marker-alt"></i> Locations</a></li>
                             <li><a class="dropdown-item" href="{% url 'accounts:access_management' %}"><i class="fas fa-users-cog"></i> Access Management</a></li>
                             <li><a class="dropdown-item" href="{% url 'integrations:integration_list' %}"><i class="fas fa-plug"></i> Integrations</a></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Global Views</h6></li>
                             <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}"><i class="fas fa-globe"></i> Global Dashboard</a></li>
                             <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-tasks"></i> Global Processes</a></li>
                         </ul>
