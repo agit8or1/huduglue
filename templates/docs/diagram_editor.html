@@ -25,7 +25,7 @@
     <div class="card-body p-0">
         <iframe
             id="drawio-iframe"
-            src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&saveAndExit=0&noSaveBtn=1&ui=kennedy&libraries=1&noExitBtn=1&autosave=1"
+            src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&saveAndExit=0&noSaveBtn=1&ui=kennedy&libraries=1&noExitBtn=1&autosave=1&xml=1&format=xml"
             style="width: 100%; height: 85vh; border: none;"
             allow="camera; microphone; clipboard-read; clipboard-write"
             sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"
@@ -175,6 +175,13 @@
                 console.log('Editor ready, diagram XML length:', currentDiagramXml.length);
                 updateStatus('Editor ready');
 
+                // Configure draw.io to enable autosave events
+                console.log('Configuring draw.io with autosave enabled...');
+                sendToDrawio('configure', {
+                    autosave: 1,
+                    enableCustomLibraries: true
+                });
+
                 // Enable save button now that editor is ready
                 saveBtn.disabled = false;
                 console.log('Save button enabled (editor ready)');
@@ -182,27 +189,46 @@
                 // Load existing diagram if available, otherwise load blank diagram
                 if (currentDiagramXml && currentDiagramXml.length > 0) {
                     console.log('Loading existing diagram...');
-                    sendToDrawio('load', {xml: currentDiagramXml});
+                    sendToDrawio('load', {xml: currentDiagramXml, autosave: 1});
                     updateStatus('Loading diagram...');
                 } else {
                     console.log('No existing diagram, loading blank canvas...');
                     // Load a blank diagram to start the editor
                     const blankDiagram = '<mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel>';
-                    sendToDrawio('load', {xml: blankDiagram});
+                    sendToDrawio('load', {xml: blankDiagram, autosave: 1});
                     updateStatus('Ready to draw');
                 }
 
-                // Start auto-save
+                // Start auto-save polling (as fallback if events don't work)
                 autoSaveInterval = setInterval(() => {
                     if (hasUnsavedChanges) {
-                        sendToDrawio('export', {format: 'xml'});
+                        console.log('Auto-save interval triggered');
+                        sendToDrawio('export', {format: 'xmlpng'});
                     }
                 }, 60000); // Auto-save every 60 seconds
+                break;
+
+            case 'configure':
+                console.log('Configure event received - autosave should now be enabled');
                 break;
 
             case 'load':
                 console.log('Diagram loaded event received');
                 updateStatus('Diagram loaded');
+                break;
+
+            case 'merge':
+                // Merge event may contain XML
+                console.log('Merge event received');
+                if (msg.xml) {
+                    console.log('Merge event has XML, length:', msg.xml.length);
+                    if (msg.xml !== currentDiagramXml) {
+                        currentDiagramXml = msg.xml;
+                        hasUnsavedChanges = true;
+                        saveBtn.disabled = false;
+                        updateStatus('Unsaved changes (from merge)');
+                    }
+                }
                 break;
 
             case 'autosave':
@@ -305,13 +331,28 @@
     saveBtn.addEventListener('click', function() {
         console.log('Save button clicked, editorReady:', editorReady);
         if (editorReady) {
-            // Always request fresh export from draw.io to get current state
-            // Don't rely on autosave events as they may not fire reliably
-            console.log('Requesting current diagram XML from draw.io...');
-            updateStatus('Exporting diagram...');
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
-            sendToDrawio('export', {format: 'xmlpng'});
+            // If autosave has captured XML, save it directly
+            if (currentDiagramXml && currentDiagramXml.length > 100) {
+                console.log('Saving current XML from autosave (length:', currentDiagramXml.length, ')');
+                saveDiagram(true);
+            } else {
+                // No XML captured yet - request export
+                console.log('No XML cached, requesting export from draw.io...');
+                updateStatus('Exporting diagram...');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+
+                // Try multiple export formats
+                sendToDrawio('export', {format: 'xml', xml: currentDiagramXml});
+
+                // Fallback: try xmlpng after delay
+                setTimeout(() => {
+                    if (editorReady && (!currentDiagramXml || currentDiagramXml.length < 100)) {
+                        console.log('First export failed, trying xmlpng format...');
+                        sendToDrawio('export', {format: 'xmlpng'});
+                    }
+                }, 1000);
+            }
         } else {
             console.error('Cannot save - editor not ready');
             updateStatus('Editor not ready yet', true);
