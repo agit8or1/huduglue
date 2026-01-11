@@ -85,7 +85,7 @@ class ProcessExecutionAdmin(admin.ModelAdmin):
     inlines = [ProcessStageCompletionInline]
 
     fieldsets = (
-        ('Process Information', {
+        ('Workflow Information', {
             'fields': ('process', 'organization')
         }),
         ('Assignment', {

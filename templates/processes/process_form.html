@@ -6,7 +6,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1><i class="fas fa-tasks"></i> {{ action }} Process</h1>
-    <a href="{% if process %}{% url 'processes:process_detail' process.slug %}{% else %}{% url 'processes:process_list' %}{% endif %}" class="btn btn-outline-secondary">
+    <a href="{% if workflow %}{% url 'processes:process_detail' process.slug %}{% else %}{% url 'processes:process_list' %}{% endif %}" class="btn btn-outline-secondary">
         <i class="fas fa-times"></i> Cancel
     </a>
 </div>
@@ -14,10 +14,10 @@
 <form method="post" id="processForm">
     {% csrf_token %}
 
-    <!-- Process Details -->
+    <!-- Workflow Details -->
     <div class="card mb-3">
         <div class="card-header py-2">
-            <h6 class="mb-0"><i class="fas fa-info-circle"></i> Process Details</h6>
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> Workflow Details</h6>
         </div>
         <div class="card-body">
             <div class="row">
@@ -200,7 +200,7 @@
     </div>
 
     <div class="d-flex justify-content-end gap-2">
-        <a href="{% if process %}{% url 'processes:process_detail' process.slug %}{% else %}{% url 'processes:process_list' %}{% endif %}" class="btn btn-outline-secondary">
+        <a href="{% if workflow %}{% url 'processes:process_detail' process.slug %}{% else %}{% url 'processes:process_list' %}{% endif %}" class="btn btn-outline-secondary">
             <i class="fas fa-times"></i> Cancel
         </a>
         <button type="submit" class="btn btn-primary">

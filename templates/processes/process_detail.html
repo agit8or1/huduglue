@@ -46,7 +46,7 @@
 <!-- Linked Diagram -->
 {% if process.linked_diagram %}
 <div class="alert alert-info">
-    <i class="fas fa-project-diagram"></i> This process has a linked diagram:
+    <i class="fas fa-project-diagram"></i> This workflow has a linked diagram:
     <a href="{% url 'docs:diagram_detail' process.linked_diagram.slug %}">{{ process.linked_diagram.title }}</a>
 </div>
 {% endif %}

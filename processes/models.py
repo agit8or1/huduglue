@@ -87,6 +87,8 @@ class Process(BaseModel):
         db_table = 'processes'
         unique_together = [['organization', 'slug']]
         ordering = ['title']
+        verbose_name = 'Workflow'
+        verbose_name_plural = 'Workflows'
         indexes = [
             models.Index(fields=['organization', 'slug']),
             models.Index(fields=['is_global', 'is_published']),

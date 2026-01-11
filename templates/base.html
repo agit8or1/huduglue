@@ -73,7 +73,7 @@
                             <li><a class="dropdown-item" href="{% url 'locations:floor_plan_import' %}"><i class="fas fa-file-upload"></i> Import Floor Plans</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'processes:process_list' %}"><i class="fas fa-tasks"></i> Processes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'processes:process_list' %}"><i class="fas fa-tasks"></i> Workflows</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="monitoringDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-heartbeat"></i> Monitoring
@@ -103,7 +103,7 @@
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Global Views</h6></li>
                             <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}"><i class="fas fa-globe"></i> Global Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-tasks"></i> Global Processes</a></li>
+                            <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-tasks"></i> Global Workflows</a></li>
                         </ul>
                     </li>
                     {% endif %}
