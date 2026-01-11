@@ -292,7 +292,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- **Version**: 2.7.0
+- **Version**: 2.10.5
 - **Release Date**: January 2026
 - **Status**: Production Ready
 - **Maintained**: Yes
@@ -317,7 +317,7 @@ Your support allows me to continue developing open-source tools like HuduGlue an
 - [ ] Docker deployment option (optional)
 - [ ] Additional PSA/RMM integrations
 - [ ] API v2 with GraphQL
-- [ ] MagicPlan floor plan integration
+- [x] MagicPlan floor plan integration
 - [ ] Mobile app
 
 ## ⚡ Performance
