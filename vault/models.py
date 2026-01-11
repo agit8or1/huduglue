@@ -5,7 +5,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from core.models import Organization, Tag, BaseModel
 from core.utils import OrganizationManager
-from .encryption import encrypt, decrypt
+from .encryption_v2 import (
+    encrypt_password, decrypt_password,
+    encrypt_totp_secret, decrypt_totp_secret,
+    encrypt_v2, decrypt_v2,
+    KEY_CONTEXT_GENERIC,
+    EncryptionError
+)
 
 
 class PasswordFolder(BaseModel):
@@ -134,29 +140,46 @@ class Password(BaseModel):
 
     def set_password(self, plaintext_password):
         """
-        Encrypt and store password.
+        Encrypt and store password using v2 encryption with AAD context.
+        Includes organization ID and password ID for context binding.
         """
-        self.encrypted_password = encrypt(plaintext_password)
+        self.encrypted_password = encrypt_password(
+            plaintext_password,
+            org_id=self.organization_id,
+            password_id=self.id if self.id else None
+        )
 
     def get_password(self):
         """
-        Decrypt and return password.
+        Decrypt and return password using v2 encryption with AAD verification.
+        Falls back to v1 decryption for legacy passwords.
         """
-        return decrypt(self.encrypted_password)
+        return decrypt_password(
+            self.encrypted_password,
+            org_id=self.organization_id,
+            password_id=self.id
+        )
 
     def set_otp_secret(self, plaintext_secret):
         """
-        Encrypt and store OTP secret.
+        Encrypt and store OTP secret using TOTP-specific encryption context.
         """
-        self.otp_secret = encrypt(plaintext_secret)
+        self.otp_secret = encrypt_totp_secret(
+            plaintext_secret,
+            org_id=self.organization_id
+        )
 
     def get_otp_secret(self):
         """
-        Decrypt and return OTP secret.
+        Decrypt and return OTP secret using TOTP-specific decryption context.
+        Falls back to v1 decryption for legacy secrets.
         """
         if not self.otp_secret:
             return None
-        return decrypt(self.otp_secret)
+        return decrypt_totp_secret(
+            self.otp_secret,
+            org_id=self.organization_id
+        )
 
     def generate_otp(self):
         """
@@ -251,14 +274,32 @@ class PersonalVault(BaseModel):
         return f"{self.user.username}: {self.title}"
 
     def set_content(self, plaintext_content):
-        """Encrypt and store content."""
-        self.encrypted_content = encrypt(plaintext_content)
+        """
+        Encrypt and store content using v2 encryption.
+        Uses user ID as context for user-specific encryption.
+        """
+        self.encrypted_content = encrypt_v2(
+            plaintext_content,
+            context=KEY_CONTEXT_GENERIC,
+            org_id=None,  # Personal vault is not org-scoped
+            record_type='personal_vault',
+            record_id=self.user_id
+        )
 
     def get_content(self):
-        """Decrypt and return content."""
+        """
+        Decrypt and return content using v2 encryption.
+        Falls back to v1 decryption for legacy content.
+        """
         if not self.encrypted_content:
             return ''
-        return decrypt(self.encrypted_content)
+        return decrypt_v2(
+            self.encrypted_content,
+            context=KEY_CONTEXT_GENERIC,
+            org_id=None,
+            record_type='personal_vault',
+            record_id=self.user_id
+        )
 
 
 class PasswordBreachCheck(BaseModel):
