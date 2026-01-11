@@ -239,24 +239,47 @@
             case 'export':
                 // Export result (for manual save or auto-save)
                 console.log('Export event received, format:', msg.format);
+                console.log('Export message keys:', Object.keys(msg));
                 console.log('Export data available:', {
                     hasData: !!msg.data,
                     hasXml: !!msg.xml,
-                    dataLength: msg.data ? msg.data.length : 0,
-                    xmlLength: msg.xml ? msg.xml.length : 0
+                    dataType: typeof msg.data,
+                    xmlType: typeof msg.xml
                 });
 
-                // Draw.io can return XML in either msg.xml or msg.data depending on version
-                const xmlData = msg.xml || msg.data;
+                // For xmlpng format, XML is embedded in the PNG data
+                // We need to extract it or use msg.xml if available
+                let xmlData = null;
 
-                if (xmlData) {
+                if (msg.xml && typeof msg.xml === 'string') {
+                    // Direct XML available
+                    xmlData = msg.xml;
+                    console.log('Using msg.xml, length:', xmlData.length);
+                } else if (msg.data && typeof msg.data === 'string') {
+                    // Check if data is XML (starts with < or is base64)
+                    if (msg.data.trim().startsWith('<')) {
+                        xmlData = msg.data;
+                        console.log('Using msg.data (XML string), length:', xmlData.length);
+                    } else if (msg.format === 'xmlpng') {
+                        // For xmlpng, we need to decode base64 and extract XML
+                        // For now, request plain XML format instead
+                        console.warn('Received xmlpng format but cannot extract XML, requesting plain xml...');
+                        sendToDrawio('export', {format: 'xml'});
+                        return;
+                    }
+                }
+
+                if (xmlData && xmlData.length > 0) {
                     console.log('Valid XML export received, length:', xmlData.length);
                     currentDiagramXml = xmlData;
                     hasUnsavedChanges = true; // Mark as changed so saveDiagram will proceed
                     saveDiagram(true); // Force save since this is an explicit export request
                 } else {
-                    console.error('Export event missing xml data (checked both msg.xml and msg.data)');
+                    console.error('Export event missing xml data');
+                    console.error('Full message:', msg);
                     updateStatus('Failed to export diagram data', true);
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
                 }
                 break;
 
@@ -282,15 +305,13 @@
     saveBtn.addEventListener('click', function() {
         console.log('Save button clicked, editorReady:', editorReady);
         if (editorReady) {
-            // If we have current XML from autosave events, just save it directly
-            if (currentDiagramXml && currentDiagramXml.length > 0) {
-                console.log('Saving current diagram XML (from autosave)...');
-                saveDiagram(true);
-            } else {
-                // Fallback: Request XML export from draw.io
-                console.log('No cached XML, requesting XML export from draw.io...');
-                sendToDrawio('export', {format: 'xmlpng'});
-            }
+            // Always request fresh export from draw.io to get current state
+            // Don't rely on autosave events as they may not fire reliably
+            console.log('Requesting current diagram XML from draw.io...');
+            updateStatus('Exporting diagram...');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+            sendToDrawio('export', {format: 'xmlpng'});
         } else {
             console.error('Cannot save - editor not ready');
             updateStatus('Editor not ready yet', true);
