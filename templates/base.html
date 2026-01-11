@@ -102,19 +102,20 @@
                     </li>
                     {% endif %}
                 </ul>
-                {% if user.is_authenticated %}
-                <form class="d-flex mx-2" action="{% url 'core:search' %}" method="get">
-                    <input class="form-control form-control-sm me-1" type="search" name="q" placeholder="Search..." aria-label="Search" style="width: 200px;">
-                    <button class="btn btn-outline-light btn-sm" type="submit"><i class="fas fa-search"></i></button>
-                </form>
-                {% if is_staff_user or user.is_superuser %}
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'docs:global_kb_list' %}"><i class="fas fa-book"></i> Global KB</a></li>
-                </ul>
-                {% endif %}
-                {% endif %}
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
+                    <!-- Global KB Link -->
+                    {% if is_staff_user or user.is_superuser %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'docs:global_kb_list' %}"><i class="fas fa-book"></i> Global KB</a></li>
+                    {% endif %}
+                    <!-- Search Form -->
+                    <li class="nav-item">
+                        <form class="d-flex mx-2" action="{% url 'core:search' %}" method="get">
+                            <input class="form-control form-control-sm me-1" type="search" name="q" placeholder="Search..." aria-label="Search" style="width: 180px;">
+                            <button class="btn btn-outline-light btn-sm" type="submit"><i class="fas fa-search"></i></button>
+                        </form>
+                    </li>
+                    <!-- Theme Toggle -->
                     <li class="nav-item">
                         <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
                             <i class="fas fa-moon" id="themeIcon"></i>

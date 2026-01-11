@@ -18,6 +18,7 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 - **AES-GCM Encryption** - Military-grade encryption for all sensitive data
 - **Argon2 Password Hashing** - Industry-standard password security
 - **Password Breach Detection** - HaveIBeenPwned integration with k-anonymity (your passwords never leave your server)
+- **Automated CVE Scanning** - Continuous vulnerability monitoring and security advisory checks
 - **Brute-Force Protection** - Account lockout after failed attempts
 - **Rate Limiting** - All endpoints protected
 - **Security Headers** - CSP, HSTS, X-Frame-Options, and more

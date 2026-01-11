@@ -7,6 +7,7 @@ from .ninjaone import NinjaOneProvider
 from .datto import DattoRMMProvider
 from .atera import AteraProvider
 from .connectwise_automate import ConnectWiseAutomateProvider
+from .tactical_rmm import TacticalRMMProvider
 
 logger = logging.getLogger('integrations')
 
@@ -17,6 +18,7 @@ RMM_PROVIDER_REGISTRY = {
     'datto_rmm': DattoRMMProvider,
     'atera': AteraProvider,
     'connectwise_automate': ConnectWiseAutomateProvider,
+    'tactical_rmm': TacticalRMMProvider,
 }
 
 
@@ -58,4 +60,5 @@ __all__ = [
     'DattoRMMProvider',
     'AteraProvider',
     'ConnectWiseAutomateProvider',
+    'TacticalRMMProvider',
 ]

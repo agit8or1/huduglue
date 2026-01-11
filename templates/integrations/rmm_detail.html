@@ -14,12 +14,35 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1><i class="fas fa-desktop"></i> {{ connection.name }}</h1>
     <div>
+        <form method="post" action="{% url 'integrations:rmm_trigger_sync' connection.pk %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-sync"></i> Sync Now
+            </button>
+        </form>
         <a href="{% url 'integrations:rmm_edit' connection.pk %}" class="btn btn-primary">
             <i class="fas fa-edit"></i> Edit
         </a>
         <a href="{% url 'integrations:rmm_delete' connection.pk %}" class="btn btn-danger">
             <i class="fas fa-trash"></i> Delete
         </a>
+    </div>
+</div>
+
+<!-- Quick Links to Synced Data -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="btn-group" role="group">
+            <a href="{% url 'integrations:rmm_devices' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-desktop"></i> View All Devices
+            </a>
+            <a href="{% url 'integrations:rmm_alerts' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-exclamation-triangle"></i> View All Alerts
+            </a>
+            <a href="{% url 'integrations:rmm_software' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-box"></i> View Software Inventory
+            </a>
+        </div>
     </div>
 </div>
 

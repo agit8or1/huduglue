@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}RMM Alerts - HuduGlue{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'integrations:integration_list' %}">Integrations</a></li>
+        <li class="breadcrumb-item active">RMM Alerts</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-exclamation-triangle"></i> RMM Alerts</h1>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">
+                    Showing {{ alerts|length }} alerts
+                </p>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'integrations:rmm_alerts' %}?status=active" class="btn btn-sm {% if status_filter == 'active' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        Active
+                    </a>
+                    <a href="{% url 'integrations:rmm_alerts' %}?status=resolved" class="btn btn-sm {% if status_filter == 'resolved' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        Resolved
+                    </a>
+                    <a href="{% url 'integrations:rmm_alerts' %}?status=all" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        All
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Table -->
+<div class="card">
+    <div class="card-body">
+        {% if alerts %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Alert Type</th>
+                        <th>Message</th>
+                        <th>Device</th>
+                        <th>RMM Provider</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Triggered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">{{ alert.alert_type|default:"Unknown" }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ alert.message }}</strong>
+                        </td>
+                        <td>
+                            {% if alert.device_id %}
+                            <code>{{ alert.device_id }}</code>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'integrations:rmm_detail' alert.connection.pk %}">
+                                {{ alert.connection.get_provider_type_display }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if alert.severity == 'critical' %}
+                            <span class="badge bg-danger">Critical</span>
+                            {% elif alert.severity == 'error' %}
+                            <span class="badge bg-warning">Error</span>
+                            {% elif alert.severity == 'warning' %}
+                            <span class="badge bg-warning">Warning</span>
+                            {% else %}
+                            <span class="badge bg-info">{{ alert.severity|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if alert.status == 'active' %}
+                            <span class="badge bg-danger">Active</span>
+                            {% else %}
+                            <span class="badge bg-success">Resolved</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ alert.triggered_at|date:"Y-m-d H:i"|default:"-" }}
+                            {% if alert.resolved_at %}
+                            <br><small class="text-muted">Resolved: {{ alert.resolved_at|date:"Y-m-d H:i" }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+            <p>No alerts found</p>
+            <p class="small">Alerts will appear here after RMM integrations are configured and synced</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
