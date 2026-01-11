@@ -11,12 +11,12 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-2">
-    <h4><i class="fas fa-edit"></i> Editing: {{ diagram.title }} <small class="text-muted" style="font-size: 0.7em;">[Editor v2.7]</small></h4>
+    <h4><i class="fas fa-edit"></i> Editing: {{ diagram.title }} <small class="text-muted" style="font-size: 0.7em;">[Editor v2.8]</small></h4>
     <div>
         <button id="saveBtn" class="btn btn-success btn-sm" disabled>
             <i class="fas fa-save"></i> Save
         </button>
-        <a href="{% url 'docs:diagram_detail' diagram.slug %}" class="btn btn-outline-secondary btn-sm">
+        <a href="{% url 'docs:diagram_detail' diagram.slug %}" id="closeBtn" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-times"></i> Close
         </a>
     </div>
@@ -53,11 +53,12 @@
 
 {% block extra_js %}
 <script>
-// Diagram Editor v2.7 - 2026-01-11 - Explicit returnValue cleanup
-console.log('🔄 Diagram Editor v2.7 loaded - explicitly delete returnValue and return undefined to prevent browser warning');
+// Diagram Editor v2.8 - 2026-01-11 - Bypass draw.io iframe beforeunload
+console.log('🔄 Diagram Editor v2.8 loaded - Close button uses location.replace to bypass draw.io iframe warnings');
 (function() {
     const iframe = document.getElementById('drawio-iframe');
     const saveBtn = document.getElementById('saveBtn');
+    const closeBtn = document.getElementById('closeBtn');
     const statusDiv = document.getElementById('status');
     const origin = 'https://embed.diagrams.net';
 
@@ -449,6 +450,37 @@ console.log('🔄 Diagram Editor v2.7 loaded - explicitly delete returnValue and
         } else {
             console.error('Cannot save - editor not ready');
             updateStatus('Editor not ready yet', true);
+        }
+    });
+
+    // Close button click handler - bypasses draw.io iframe beforeunload
+    closeBtn.addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent default navigation
+        console.log('🚪 Close button clicked - hasUnsavedChanges:', hasUnsavedChanges, 'justSaved:', justSaved);
+
+        if (hasUnsavedChanges) {
+            // Show our own confirmation dialog
+            if (confirm('You have unsaved changes. Do you want to save before closing?')) {
+                console.log('User chose to save before closing');
+                // Save and then close after save completes
+                const originalUrl = closeBtn.href;
+                saveDiagram(true);
+
+                // Wait for save to complete, then navigate
+                setTimeout(() => {
+                    console.log('Navigating after save delay...');
+                    window.location.replace(originalUrl);
+                }, 1500);
+            } else {
+                console.log('User chose to discard changes and close');
+                // Discard changes and close immediately
+                window.location.replace(closeBtn.href);
+            }
+        } else {
+            console.log('✅ No unsaved changes - navigating immediately (bypassing beforeunload)');
+            // No unsaved changes - use location.replace to bypass beforeunload entirely
+            // This prevents draw.io iframe from showing its own warning
+            window.location.replace(closeBtn.href);
         }
     });
 
