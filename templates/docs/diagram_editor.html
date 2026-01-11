@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-2">
-    <h4><i class="fas fa-edit"></i> Editing: {{ diagram.title }} <small class="text-muted" style="font-size: 0.7em;">[Editor v2.6]</small></h4>
+    <h4><i class="fas fa-edit"></i> Editing: {{ diagram.title }} <small class="text-muted" style="font-size: 0.7em;">[Editor v2.7]</small></h4>
     <div>
         <button id="saveBtn" class="btn btn-success btn-sm" disabled>
             <i class="fas fa-save"></i> Save
@@ -53,8 +53,8 @@
 
 {% block extra_js %}
 <script>
-// Diagram Editor v2.6 - 2026-01-11 - Race condition fix for justSaved flag
-console.log('🔄 Diagram Editor v2.6 loaded - race condition fix: justSaved set BEFORE fetch, threshold increased to 200 bytes');
+// Diagram Editor v2.7 - 2026-01-11 - Explicit returnValue cleanup
+console.log('🔄 Diagram Editor v2.7 loaded - explicitly delete returnValue and return undefined to prevent browser warning');
 (function() {
     const iframe = document.getElementById('drawio-iframe');
     const saveBtn = document.getElementById('saveBtn');
@@ -456,12 +456,16 @@ console.log('🔄 Diagram Editor v2.6 loaded - race condition fix: justSaved set
     window.addEventListener('beforeunload', function(e) {
         console.log('beforeunload event - hasUnsavedChanges:', hasUnsavedChanges, 'justSaved:', justSaved);
         if (hasUnsavedChanges) {
-            console.warn('Showing unsaved changes warning');
+            console.warn('⚠️ Showing unsaved changes warning');
             e.preventDefault();
             e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
             return e.returnValue;
         } else {
-            console.log('No unsaved changes, allowing navigation');
+            console.log('✅ No unsaved changes, allowing navigation without warning');
+            // CRITICAL: Explicitly delete returnValue and return undefined
+            // This ensures browsers don't show any warning dialog
+            delete e.returnValue;
+            return undefined;
         }
     });
 
