@@ -137,6 +137,19 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- AI-Powered URL Import -->
+                <div class="alert alert-success mb-3">
+                    <i class="fas fa-robot"></i>
+                    <strong>Import from Property Appraiser URL</strong>
+                    <p class="mb-2 small">Paste a property appraiser URL and AI will extract all property data automatically!</p>
+                    <div class="input-group">
+                        <input type="url" class="form-control" id="propertyUrl" placeholder="https://paopropertysearch.coj.net/Basic/Detail.aspx?RE=1442930000">
+                        <button class="btn btn-success" type="button" onclick="importFromUrl()">
+                            <i class="fas fa-magic"></i> Import with AI
+                        </button>
+                    </div>
+                    <small class="text-muted">Works with Duval County and most FL property appraiser sites</small>
+                </div>
                 {% if not location.building_sqft and not location.floors_count %}
                 <div class="alert alert-info small mb-3">
                     <i class="fas fa-info-circle"></i>
@@ -445,6 +458,52 @@ function refreshSatelliteImage() {
         alert('Network error: ' + error);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-download"></i> Fetch Satellite Image';
+    });
+}
+
+function importFromUrl() {
+    const urlInput = document.getElementById('propertyUrl');
+    const url = urlInput.value.trim();
+
+    if (!url) {
+        alert('Please enter a property appraiser URL');
+        return;
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        alert('Please enter a valid URL starting with http:// or https://');
+        return;
+    }
+
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing with AI...';
+
+    fetch('{% url "locations:import_property_from_url" location.id %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const updates = data.updates.join(', ');
+            alert('✅ Property data imported successfully!\n\nUpdated: ' + updates);
+            location.reload();
+        } else {
+            alert('❌ Import failed: ' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    })
+    .catch(error => {
+        alert('❌ Network error: ' + error);
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
     });
 }
 </script>

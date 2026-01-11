@@ -507,6 +507,93 @@ def refresh_property_data(request, location_id):
 
 @login_required
 @require_http_methods(["POST"])
+def import_property_from_url(request, location_id):
+    """Import property data from URL using AI (AJAX)."""
+    organization = request.current_organization
+    location = get_object_or_404(
+        Location,
+        id=location_id,
+        organization=organization
+    )
+
+    try:
+        import json
+        body = json.loads(request.body)
+        url = body.get('url', '').strip()
+
+        if not url:
+            return JsonResponse({
+                'success': False,
+                'error': 'URL is required'
+            }, status=400)
+
+        # Validate URL
+        if not url.startswith(('http://', 'https://')):
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid URL format'
+            }, status=400)
+
+        # Import using AI
+        from locations.services.property_url_importer import get_property_url_importer
+
+        importer = get_property_url_importer()
+        property_data = importer.import_from_url(url)
+
+        # Update location with extracted data
+        updates_made = []
+
+        if property_data.get('building_sqft'):
+            location.building_sqft = int(property_data['building_sqft'])
+            updates_made.append(f"Building: {property_data['building_sqft']} sqft")
+
+        if property_data.get('year_built'):
+            location.year_built = int(property_data['year_built'])
+            updates_made.append(f"Year Built: {property_data['year_built']}")
+
+        if property_data.get('property_type'):
+            location.property_type = property_data['property_type']
+            updates_made.append(f"Type: {property_data['property_type']}")
+
+        if property_data.get('property_id'):
+            location.property_id = property_data['property_id']
+            updates_made.append(f"Parcel ID: {property_data['property_id']}")
+
+        if property_data.get('floors_count'):
+            location.floors_count = int(property_data['floors_count'])
+            updates_made.append(f"Floors: {property_data['floors_count']}")
+
+        # Store full data in external_data
+        if not location.external_data:
+            location.external_data = {}
+        location.external_data['url_import'] = property_data
+
+        location.save()
+
+        logger.info(f"Successfully imported property data from URL for location {location.id}: {', '.join(updates_made)}")
+
+        return JsonResponse({
+            'success': True,
+            'updates': updates_made,
+            'property_data': property_data
+        })
+
+    except ValueError as e:
+        logger.error(f"Property URL import validation error: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Property URL import failed: {e}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'error': f'Import failed: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
 def refresh_satellite_image(request, location_id):
     """Re-fetch satellite image (AJAX)."""
     organization = request.current_organization

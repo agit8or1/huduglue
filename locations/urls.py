@@ -24,4 +24,5 @@ urlpatterns = [
     path('<int:location_id>/refresh-geocoding/', views.refresh_geocoding, name='refresh_geocoding'),
     path('<int:location_id>/refresh-property-data/', views.refresh_property_data, name='refresh_property_data'),
     path('<int:location_id>/refresh-satellite-image/', views.refresh_satellite_image, name='refresh_satellite_image'),
+    path('<int:location_id>/import-property-from-url/', views.import_property_from_url, name='import_property_from_url'),
 ]
