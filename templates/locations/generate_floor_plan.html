@@ -55,6 +55,13 @@
                             {% if location.floors_count %}({{ location.floors_count }} floors){% endif %}.
                             Dimensions have been estimated based on property records.
                         </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Default Dimensions Shown:</strong> No building data available.
+                            Please enter your actual building dimensions below.
+                            You can <a href="{% url 'locations:location_edit' location.id %}" class="alert-link">edit the location</a> to add square footage permanently.
+                        </div>
                         {% endif %}
 
                         <div class="row">
