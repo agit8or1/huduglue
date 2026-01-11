@@ -5,6 +5,36 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-01-11
+
+### ✨ New Features
+
+- **IT Glue / Hudu Import Functionality**
+  - Complete data migration system from IT Glue and Hudu platforms
+  - Support for importing:
+    - Assets and configuration items
+    - Passwords (encrypted)
+    - Documents and knowledge base articles
+    - Contacts
+    - Locations
+    - Networks
+  - Dry run mode for previewing imports without saving data
+  - Import progress tracking with detailed statistics
+  - Duplicate prevention via import mapping system
+  - Comprehensive logging of import operations
+  - Web UI for managing import jobs (create, edit, start, monitor)
+  - CLI management command for automated imports
+  - Import job status tracking (pending, running, completed, failed)
+  - Per-organization import targeting
+  - Auto-refresh log viewer for running imports
+  - Available in Admin → Import Data menu
+
+### 🔧 Improvements
+
+- Added "Import Data" link to Admin menu for easy access
+- Import system protected by staff/superuser authentication
+- Vendor-specific API authentication for IT Glue and Hudu
+
 ## [2.7.0] - 2026-01-11
 
 ### ✨ New Features
