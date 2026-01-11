@@ -64,7 +64,7 @@ class Location(BaseModel):
 
     # Address fields
     street_address = models.CharField(max_length=255)
-    street_address_2 = models.CharField(max_length=255, blank=True, default='')
+    street_address_2 = models.CharField(max_length=255, blank=True, null=True, default='')
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=50)
     postal_code = models.CharField(max_length=20)
@@ -105,6 +105,7 @@ class Location(BaseModel):
     property_type = models.CharField(
         max_length=100,
         blank=True,
+        null=True,
         default='',
         help_text="Property classification (e.g., 'Commercial Office')"
     )
@@ -113,12 +114,14 @@ class Location(BaseModel):
     property_id = models.CharField(
         max_length=100,
         blank=True,
+        null=True,
         default='',
         help_text="Tax assessor parcel ID"
     )
     google_place_id = models.CharField(
         max_length=255,
         blank=True,
+        null=True,
         default='',
         help_text="Google Places API identifier"
     )
@@ -141,9 +144,9 @@ class Location(BaseModel):
     notes = models.TextField(blank=True)
 
     # Contact information
-    phone = models.CharField(max_length=50, blank=True, default='')
-    email = models.EmailField(blank=True, default='')
-    website = models.URLField(blank=True, default='')
+    phone = models.CharField(max_length=50, blank=True, null=True, default='')
+    email = models.EmailField(blank=True, null=True, default='')
+    website = models.URLField(blank=True, null=True, default='')
 
     # Generated assets
     satellite_image = models.ImageField(
@@ -175,11 +178,13 @@ class Location(BaseModel):
     floorplan_generation_status = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         default='',
         help_text="Status of floor plan generation (pending, processing, completed, failed)"
     )
     floorplan_error = models.TextField(
         blank=True,
+        null=True,
         default='',
         help_text="Error message if floor plan generation failed"
     )
@@ -340,6 +345,7 @@ class LocationFloorPlan(BaseModel):
     # Generated diagram
     diagram_xml = models.TextField(
         blank=True,
+        null=True,
         default='',
         help_text="Draw.io XML for floor plan"
     )
@@ -356,6 +362,7 @@ class LocationFloorPlan(BaseModel):
     template_used = models.CharField(
         max_length=100,
         blank=True,
+        null=True,
         default='',
         help_text="Template used for generation (office, warehouse, etc.)"
     )

@@ -5,6 +5,27 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.2] - 2026-01-11
+
+### 🐛 Critical Bug Fixes
+
+- **Location Model NOT NULL Constraint Errors (SQLite Compatibility)**
+  - Made all optional CharField/TextField fields properly nullable with `null=True`
+  - Fixed SQLite ALTER TABLE limitations that prevented proper default value handling
+  - Fields now correctly accept NULL values: property_id, property_type, google_place_id
+  - Contact fields: phone, email, website now properly nullable
+  - Address field: street_address_2 now properly nullable
+  - Floor plan fields: floorplan_generation_status, floorplan_error now properly nullable
+  - LocationFloorPlan fields: diagram_xml, template_used now properly nullable
+  - **Resolves IntegrityError on location creation form**
+
+### Technical Details
+
+- Migration 0005: Added `null=True` to all optional character fields
+- Ensures compatibility with SQLite database backend
+- Maintains backwards compatibility with existing data
+- No data loss - existing NULL values preserved
+
 ## [2.10.1] - 2026-01-11
 
 ### 🐛 Bug Fixes
