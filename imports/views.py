@@ -34,7 +34,7 @@ def import_list(request):
 def import_create(request):
     """Create new import job."""
     if request.method == 'POST':
-        form = ImportJobForm(request.POST, user=request.user)
+        form = ImportJobForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             job = form.save(commit=False)
             job.started_by = request.user
@@ -73,7 +73,7 @@ def import_edit(request, pk):
         return redirect('imports:import_detail', pk=job.pk)
 
     if request.method == 'POST':
-        form = ImportJobForm(request.POST, instance=job, user=request.user)
+        form = ImportJobForm(request.POST, request.FILES, instance=job, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Import job updated successfully.')

@@ -270,6 +270,7 @@ class LocationFloorPlan(BaseModel):
         ('building_footprint', 'Building Footprint Data'),
         ('user_input', 'User Provided'),
         ('ai_estimate', 'AI Estimation'),
+        ('magicplan', 'MagicPlan Import'),
         ('hybrid', 'Multiple Sources'),
     ]
 

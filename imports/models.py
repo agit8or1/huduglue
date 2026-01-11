@@ -16,6 +16,7 @@ class ImportJob(BaseModel):
     SOURCE_CHOICES = [
         ('itglue', 'IT Glue'),
         ('hudu', 'Hudu'),
+        ('magicplan', 'MagicPlan Floor Plans'),
     ]
 
     STATUS_CHOICES = [
@@ -28,8 +29,23 @@ class ImportJob(BaseModel):
 
     # Source configuration
     source_type = models.CharField(max_length=20, choices=SOURCE_CHOICES)
-    source_url = models.URLField(help_text="API endpoint URL (e.g., https://api.itglue.com or https://demo.hudu.com)")
-    source_api_key = models.CharField(max_length=500, help_text="API key for authentication")
+    source_url = models.URLField(
+        blank=True,
+        help_text="API endpoint URL (e.g., https://api.itglue.com or https://demo.hudu.com) - not needed for MagicPlan"
+    )
+    source_api_key = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="API key for authentication - not needed for MagicPlan"
+    )
+
+    # MagicPlan file upload
+    source_file = models.FileField(
+        upload_to='imports/magicplan/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text="MagicPlan JSON export file"
+    )
 
     # Import settings (optional - if null, imports all organizations from source)
     target_organization = models.ForeignKey(
@@ -68,6 +84,7 @@ class ImportJob(BaseModel):
     import_contacts = models.BooleanField(default=False, help_text="Import contacts")
     import_locations = models.BooleanField(default=False, help_text="Import locations")
     import_networks = models.BooleanField(default=False, help_text="Import networks")
+    import_floor_plans = models.BooleanField(default=True, help_text="Import floor plans (MagicPlan only)")
 
     # Execution tracking
     started_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='import_jobs_started')
@@ -80,6 +97,7 @@ class ImportJob(BaseModel):
     items_imported = models.PositiveIntegerField(default=0, help_text="Successfully imported items")
     items_skipped = models.PositiveIntegerField(default=0, help_text="Skipped items (already exist)")
     items_failed = models.PositiveIntegerField(default=0, help_text="Failed items")
+    floor_plans_imported = models.PositiveIntegerField(default=0, help_text="Number of floor plans imported (MagicPlan)")
 
     error_message = models.TextField(blank=True, help_text="Error message if failed")
     import_log = models.TextField(blank=True, help_text="Detailed import log")

@@ -5,6 +5,38 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-01-11
+
+### ✨ New Features
+
+- **MagicPlan Floor Plan Import**
+  - Import floor plans directly from MagicPlan JSON exports
+  - Automatic location creation from project data
+  - Converts measurements from meters to feet automatically
+  - Creates LocationFloorPlan records with dimensions and metadata
+  - Supports multi-floor imports from single JSON file
+  - Extracts room data and dimensions from MagicPlan format
+  - Dry run mode for preview before importing
+  - Tracks floor plan count in import statistics
+
+### 🔧 Improvements
+
+- Added 'magicplan' as import source type
+- File upload support for import jobs
+- Made source_url and source_api_key optional (not needed for MagicPlan)
+- Updated LocationFloorPlan source choices to include 'magicplan'
+- Form validation based on import source type
+- Import forms now handle multipart/form-data for file uploads
+- Added import_floor_plans boolean field to control what gets imported
+
+### Technical Details
+
+- New MagicPlanImportService with JSON parsing
+- Intelligent dimension calculation from room data
+- Unit conversion utilities (meters to feet)
+- Organization-scoped location creation
+- Integration with existing LocationFloorPlan model
+
 ## [2.9.0] - 2026-01-11
 
 ### ✨ New Features
