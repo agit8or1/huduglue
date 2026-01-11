@@ -190,6 +190,41 @@
 
     <!-- Right Column -->
     <div class="col-md-6">
+        <!-- Property Diagram (Tax Collector Records) --><div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-file-image"></i> Property Diagram</h5>
+                {% if location.property_diagram %}
+                <a href="{% url 'locations:location_edit' location.id %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-edit"></i> Update
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if location.property_diagram %}
+                <div class="text-center">
+                    <img src="{{ location.property_diagram.url }}" class="img-fluid rounded mb-3" alt="Property diagram from tax collector">
+                    <p class="text-muted small">Property diagram from tax collector/property appraiser records</p>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>No property diagram uploaded yet</strong>
+                    <p class="mb-2 mt-2 small">Property diagrams are often available from:</p>
+                    <ul class="mb-2 small">
+                        <li><strong>Duval County (Jacksonville):</strong> <a href="https://paopropertysearch.coj.net/" target="_blank" class="alert-link">Property Appraiser Search</a></li>
+                        <li><strong>Other FL Counties:</strong> Search "[County Name] property appraiser" for official records</li>
+                        <li><strong>Municipal Records:</strong> Many counties provide free building diagrams and site plans</li>
+                    </ul>
+                    <p class="mb-0 small">
+                        <a href="{% url 'locations:location_edit' location.id %}" class="btn btn-sm btn-primary mt-2">
+                            <i class="fas fa-upload"></i> Upload Property Diagram
+                        </a>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Satellite Imagery -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">

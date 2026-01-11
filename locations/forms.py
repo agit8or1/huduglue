@@ -32,6 +32,7 @@ class LocationForm(forms.ModelForm):
             'street_address', 'street_address_2', 'city', 'state', 'postal_code', 'country',
             'phone', 'email', 'website',
             'building_sqft', 'floors_count', 'year_built', 'property_type',
+            'property_diagram',
             'notes'
         ]
         widgets = {
@@ -53,6 +54,7 @@ class LocationForm(forms.ModelForm):
             'floors_count': forms.NumberInput(attrs={'class': 'form-control'}),
             'year_built': forms.NumberInput(attrs={'class': 'form-control'}),
             'property_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'property_diagram': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
         help_texts = {
