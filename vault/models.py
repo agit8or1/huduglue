@@ -141,12 +141,13 @@ class Password(BaseModel):
     def set_password(self, plaintext_password):
         """
         Encrypt and store password using v2 encryption with AAD context.
-        Includes organization ID and password ID for context binding.
+        Includes organization ID but NOT password ID (since it may not exist yet).
+        This ensures AAD remains consistent between encryption and decryption.
         """
         self.encrypted_password = encrypt_password(
             plaintext_password,
             org_id=self.organization_id,
-            password_id=self.id if self.id else None
+            password_id=None  # Don't use ID in AAD to avoid mismatch on create
         )
 
     def get_password(self):
@@ -157,7 +158,7 @@ class Password(BaseModel):
         return decrypt_password(
             self.encrypted_password,
             org_id=self.organization_id,
-            password_id=self.id
+            password_id=None  # Match encryption: don't use ID in AAD
         )
 
     def set_otp_secret(self, plaintext_secret):
