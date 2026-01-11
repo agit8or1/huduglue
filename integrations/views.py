@@ -321,3 +321,106 @@ def rmm_devices(request):
     return render(request, 'integrations/rmm_devices.html', {
         'devices': devices,
     })
+
+
+@login_required
+def rmm_alerts(request):
+    """List all RMM alerts."""
+    org = get_request_organization(request)
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status', 'active')
+    
+    alerts = RMMAlert.objects.for_organization(org).select_related('connection')
+    
+    if status_filter == 'active':
+        alerts = alerts.filter(status='active')
+    elif status_filter == 'resolved':
+        alerts = alerts.filter(status='resolved')
+    # 'all' shows everything
+    
+    # Order by most recent first
+    alerts = alerts.order_by('-triggered_at')
+    
+    return render(request, 'integrations/rmm_alerts.html', {
+        'alerts': alerts,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def rmm_software(request):
+    """List all software from RMM integrations."""
+    org = get_request_organization(request)
+    
+    # Get search query
+    search_query = request.GET.get('q', '').strip()
+    
+    software = RMMSoftware.objects.for_organization(org).select_related('device', 'device__connection')
+    
+    if search_query:
+        from django.db.models import Q
+        software = software.filter(
+            Q(name__icontains=search_query) |
+            Q(vendor__icontains=search_query) |
+            Q(version__icontains=search_query)
+        )
+    
+    # Get unique software (name + vendor)
+    from django.db.models import Count
+    software_summary = software.values('name', 'vendor', 'version').annotate(
+        device_count=Count('device', distinct=True)
+    ).order_by('name', 'vendor', 'version')
+    
+    return render(request, 'integrations/rmm_software.html', {
+        'software_summary': software_summary,
+        'search_query': search_query,
+    })
+
+
+@login_required
+def rmm_device_detail(request, pk):
+    """Show details of a single RMM device."""
+    org = get_request_organization(request)
+    device = get_object_or_404(RMMDevice.objects.for_organization(org).select_related('connection', 'linked_asset'), pk=pk)
+    
+    # Get software for this device
+    software = RMMSoftware.objects.filter(device=device).order_by('name')
+    
+    # Get recent alerts for this device
+    alerts = RMMAlert.objects.filter(
+        organization=org,
+        device_id=device.external_id
+    ).order_by('-triggered_at')[:10]
+    
+    return render(request, 'integrations/rmm_device_detail.html', {
+        'device': device,
+        'software': software,
+        'alerts': alerts,
+    })
+
+
+@login_required
+@require_POST
+def rmm_trigger_sync(request, pk):
+    """Manually trigger RMM sync for a connection."""
+    org = get_request_organization(request)
+    connection = get_object_or_404(RMMConnection.objects.for_organization(org), pk=pk)
+    
+    try:
+        from integrations.sync import RMMSync
+        syncer = RMMSync(connection)
+        stats = syncer.sync_all()
+        
+        messages.success(
+            request,
+            f'RMM sync completed successfully. '
+            f'Devices: {stats["devices"]["created"]} created, {stats["devices"]["updated"]} updated. '
+            f'Alerts: {stats["alerts"]["created"]} created. '
+            f'Software: {stats["software"]["created"]} created.'
+        )
+    except Exception as e:
+        messages.error(request, f'Sync failed: {str(e)}')
+        logger.exception(f'Manual RMM sync failed for {connection}')
+    
+    return redirect('integrations:rmm_detail', pk=connection.pk)

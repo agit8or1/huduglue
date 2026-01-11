@@ -1,6 +1,6 @@
 """
-PSA sync engine
-Handles synchronization of data from PSA systems to local database.
+PSA and RMM sync engines
+Handles synchronization of data from PSA and RMM systems to local database.
 """
 import logging
 import hashlib
@@ -8,8 +8,13 @@ import json
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db import transaction
-from .models import PSAConnection, PSACompany, PSAContact, PSATicket, ExternalObjectMap
+from .models import (
+    PSAConnection, PSACompany, PSAContact, PSATicket,
+    RMMConnection, RMMDevice, RMMAlert, RMMSoftware,
+    ExternalObjectMap
+)
 from .providers import get_provider
+from .providers.rmm import get_rmm_provider
 from audit.models import AuditLog
 
 logger = logging.getLogger('integrations')
@@ -331,4 +336,388 @@ class PSASync:
     def _hash_data(self, data):
         """Generate hash of data for change detection."""
         data_str = json.dumps(data, sort_keys=True)
+        return hashlib.sha256(data_str.encode()).hexdigest()
+
+
+class RMMSync:
+    """
+    Synchronizes data from an RMM connection to local database.
+    Handles devices, alerts, and software inventory.
+    """
+
+    def __init__(self, connection):
+        self.connection = connection
+        self.provider = get_rmm_provider(connection)
+        self.organization = connection.organization
+        self.sync_start = timezone.now()
+        self.stats = {
+            'devices': {'created': 0, 'updated': 0, 'mapped': 0, 'errors': 0},
+            'alerts': {'created': 0, 'updated': 0, 'errors': 0},
+            'software': {'created': 0, 'updated': 0, 'deleted': 0, 'errors': 0},
+        }
+
+    def sync_all(self):
+        """
+        Sync all enabled entity types.
+        """
+        logger.info(f"Starting RMM sync for {self.connection}")
+
+        try:
+            # Test connection first
+            if not self.provider.test_connection():
+                raise SyncError("RMM connection test failed")
+
+            # Sync devices first (required for alerts and software)
+            if self.connection.sync_devices:
+                self.sync_devices()
+
+            # Sync alerts
+            if self.connection.sync_alerts:
+                self.sync_alerts()
+
+            # Sync software
+            if self.connection.sync_software and self.provider.supports_software:
+                self.sync_software()
+
+            # Update connection status
+            self.connection.last_sync_at = self.sync_start
+            self.connection.last_sync_status = 'success'
+            self.connection.last_error = ''
+            self.connection.save()
+
+            # Audit log
+            AuditLog.log(
+                user=None,
+                action='sync',
+                organization=self.organization,
+                object_type='rmm_connection',
+                object_id=self.connection.id,
+                object_repr=str(self.connection),
+                description=f"RMM sync completed: {self.stats}",
+                success=True
+            )
+
+            logger.info(f"RMM sync completed successfully: {self.stats}")
+            return self.stats
+
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"RMM sync failed for {self.connection}: {error_msg}")
+
+            self.connection.last_sync_at = self.sync_start
+            self.connection.last_sync_status = 'error'
+            self.connection.last_error = error_msg[:500]
+            self.connection.save()
+
+            AuditLog.log(
+                user=None,
+                action='sync',
+                organization=self.organization,
+                object_type='rmm_connection',
+                object_id=self.connection.id,
+                object_repr=str(self.connection),
+                description=f"RMM sync failed: {error_msg}",
+                success=False
+            )
+
+            raise
+
+    def sync_devices(self):
+        """Sync devices from RMM."""
+        logger.info(f"Syncing devices for {self.connection}")
+
+        # Get updated_since from last successful sync
+        updated_since = None
+        if self.connection.last_sync_at and self.connection.last_sync_status == 'success':
+            updated_since = self.connection.last_sync_at
+
+        try:
+            devices_data = self.provider.list_devices(updated_since=updated_since)
+
+            for device_data in devices_data:
+                try:
+                    with transaction.atomic():
+                        device = self._upsert_device(device_data)
+                        
+                        # Auto-map to assets if enabled
+                        if self.connection.map_to_assets:
+                            self._map_device_to_asset(device)
+                            
+                except Exception as e:
+                    logger.error(f"Error syncing device {device_data.get('external_id')}: {e}")
+                    self.stats['devices']['errors'] += 1
+
+        except Exception as e:
+            logger.error(f"Error listing devices: {e}")
+            raise
+
+    def sync_alerts(self):
+        """Sync alerts from RMM."""
+        logger.info(f"Syncing alerts for {self.connection}")
+
+        updated_since = None
+        if self.connection.last_sync_at and self.connection.last_sync_status == 'success':
+            # Get alerts from last 7 days to catch status changes
+            updated_since = timezone.now() - timedelta(days=7)
+
+        try:
+            alerts_data = self.provider.list_alerts(updated_since=updated_since)
+
+            for alert_data in alerts_data:
+                try:
+                    with transaction.atomic():
+                        self._upsert_alert(alert_data)
+                except Exception as e:
+                    logger.error(f"Error syncing alert {alert_data.get('external_id')}: {e}")
+                    self.stats['alerts']['errors'] += 1
+
+        except Exception as e:
+            logger.error(f"Error listing alerts: {e}")
+            raise
+
+    def sync_software(self):
+        """Sync software inventory for all online devices."""
+        logger.info(f"Syncing software for {self.connection}")
+
+        try:
+            # Get all online devices
+            devices = RMMDevice.objects.filter(
+                connection=self.connection,
+                is_online=True
+            )
+
+            for device in devices:
+                try:
+                    software_data = self.provider.list_software(device.external_id)
+                    
+                    # Track existing software IDs
+                    existing_software_ids = set()
+                    
+                    for sw_data in software_data:
+                        try:
+                            sw = self._upsert_software(device, sw_data)
+                            existing_software_ids.add(sw.id)
+                        except Exception as e:
+                            logger.error(f"Error syncing software {sw_data.get('name')} for device {device.external_id}: {e}")
+                            self.stats['software']['errors'] += 1
+                    
+                    # Remove software that no longer exists
+                    deleted_count = RMMSoftware.objects.filter(
+                        device=device
+                    ).exclude(
+                        id__in=existing_software_ids
+                    ).delete()[0]
+                    
+                    if deleted_count > 0:
+                        self.stats['software']['deleted'] += deleted_count
+                        logger.debug(f"Removed {deleted_count} software items from device {device.external_id}")
+                        
+                except Exception as e:
+                    logger.error(f"Error syncing software for device {device.external_id}: {e}")
+
+        except Exception as e:
+            logger.error(f"Error in software sync: {e}")
+            raise
+
+    def _upsert_device(self, device_data):
+        """Create or update RMM device."""
+        external_id = device_data['external_id']
+
+        # Check if exists
+        device, created = RMMDevice.objects.update_or_create(
+            connection=self.connection,
+            external_id=external_id,
+            defaults={
+                'organization': self.organization,
+                'device_name': device_data['device_name'],
+                'device_type': device_data['device_type'],
+                'manufacturer': device_data.get('manufacturer', ''),
+                'model': device_data.get('model', ''),
+                'serial_number': device_data.get('serial_number', ''),
+                'os_type': device_data.get('os_type', ''),
+                'os_version': device_data.get('os_version', ''),
+                'hostname': device_data.get('hostname', ''),
+                'ip_address': device_data.get('ip_address'),
+                'mac_address': device_data.get('mac_address', ''),
+                'is_online': device_data.get('is_online', False),
+                'last_seen': device_data.get('last_seen'),
+                'raw_data': device_data.get('raw_data', {}),
+            }
+        )
+
+        if created:
+            self.stats['devices']['created'] += 1
+        else:
+            self.stats['devices']['updated'] += 1
+
+        # Update mapping
+        data_hash = self._hash_data(device_data)
+        ExternalObjectMap.objects.update_or_create(
+            connection=self.connection,
+            external_type='device',
+            external_id=external_id,
+            defaults={
+                'organization': self.organization,
+                'local_type': 'rmm_device',
+                'local_id': device.id,
+                'external_hash': data_hash,
+            }
+        )
+
+        return device
+
+    def _upsert_alert(self, alert_data):
+        """Create or update RMM alert."""
+        external_id = alert_data['external_id']
+
+        # Check if exists
+        alert, created = RMMAlert.objects.update_or_create(
+            connection=self.connection,
+            external_id=external_id,
+            defaults={
+                'organization': self.organization,
+                'device_id': alert_data.get('device_id', ''),
+                'alert_type': alert_data.get('alert_type', ''),
+                'message': alert_data.get('message', ''),
+                'severity': alert_data.get('severity', 'info'),
+                'status': alert_data.get('status', 'active'),
+                'triggered_at': alert_data.get('triggered_at'),
+                'resolved_at': alert_data.get('resolved_at'),
+                'raw_data': alert_data.get('raw_data', {}),
+            }
+        )
+
+        if created:
+            self.stats['alerts']['created'] += 1
+        else:
+            self.stats['alerts']['updated'] += 1
+
+        # Update mapping
+        data_hash = self._hash_data(alert_data)
+        ExternalObjectMap.objects.update_or_create(
+            connection=self.connection,
+            external_type='alert',
+            external_id=external_id,
+            defaults={
+                'organization': self.organization,
+                'local_type': 'rmm_alert',
+                'local_id': alert.id,
+                'external_hash': data_hash,
+            }
+        )
+
+        return alert
+
+    def _upsert_software(self, device, sw_data):
+        """Create or update software item for a device."""
+        external_id = sw_data.get('external_id', '')
+        name = sw_data['name']
+        version = sw_data.get('version', '')
+
+        # Use name+version as unique key if external_id not available
+        if not external_id:
+            external_id = f"{name}_{version}"
+
+        # Check if exists
+        software, created = RMMSoftware.objects.update_or_create(
+            device=device,
+            external_id=external_id,
+            defaults={
+                'organization': self.organization,
+                'name': name,
+                'version': version,
+                'vendor': sw_data.get('vendor', ''),
+                'install_date': sw_data.get('install_date'),
+                'raw_data': sw_data.get('raw_data', {}),
+            }
+        )
+
+        if created:
+            self.stats['software']['created'] += 1
+        else:
+            self.stats['software']['updated'] += 1
+
+        return software
+
+    def _map_device_to_asset(self, device):
+        """
+        Automatically map RMM device to Asset record.
+        Tries to find existing asset by serial number or hostname.
+        Creates new asset if not found.
+        """
+        from assets.models import Asset
+
+        # Skip if already mapped
+        if device.linked_asset:
+            return
+
+        # Try to find existing asset by serial number
+        asset = None
+        if device.serial_number:
+            asset = Asset.objects.filter(
+                organization=self.organization,
+                serial_number=device.serial_number
+            ).first()
+
+        # Try hostname if serial not found
+        if not asset and device.hostname:
+            asset = Asset.objects.filter(
+                organization=self.organization,
+                hostname__iexact=device.hostname
+            ).first()
+
+        # Try IP address if still not found
+        if not asset and device.ip_address:
+            asset = Asset.objects.filter(
+                organization=self.organization,
+                ip_address=device.ip_address
+            ).first()
+
+        # Create new asset if not found
+        if not asset:
+            # Map device type to asset type
+            asset_type_map = {
+                'workstation': 'computer',
+                'server': 'server',
+                'laptop': 'computer',
+                'network': 'network',
+                'mobile': 'mobile',
+                'virtual': 'server',
+                'cloud': 'server',
+            }
+            asset_type = asset_type_map.get(device.device_type, 'other')
+
+            asset = Asset.objects.create(
+                organization=self.organization,
+                name=device.device_name,
+                asset_type=asset_type,
+                serial_number=device.serial_number or '',
+                manufacturer=device.manufacturer or '',
+                model=device.model or '',
+                hostname=device.hostname or '',
+                ip_address=device.ip_address or '',
+                mac_address=device.mac_address or '',
+                status='active' if device.is_online else 'offline',
+                custom_fields={
+                    'rmm_synced': True,
+                    'rmm_provider': self.connection.provider_type,
+                    'rmm_external_id': device.external_id,
+                    'os_type': device.os_type,
+                    'os_version': device.os_version,
+                    'last_rmm_sync': timezone.now().isoformat(),
+                }
+            )
+
+            logger.info(f"Created asset {asset.id} from RMM device {device.external_id}")
+
+        # Link device to asset
+        device.linked_asset = asset
+        device.save()
+
+        self.stats['devices']['mapped'] += 1
+        logger.debug(f"Mapped RMM device {device.external_id} to asset {asset.id}")
+
+    def _hash_data(self, data):
+        """Generate hash of data for change detection."""
+        data_str = json.dumps(data, sort_keys=True, default=str)
         return hashlib.sha256(data_str.encode()).hexdigest()

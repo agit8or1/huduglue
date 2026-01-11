@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}RMM Software Inventory - HuduGlue{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'integrations:integration_list' %}">Integrations</a></li>
+        <li class="breadcrumb-item active">RMM Software</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-box"></i> RMM Software Inventory</h1>
+</div>
+
+<!-- Search -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="q" class="form-control" placeholder="Search software by name, vendor, or version" value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Software Table -->
+<div class="card">
+    <div class="card-body">
+        {% if software_summary %}
+        <p class="text-muted mb-3">
+            Showing {{ software_summary|length }} unique software packages
+        </p>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Software Name</th>
+                        <th>Vendor</th>
+                        <th>Version</th>
+                        <th>Device Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sw in software_summary %}
+                    <tr>
+                        <td>
+                            <strong>{{ sw.name }}</strong>
+                        </td>
+                        <td>
+                            {% if sw.vendor %}
+                            {{ sw.vendor }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sw.version %}
+                            <code>{{ sw.version }}</code>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ sw.device_count }} device{{ sw.device_count|pluralize }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-box fa-3x mb-3"></i>
+            <p>No software found</p>
+            {% if search_query %}
+            <p class="small">No results for "{{ search_query }}"</p>
+            {% else %}
+            <p class="small">Software inventory will appear here after RMM integrations are configured and synced</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

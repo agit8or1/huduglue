@@ -28,5 +28,11 @@ urlpatterns = [
     path('rmm/<int:pk>/', views.rmm_detail, name='rmm_detail'),
     path('rmm/<int:pk>/edit/', views.rmm_edit, name='rmm_edit'),
     path('rmm/<int:pk>/delete/', views.rmm_delete, name='rmm_delete'),
+    path('rmm/<int:pk>/sync/', views.rmm_trigger_sync, name='rmm_trigger_sync'),
+
+    # RMM Data Views
     path('rmm/devices/', views.rmm_devices, name='rmm_devices'),
+    path('rmm/devices/<int:pk>/', views.rmm_device_detail, name='rmm_device_detail'),
+    path('rmm/alerts/', views.rmm_alerts, name='rmm_alerts'),
+    path('rmm/software/', views.rmm_software, name='rmm_software'),
 ]

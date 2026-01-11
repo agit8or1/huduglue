@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}{{ device.device_name }} - RMM Device - HuduGlue{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'integrations:integration_list' %}">Integrations</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'integrations:rmm_devices' %}">RMM Devices</a></li>
+        <li class="breadcrumb-item active">{{ device.device_name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-desktop"></i> {{ device.device_name }}
+        {% if device.is_online %}
+        <span class="badge bg-success">Online</span>
+        {% else %}
+        <span class="badge bg-secondary">Offline</span>
+        {% endif %}
+    </h1>
+    <div>
+        {% if device.linked_asset %}
+        <a href="{% url 'assets:asset_detail' device.linked_asset.pk %}" class="btn btn-outline-primary">
+            <i class="fas fa-link"></i> View Asset
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Device Information -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Device Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th style="width: 40%;">RMM Provider</th>
+                        <td>
+                            <a href="{% url 'integrations:rmm_detail' device.connection.pk %}">
+                                {{ device.connection.get_provider_type_display }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>External ID</th>
+                        <td><code>{{ device.external_id }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Device Type</th>
+                        <td><span class="badge bg-info">{{ device.get_device_type_display }}</span></td>
+                    </tr>
+                    <tr>
+                        <th>Manufacturer</th>
+                        <td>{{ device.manufacturer|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Model</th>
+                        <td>{{ device.model|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Serial Number</th>
+                        <td>{% if device.serial_number %}<code>{{ device.serial_number }}</code>{% else %}-{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>Last Seen</th>
+                        <td>{{ device.last_seen|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-network-wired"></i> Network Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th style="width: 40%;">Hostname</th>
+                        <td>{% if device.hostname %}<code>{{ device.hostname }}</code>{% else %}-{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>IP Address</th>
+                        <td>{% if device.ip_address %}<code>{{ device.ip_address }}</code>{% else %}-{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>MAC Address</th>
+                        <td>{% if device.mac_address %}<code>{{ device.mac_address }}</code>{% else %}-{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>OS Type</th>
+                        <td>{{ device.os_type|title|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>OS Version</th>
+                        <td>{{ device.os_version|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Linked Asset</th>
+                        <td>
+                            {% if device.linked_asset %}
+                            <a href="{% url 'assets:asset_detail' device.linked_asset.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-link"></i> {{ device.linked_asset.name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Not linked</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Alerts -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-exclamation-triangle"></i> Recent Alerts
+            <span class="badge bg-secondary">{{ alerts|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if alerts %}
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Message</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Triggered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ alert.alert_type|default:"Unknown" }}</span></td>
+                        <td>{{ alert.message }}</td>
+                        <td>
+                            {% if alert.severity == 'critical' %}
+                            <span class="badge bg-danger">Critical</span>
+                            {% elif alert.severity == 'error' %}
+                            <span class="badge bg-warning">Error</span>
+                            {% elif alert.severity == 'warning' %}
+                            <span class="badge bg-warning">Warning</span>
+                            {% else %}
+                            <span class="badge bg-info">{{ alert.severity|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if alert.status == 'active' %}
+                            <span class="badge bg-danger">Active</span>
+                            {% else %}
+                            <span class="badge bg-success">Resolved</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ alert.triggered_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'integrations:rmm_alerts' %}" class="btn btn-sm btn-outline-primary">
+                View All Alerts
+            </a>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No recent alerts for this device</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Installed Software -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-box"></i> Installed Software
+            <span class="badge bg-secondary">{{ software|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if software %}
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Software Name</th>
+                        <th>Vendor</th>
+                        <th>Version</th>
+                        <th>Install Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sw in software %}
+                    <tr>
+                        <td><strong>{{ sw.name }}</strong></td>
+                        <td>{{ sw.vendor|default:"-" }}</td>
+                        <td>{% if sw.version %}<code>{{ sw.version }}</code>{% else %}-{% endif %}</td>
+                        <td>{{ sw.install_date|date:"Y-m-d"|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No software inventory available for this device</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
