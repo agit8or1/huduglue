@@ -127,27 +127,40 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-building"></i> Building Information</h5>
-                <button class="btn btn-sm btn-outline-primary" onclick="refreshPropertyData()">
-                    <i class="fas fa-sync"></i> Refresh
-                </button>
+                <div>
+                    <a href="{% url 'locations:location_edit' location.id %}" class="btn btn-sm btn-primary me-2">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="refreshPropertyData()" title="Requires Regrid or AttomData API (paid service)">
+                        <i class="fas fa-sync"></i> Auto-Refresh
+                    </button>
+                </div>
             </div>
             <div class="card-body">
+                {% if not location.building_sqft and not location.floors_count %}
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Property data not available.</strong>
+                    Auto-refresh requires paid APIs (Regrid/AttomData).
+                    Click <strong>"Edit"</strong> above to manually enter building information.
+                </div>
+                {% endif %}
                 <table class="table table-sm">
                     <tr>
                         <th>Square Footage:</th>
-                        <td>{% if location.building_sqft %}{{ location.building_sqft|floatformat:0 }} sq ft{% else %}Not specified{% endif %}</td>
+                        <td>{% if location.building_sqft %}{{ location.building_sqft|floatformat:0 }} sq ft{% else %}<span class="text-muted">Not specified - <a href="{% url 'locations:location_edit' location.id %}">Add manually</a></span>{% endif %}</td>
                     </tr>
                     <tr>
                         <th>Floors:</th>
-                        <td>{% if location.floors_count %}{{ location.floors_count }}{% else %}Not specified{% endif %}</td>
+                        <td>{% if location.floors_count %}{{ location.floors_count }}{% else %}<span class="text-muted">Not specified - <a href="{% url 'locations:location_edit' location.id %}">Add manually</a></span>{% endif %}</td>
                     </tr>
                     <tr>
                         <th>Year Built:</th>
-                        <td>{% if location.year_built %}{{ location.year_built }}{% else %}Unknown{% endif %}</td>
+                        <td>{% if location.year_built %}{{ location.year_built }}{% else %}<span class="text-muted">Not specified - <a href="{% url 'locations:location_edit' location.id %}">Add manually</a></span>{% endif %}</td>
                     </tr>
                     <tr>
                         <th>Property Type:</th>
-                        <td>{% if location.property_type %}{{ location.property_type }}{% else %}Not classified{% endif %}</td>
+                        <td>{% if location.property_type %}{{ location.property_type }}{% else %}<span class="text-muted">Not specified - <a href="{% url 'locations:location_edit' location.id %}">Add manually</a></span>{% endif %}</td>
                     </tr>
                     {% if location.property_id %}
                     <tr>
