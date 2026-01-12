@@ -5,6 +5,31 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.21] - 2026-01-12
+
+### 🎉 Auto-Update System Complete!
+
+- **Improved User Messaging**
+  - Updated completion message to inform users it may take up to a minute for new version to display
+  - Increased page reload delay from 3 to 10 seconds to give service more time to restart
+  - Better UX with clearer expectations during service restart
+
+### ✅ Verified Working
+
+The auto-update system has been fully tested and verified working end-to-end:
+- ✅ Real-time progress UI with all 5 steps
+- ✅ Git pull with version detection
+- ✅ Fast dependency installation
+- ✅ Database migrations
+- ✅ Static file collection
+- ✅ **Automatic service restart** (all PATH issues resolved)
+- ✅ Page reload showing new version
+
+**Auto-updates now require ZERO manual intervention!**
+
+---
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
 ## [2.14.20] - 2026-01-12
 
 ### 🎯 Final Test Release
