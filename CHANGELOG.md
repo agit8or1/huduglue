@@ -5,6 +5,30 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.2] - 2026-01-12
+
+### 🐛 Bug Fixes
+
+- **Encryption Key Error Handling**
+  - Added comprehensive error handling for malformed APP_MASTER_KEY
+  - Display user-friendly error message with fix instructions when encryption key is invalid
+  - Shows exact commands to regenerate the key (44 characters, base64-encoded 32 bytes)
+  - Error handling added to all views that use encryption:
+    - PSA integration create/edit
+    - RMM integration create/edit
+    - Password vault create/edit
+  - Prevents cryptic "Invalid base64-encoded string" errors
+  - Guides users to fix the issue immediately
+
+### 🔧 Files Modified
+
+- `integrations/views.py` - Added EncryptionError handling to PSA/RMM views
+- `vault/views.py` - Added EncryptionError handling to password views
+- Error messages include:
+  - Clear explanation of the problem
+  - Exact terminal commands to fix it
+  - Required key format (44 characters)
+
 ## [2.14.1] - 2026-01-12
 
 ### 🐛 Bug Fixes

@@ -1,6 +1,6 @@
 # HuduGlue 🐕
 
-[![Version 2.14.1](https://img.shields.io/badge/version-2.14.1-brightgreen)](https://github.com/agit8or1/huduglue)
+[![Version 2.14.2](https://img.shields.io/badge/version-2.14.2-brightgreen)](https://github.com/agit8or1/huduglue)
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-green)](https://github.com/agit8or1/huduglue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Django 6.0](https://img.shields.io/badge/django-6.0-blue)](https://www.djangoproject.com/)
@@ -170,7 +170,12 @@ Full implementations for:
 
 ### Latest Release - January 2026
 
-**v2.14.1** - Critical Bug Fixes (Latest Release)
+**v2.14.2** - Encryption Error Handling (Latest Release)
+- **Better Error Messages** for malformed encryption keys
+- **User-Friendly Instructions** showing exact commands to fix issues
+- **Comprehensive Coverage** across all encryption points (PSA, RMM, Passwords)
+
+**v2.14.1** - Critical Bug Fixes
 - **Fixed IntegrityError** when changing admin password (auth_source field)
 - **Enhanced Installer** with .env validation and permission checks
 - **Better Error Messages** showing exact fix commands for common issues
