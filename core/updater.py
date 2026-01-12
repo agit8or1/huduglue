@@ -78,7 +78,7 @@ class UpdateService:
                 'checked_at': timezone.now().isoformat(),
             }
 
-    def perform_update(self, user=None):
+    def perform_update(self, user=None, progress_tracker=None):
         """
         Perform full system update.
 
@@ -101,10 +101,14 @@ class UpdateService:
 
         try:
             # Step 1: Git pull
+            if progress_tracker:
+                progress_tracker.step_start('Git Pull')
             logger.info("Starting update: Git pull")
             git_output = self._run_command(['/usr/bin/git', 'pull', 'origin', 'main'])
             result['steps_completed'].append('git_pull')
             result['output'].append(f"Git pull: {git_output}")
+            if progress_tracker:
+                progress_tracker.step_complete('Git Pull')
 
             # Check if there were any changes
             if 'Already up to date' in git_output:
@@ -112,6 +116,8 @@ class UpdateService:
                 result['output'].append("Repository already up to date")
 
             # Step 2: Install requirements
+            if progress_tracker:
+                progress_tracker.step_start('Install Dependencies')
             logger.info("Installing Python dependencies")
             pip_output = self._run_command([
                 'pip', 'install', '-r',
@@ -120,8 +126,12 @@ class UpdateService:
             ])
             result['steps_completed'].append('install_requirements')
             result['output'].append(f"Pip install: {pip_output[:500]}")  # Truncate output
+            if progress_tracker:
+                progress_tracker.step_complete('Install Dependencies')
 
             # Step 3: Run migrations
+            if progress_tracker:
+                progress_tracker.step_start('Run Migrations')
             logger.info("Running database migrations")
             migrate_output = self._run_command([
                 'python', os.path.join(self.base_dir, 'manage.py'),
@@ -129,8 +139,12 @@ class UpdateService:
             ])
             result['steps_completed'].append('migrate')
             result['output'].append(f"Migrations: {migrate_output}")
+            if progress_tracker:
+                progress_tracker.step_complete('Run Migrations')
 
             # Step 4: Collect static files
+            if progress_tracker:
+                progress_tracker.step_start('Collect Static Files')
             logger.info("Collecting static files")
             static_output = self._run_command([
                 'python', os.path.join(self.base_dir, 'manage.py'),
@@ -138,17 +152,26 @@ class UpdateService:
             ])
             result['steps_completed'].append('collectstatic')
             result['output'].append(f"Static files: {static_output[:500]}")
+            if progress_tracker:
+                progress_tracker.step_complete('Collect Static Files')
 
             # Step 5: Restart service (if running under systemd)
             if self._is_systemd_service():
+                if progress_tracker:
+                    progress_tracker.step_start('Restart Service')
                 logger.info("Restarting systemd service")
                 restart_output = self._run_command([
                     'sudo', 'systemctl', 'restart', 'huduglue-gunicorn.service'
                 ])
                 result['steps_completed'].append('restart_service')
                 result['output'].append(f"Service restart: {restart_output}")
+                if progress_tracker:
+                    progress_tracker.step_complete('Restart Service')
 
             result['success'] = True
+
+            if progress_tracker:
+                progress_tracker.finish(success=True)
 
             # Log to audit trail
             AuditLog.objects.create(
@@ -169,6 +192,9 @@ class UpdateService:
             logger.error(f"Update failed: {e}")
             result['error'] = str(e)
             result['output'].append(f"ERROR: {str(e)}")
+
+            if progress_tracker:
+                progress_tracker.finish(success=False, error=str(e))
 
             # Log failure to audit trail
             AuditLog.objects.create(

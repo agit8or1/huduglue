@@ -137,28 +137,36 @@ def check_updates_now(request):
 @require_http_methods(["POST"])
 def apply_update(request):
     """
-    Apply system update.
+    Apply system update with real-time progress tracking.
     Staff-only access.
     """
+    from core.update_progress import UpdateProgress
+    import threading
+
     updater = UpdateService()
+    progress = UpdateProgress()
+    progress.start()
 
-    # Perform update
-    result = updater.perform_update(user=request.user)
+    def run_update():
+        """Run update in background thread."""
+        try:
+            result = updater.perform_update(user=request.user, progress_tracker=progress)
+            if result['success']:
+                # Clear update cache
+                cache.delete('system_update_check')
+        except Exception as e:
+            progress.finish(success=False, error=str(e))
 
-    if result['success']:
-        messages.success(
-            request,
-            "Update completed successfully! The system will restart shortly."
-        )
-        # Clear update cache
-        cache.delete('system_update_check')
-    else:
-        messages.error(
-            request,
-            f"Update failed: {result.get('error', 'Unknown error')}"
-        )
+    # Start update in background thread
+    thread = threading.Thread(target=run_update)
+    thread.daemon = True
+    thread.start()
 
-    return redirect('core:system_updates')
+    # Return immediately - progress will be polled via AJAX
+    return JsonResponse({
+        'status': 'started',
+        'message': 'Update started. Polling for progress...'
+    })
 
 
 @staff_member_required
@@ -176,3 +184,14 @@ def update_status_api(request):
         cache.set(cache_key, update_info, 3600)
 
     return JsonResponse(update_info)
+
+
+@staff_member_required
+def update_progress_api(request):
+    """
+    API endpoint for checking update progress (for AJAX polling).
+    Staff-only access.
+    """
+    from core.update_progress import UpdateProgress
+    progress = UpdateProgress()
+    return JsonResponse(progress.get_progress())
