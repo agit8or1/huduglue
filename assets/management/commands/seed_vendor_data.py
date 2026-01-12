@@ -11021,6 +11021,633 @@ class Command(BaseCommand):
                 },
                 'description': '70-inch integrated large room system'
             },
+
+            # Catalyst 9200 Series - Access Switches
+            {
+                'model_name': 'Catalyst 9200-24P',
+                'model_number': 'C9200-24P-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 1G SFP',
+                    'poe_budget': '440W PoE+',
+                    'switching_capacity': '56 Gbps',
+                    'throughput': '41.7 Mpps',
+                    'stacking': 'StackWise-160',
+                },
+                'description': '24-port Gigabit switch with 440W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9200-24P (Enhanced)',
+                'model_number': 'C9200-24P-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 1G SFP',
+                    'poe_budget': '740W PoE+',
+                    'switching_capacity': '56 Gbps',
+                    'throughput': '41.7 Mpps',
+                    'stacking': 'StackWise-160',
+                },
+                'description': '24-port Gigabit switch with 740W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9200-24T',
+                'model_number': 'C9200-24T',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 1G SFP',
+                    'poe_budget': 'None',
+                    'switching_capacity': '56 Gbps',
+                    'throughput': '41.7 Mpps',
+                    'stacking': 'StackWise-160',
+                },
+                'description': '24-port Gigabit switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9200-48P',
+                'model_number': 'C9200-48P-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 1G SFP',
+                    'poe_budget': '440W PoE+',
+                    'switching_capacity': '104 Gbps',
+                    'throughput': '77.4 Mpps',
+                    'stacking': 'StackWise-160',
+                },
+                'description': '48-port Gigabit switch with 440W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9200-48P (Enhanced)',
+                'model_number': 'C9200-48P-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 1G SFP',
+                    'poe_budget': '740W PoE+',
+                    'switching_capacity': '104 Gbps',
+                    'throughput': '77.4 Mpps',
+                    'stacking': 'StackWise-160',
+                },
+                'description': '48-port Gigabit switch with 740W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9200-48T',
+                'model_number': 'C9200-48T',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 1G SFP',
+                    'poe_budget': 'None',
+                    'switching_capacity': '104 Gbps',
+                    'throughput': '77.4 Mpps',
+                    'stacking': 'StackWise-160',
+                },
+                'description': '48-port Gigabit switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9200L-24P-4G',
+                'model_number': 'C9200L-24P-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '56 Gbps',
+                    'throughput': '41.7 Mpps',
+                },
+                'description': '24-port Gigabit lite switch with 370W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9200L-24P-4X',
+                'model_number': 'C9200L-24P-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '128 Gbps',
+                    'throughput': '95.2 Mpps',
+                },
+                'description': '24-port Gigabit lite switch with 10G uplinks'
+            },
+            {
+                'model_name': 'Catalyst 9200L-24T-4G',
+                'model_number': 'C9200L-24T-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': 'None',
+                    'switching_capacity': '56 Gbps',
+                    'throughput': '41.7 Mpps',
+                },
+                'description': '24-port Gigabit lite switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9200L-24T-4X',
+                'model_number': 'C9200L-24T-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': 'None',
+                    'switching_capacity': '128 Gbps',
+                    'throughput': '95.2 Mpps',
+                },
+                'description': '24-port Gigabit lite switch with 10G uplinks'
+            },
+            {
+                'model_name': 'Catalyst 9200L-48P-4G',
+                'model_number': 'C9200L-48P-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '104 Gbps',
+                    'throughput': '77.4 Mpps',
+                },
+                'description': '48-port Gigabit lite switch with 370W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9200L-48P-4X',
+                'model_number': 'C9200L-48P-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '176 Gbps',
+                    'throughput': '131 Mpps',
+                },
+                'description': '48-port Gigabit lite switch with 10G uplinks'
+            },
+            {
+                'model_name': 'Catalyst 9200L-48T-4G',
+                'model_number': 'C9200L-48T-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': 'None',
+                    'switching_capacity': '104 Gbps',
+                    'throughput': '77.4 Mpps',
+                },
+                'description': '48-port Gigabit lite switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9200L-48T-4X',
+                'model_number': 'C9200L-48T-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': 'None',
+                    'switching_capacity': '176 Gbps',
+                    'throughput': '131 Mpps',
+                },
+                'description': '48-port Gigabit lite switch with 10G uplinks'
+            },
+
+            # Catalyst 9300 Series - Distribution/Access Switches
+            {
+                'model_name': 'Catalyst 9300-24P (440W PoE)',
+                'model_number': 'C9300-24P-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '440W PoE+',
+                    'switching_capacity': '208 Gbps',
+                    'throughput': '154.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '24-port Gigabit switch with 440W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9300-24P (740W PoE)',
+                'model_number': 'C9300-24P-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '740W PoE+',
+                    'switching_capacity': '208 Gbps',
+                    'throughput': '154.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '24-port Gigabit switch with 740W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9300-24T',
+                'model_number': 'C9300-24T',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': 'None',
+                    'switching_capacity': '208 Gbps',
+                    'throughput': '154.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '24-port Gigabit switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9300-24U (435W UPOE)',
+                'model_number': 'C9300-24U-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G mGig',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '435W UPOE',
+                    'switching_capacity': '208 Gbps',
+                    'throughput': '154.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '24-port multigigabit switch with 435W UPOE'
+            },
+            {
+                'model_name': 'Catalyst 9300-24U (715W UPOE)',
+                'model_number': 'C9300-24U-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G mGig',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '715W UPOE',
+                    'switching_capacity': '208 Gbps',
+                    'throughput': '154.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '24-port multigigabit switch with 715W UPOE'
+            },
+            {
+                'model_name': 'Catalyst 9300-24UX (715W UPOE+)',
+                'model_number': 'C9300-24UX-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 10G mGig',
+                    'uplinks': '4x 25G SFP28',
+                    'poe_budget': '715W UPOE+',
+                    'switching_capacity': '464 Gbps',
+                    'throughput': '345.2 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '24-port 10G multigigabit switch with 715W UPOE+'
+            },
+            {
+                'model_name': 'Catalyst 9300-24UX (1125W UPOE+)',
+                'model_number': 'C9300-24UX-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 10G mGig',
+                    'uplinks': '4x 25G SFP28',
+                    'poe_budget': '1125W UPOE+',
+                    'switching_capacity': '464 Gbps',
+                    'throughput': '345.2 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '24-port 10G multigigabit switch with 1125W UPOE+'
+            },
+            {
+                'model_name': 'Catalyst 9300-48P (440W PoE)',
+                'model_number': 'C9300-48P-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '440W PoE+',
+                    'switching_capacity': '368 Gbps',
+                    'throughput': '273.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '48-port Gigabit switch with 440W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9300-48P (740W PoE)',
+                'model_number': 'C9300-48P-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '740W PoE+',
+                    'switching_capacity': '368 Gbps',
+                    'throughput': '273.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '48-port Gigabit switch with 740W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9300-48T',
+                'model_number': 'C9300-48T',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': 'None',
+                    'switching_capacity': '368 Gbps',
+                    'throughput': '273.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '48-port Gigabit switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9300-48U (435W UPOE)',
+                'model_number': 'C9300-48U-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G mGig',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '435W UPOE',
+                    'switching_capacity': '368 Gbps',
+                    'throughput': '273.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '48-port multigigabit switch with 435W UPOE'
+            },
+            {
+                'model_name': 'Catalyst 9300-48U (715W UPOE)',
+                'model_number': 'C9300-48U-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G mGig',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '715W UPOE',
+                    'switching_capacity': '368 Gbps',
+                    'throughput': '273.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '48-port multigigabit switch with 715W UPOE'
+            },
+            {
+                'model_name': 'Catalyst 9300-48UX (715W UPOE+)',
+                'model_number': 'C9300-48UX-A',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 10G mGig',
+                    'uplinks': '4x 25G SFP28',
+                    'poe_budget': '715W UPOE+',
+                    'switching_capacity': '880 Gbps',
+                    'throughput': '654.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '48-port 10G multigigabit switch with 715W UPOE+'
+            },
+            {
+                'model_name': 'Catalyst 9300-48UX (1125W UPOE+)',
+                'model_number': 'C9300-48UX-E',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 10G mGig',
+                    'uplinks': '4x 25G SFP28',
+                    'poe_budget': '1125W UPOE+',
+                    'switching_capacity': '880 Gbps',
+                    'throughput': '654.8 Mpps',
+                    'stacking': 'StackWise-480',
+                },
+                'description': '48-port 10G multigigabit switch with 1125W UPOE+'
+            },
+            {
+                'model_name': 'Catalyst 9300L-24P-4G',
+                'model_number': 'C9300L-24P-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '56 Gbps',
+                    'throughput': '41.7 Mpps',
+                },
+                'description': '24-port Gigabit lite switch with 370W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9300L-24P-4X',
+                'model_number': 'C9300L-24P-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '208 Gbps',
+                    'throughput': '154.8 Mpps',
+                },
+                'description': '24-port Gigabit lite switch with 10G uplinks'
+            },
+            {
+                'model_name': 'Catalyst 9300L-24T-4G',
+                'model_number': 'C9300L-24T-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': 'None',
+                    'switching_capacity': '56 Gbps',
+                    'throughput': '41.7 Mpps',
+                },
+                'description': '24-port Gigabit lite switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9300L-24T-4X',
+                'model_number': 'C9300L-24T-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '24x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': 'None',
+                    'switching_capacity': '208 Gbps',
+                    'throughput': '154.8 Mpps',
+                },
+                'description': '24-port Gigabit lite switch with 10G uplinks'
+            },
+            {
+                'model_name': 'Catalyst 9300L-48P-4G',
+                'model_number': 'C9300L-48P-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '104 Gbps',
+                    'throughput': '77.4 Mpps',
+                },
+                'description': '48-port Gigabit lite switch with 370W PoE+'
+            },
+            {
+                'model_name': 'Catalyst 9300L-48P-4X',
+                'model_number': 'C9300L-48P-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': '370W PoE+',
+                    'switching_capacity': '368 Gbps',
+                    'throughput': '273.8 Mpps',
+                },
+                'description': '48-port Gigabit lite switch with 10G uplinks'
+            },
+            {
+                'model_name': 'Catalyst 9300L-48T-4G',
+                'model_number': 'C9300L-48T-4G',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 1G',
+                    'poe_budget': 'None',
+                    'switching_capacity': '104 Gbps',
+                    'throughput': '77.4 Mpps',
+                },
+                'description': '48-port Gigabit lite switch without PoE'
+            },
+            {
+                'model_name': 'Catalyst 9300L-48T-4X',
+                'model_number': 'C9300L-48T-4X',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1G',
+                    'uplinks': '4x 10G SFP+',
+                    'poe_budget': 'None',
+                    'switching_capacity': '368 Gbps',
+                    'throughput': '273.8 Mpps',
+                },
+                'description': '48-port Gigabit lite switch with 10G uplinks'
+            },
+
+            # Additional Nexus 9300 Series
+            {
+                'model_name': 'Nexus 93180YC-FX',
+                'model_number': 'N9K-C93180YC-FX',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1/10/25G SFP28, 6x 40/100G QSFP28',
+                    'switching_capacity': '3.6 Tbps',
+                    'latency': '< 2 microseconds',
+                },
+                'description': 'Nexus 9300 FX 25G ToR switch'
+            },
+            {
+                'model_name': 'Nexus 93180YC-EX',
+                'model_number': 'N9K-C93180YC-EX',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1/10/25G SFP28, 6x 40/100G QSFP28',
+                    'switching_capacity': '3.6 Tbps',
+                },
+                'description': 'Nexus 9300 EX 25G ToR switch'
+            },
+            {
+                'model_name': 'Nexus 93240YC-FX2',
+                'model_number': 'N9K-C93240YC-FX2',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 1/10/25G SFP28, 12x 40/100G QSFP28',
+                    'switching_capacity': '5.76 Tbps',
+                },
+                'description': 'Nexus 9300 FX2 high-density 25G'
+            },
+            {
+                'model_name': 'Nexus 93360YC-FX2',
+                'model_number': 'N9K-C93360YC-FX2',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '96x 1/10/25G SFP28, 12x 40/100G QSFP28',
+                    'switching_capacity': '7.2 Tbps',
+                },
+                'description': 'Nexus 9300 ultra-high-density 25G'
+            },
+            {
+                'model_name': 'Nexus 93108TC-FX',
+                'model_number': 'N9K-C93108TC-FX',
+                'equipment_type': 'switch',
+                'is_rackmount': True,
+                'rack_units': 1,
+                'specifications': {
+                    'ports': '48x 10GBASE-T, 6x 40/100G QSFP28',
+                    'switching_capacity': '2.16 Tbps',
+                },
+                'description': 'Nexus 9300 10GBASE-T ToR'
+            },
         ]
 
         for eq_data in equipment:
