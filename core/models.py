@@ -400,6 +400,7 @@ class ScheduledTask(models.Model):
         ('equipment_catalog_update', 'Equipment Catalog Update'),
         ('ssl_expiry_check', 'SSL Certificate Expiry Check'),
         ('domain_expiry_check', 'Domain Expiry Check'),
+        ('update_check', 'System Update Check'),
     ]
 
     task_type = models.CharField(max_length=50, choices=TASK_TYPES, unique=True)

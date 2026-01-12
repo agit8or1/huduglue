@@ -1,9 +1,16 @@
 """
 Core views - Documentation and About pages
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import JsonResponse
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
+from django.core.cache import cache
 from config.version import get_version, get_full_version
+from .updater import UpdateService
+from audit.models import AuditLog
 
 
 @login_required
@@ -43,3 +50,114 @@ def about(request):
         'dependencies': dependencies,
         'equipment_stats': equipment_stats,
     })
+
+
+@staff_member_required
+def system_updates(request):
+    """
+    System updates page - check for and apply updates.
+    Staff-only access.
+    """
+    updater = UpdateService()
+
+    # Get cached update check or perform new check
+    cache_key = 'system_update_check'
+    update_info = cache.get(cache_key)
+
+    if not update_info:
+        update_info = updater.check_for_updates()
+        cache.set(cache_key, update_info, 3600)  # Cache for 1 hour
+
+    # Get git status
+    git_status = updater.get_git_status()
+
+    # Get recent update logs
+    recent_updates = AuditLog.objects.filter(
+        event_type__in=['system_update', 'system_update_failed']
+    ).order_by('-created_at')[:10]
+
+    return render(request, 'core/system_updates.html', {
+        'version': get_version(),
+        'update_info': update_info,
+        'git_status': git_status,
+        'recent_updates': recent_updates,
+    })
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def check_updates_now(request):
+    """
+    Force check for updates (bypass cache).
+    Staff-only access.
+    """
+    updater = UpdateService()
+    update_info = updater.check_for_updates()
+
+    # Update cache
+    cache.set('system_update_check', update_info, 3600)
+
+    # Log the check
+    AuditLog.objects.create(
+        event_type='update_check',
+        description=f'Manual update check by {request.user.username}',
+        user=request.user,
+        metadata=update_info
+    )
+
+    if update_info.get('error'):
+        messages.error(request, f"Failed to check for updates: {update_info['error']}")
+    elif update_info['update_available']:
+        messages.success(
+            request,
+            f"Update available: v{update_info['latest_version']}"
+        )
+    else:
+        messages.info(request, "System is up to date")
+
+    return redirect('core:system_updates')
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def apply_update(request):
+    """
+    Apply system update.
+    Staff-only access.
+    """
+    updater = UpdateService()
+
+    # Perform update
+    result = updater.perform_update(user=request.user)
+
+    if result['success']:
+        messages.success(
+            request,
+            "Update completed successfully! The system will restart shortly."
+        )
+        # Clear update cache
+        cache.delete('system_update_check')
+    else:
+        messages.error(
+            request,
+            f"Update failed: {result.get('error', 'Unknown error')}"
+        )
+
+    return redirect('core:system_updates')
+
+
+@staff_member_required
+def update_status_api(request):
+    """
+    API endpoint for checking update status (for AJAX polling).
+    Staff-only access.
+    """
+    cache_key = 'system_update_check'
+    update_info = cache.get(cache_key)
+
+    if not update_info:
+        updater = UpdateService()
+        update_info = updater.check_for_updates()
+        cache.set(cache_key, update_info, 3600)
+
+    return JsonResponse(update_info)

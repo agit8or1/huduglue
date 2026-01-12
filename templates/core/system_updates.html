@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Updates - Admin Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+    .update-card {
+        border-left: 4px solid #28a745;
+    }
+    .update-card.warning {
+        border-left-color: #ffc107;
+    }
+    .update-card.danger {
+        border-left-color: #dc3545;
+    }
+    .version-badge {
+        font-size: 1.2em;
+        padding: 0.5em 1em;
+    }
+    .git-status {
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+    }
+    .release-notes {
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .release-notes pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col">
+            <h2><i class="fas fa-sync-alt"></i> System Updates</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">System Updates</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Current Version -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card update-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-info-circle"></i> Current Version</h5>
+                    <h2 class="mb-0">
+                        <span class="badge bg-primary version-badge">v{{ version }}</span>
+                    </h2>
+                    <p class="text-muted mt-2 mb-0">
+                        Branch: <span class="git-status">{{ git_status.branch }}</span> |
+                        Commit: <span class="git-status">{{ git_status.commit }}</span>
+                        {% if git_status.clean %}
+                        <span class="badge bg-success ms-2"><i class="fas fa-check"></i> Clean</span>
+                        {% else %}
+                        <span class="badge bg-warning ms-2"><i class="fas fa-exclamation-triangle"></i> Modified</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card {% if update_info.update_available %}update-card warning{% else %}update-card{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-cloud-download-alt"></i> Latest Available Version</h5>
+                    {% if update_info.error %}
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-exclamation-circle"></i> {{ update_info.error }}
+                    </div>
+                    {% elif update_info.update_available %}
+                    <h2 class="mb-0">
+                        <span class="badge bg-warning version-badge">v{{ update_info.latest_version }}</span>
+                        <span class="badge bg-success ms-2">Update Available</span>
+                    </h2>
+                    <p class="text-muted mt-2 mb-0">
+                        <small>Last checked: {{ update_info.checked_at|default:"Never" }}</small>
+                    </p>
+                    {% else %}
+                    <h2 class="mb-0">
+                        <span class="badge bg-success version-badge"><i class="fas fa-check"></i> Up to Date</span>
+                    </h2>
+                    <p class="text-muted mt-2 mb-0">
+                        <small>Last checked: {{ update_info.checked_at|default:"Never" }}</small>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-cog"></i> Update Actions</h5>
+
+                    <form method="POST" action="{% url 'core:check_updates_now' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sync"></i> Check for Updates Now
+                        </button>
+                    </form>
+
+                    {% if update_info.update_available %}
+                    <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#updateModal">
+                        <i class="fas fa-download"></i> Apply Update
+                    </button>
+                    {% endif %}
+
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> Updates are automatically checked every hour.
+                        The system will notify you when a new version is available.
+                        {% if not git_status.clean %}
+                        <br><br>
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        <strong>Warning:</strong> Your working directory has uncommitted changes.
+                        These changes may be lost when applying updates.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Release Notes -->
+    {% if update_info.update_available and update_info.release_notes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-newspaper"></i> Release Notes - v{{ update_info.latest_version }}
+                    </h5>
+                    <a href="{{ update_info.release_url }}" target="_blank" class="btn btn-sm btn-outline-primary mb-2">
+                        <i class="fas fa-external-link-alt"></i> View on GitHub
+                    </a>
+                    <div class="release-notes">
+                        <pre>{{ update_info.release_notes }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Update History -->
+    {% if recent_updates %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-history"></i> Recent Update History</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date/Time</th>
+                                    <th>Event</th>
+                                    <th>Description</th>
+                                    <th>User</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for update in recent_updates %}
+                                <tr>
+                                    <td>{{ update.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        {% if update.event_type == 'system_update' %}
+                                        <span class="badge bg-success">Update Success</span>
+                                        {% elif update.event_type == 'system_update_failed' %}
+                                        <span class="badge bg-danger">Update Failed</span>
+                                        {% else %}
+                                        <span class="badge bg-info">{{ update.event_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ update.description }}</td>
+                                    <td>{{ update.user.username|default:"System" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Update Confirmation Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> Confirm System Update
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <strong>You are about to update HuduGlue from v{{ version }} to v{{ update_info.latest_version }}</strong>
+                </p>
+                <p>The update process will:</p>
+                <ul>
+                    <li>Pull the latest code from GitHub</li>
+                    <li>Install updated Python dependencies</li>
+                    <li>Run database migrations</li>
+                    <li>Collect static files</li>
+                    <li>Restart the application</li>
+                </ul>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> The application will be briefly unavailable during the update process (1-2 minutes).
+                    {% if not git_status.clean %}
+                    <br><br>
+                    <strong>Your working directory has uncommitted changes that may be overwritten!</strong>
+                    {% endif %}
+                </div>
+                <p class="mb-0"><strong>Are you sure you want to proceed?</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'core:apply_update' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-download"></i> Yes, Apply Update
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh update status every 5 minutes
+setInterval(function() {
+    fetch('{% url "core:update_status_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.update_available && !{{ update_info.update_available|yesno:"true,false" }}) {
+                // New update detected, reload page
+                location.reload();
+            }
+        })
+        .catch(error => console.error('Error checking update status:', error));
+}, 300000); // 5 minutes
+</script>
+{% endblock %}

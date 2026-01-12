@@ -389,3 +389,9 @@ LOGGING = {
 if not DEBUG:
     log_dir = Path('/var/log/itdocs')
     log_dir.mkdir(parents=True, exist_ok=True)
+
+# Auto-Update Settings
+GITHUB_REPO_OWNER = os.getenv('GITHUB_REPO_OWNER', 'agit8or1')
+GITHUB_REPO_NAME = os.getenv('GITHUB_REPO_NAME', 'huduglue')
+AUTO_UPDATE_ENABLED = os.getenv('AUTO_UPDATE_ENABLED', 'True').lower() == 'true'
+AUTO_UPDATE_CHECK_INTERVAL = int(os.getenv('AUTO_UPDATE_CHECK_INTERVAL', '3600'))  # 1 hour in seconds

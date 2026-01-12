@@ -46,4 +46,10 @@ urlpatterns = [
     path('settings/ai/', settings_views.settings_ai, name='settings_ai'),
     path('settings/system-status/', settings_views.system_status, name='system_status'),
     path('settings/maintenance/', settings_views.maintenance, name='maintenance'),
+
+    # System Updates (staff only)
+    path('settings/updates/', views.system_updates, name='system_updates'),
+    path('settings/updates/check/', views.check_updates_now, name='check_updates_now'),
+    path('settings/updates/apply/', views.apply_update, name='apply_update'),
+    path('api/update-status/', views.update_status_api, name='update_status_api'),
 ]

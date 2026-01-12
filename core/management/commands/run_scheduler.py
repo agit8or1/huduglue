@@ -63,6 +63,8 @@ class Command(BaseCommand):
             self.run_ssl_expiry_check()
         elif task.task_type == 'domain_expiry_check':
             self.run_domain_expiry_check()
+        elif task.task_type == 'update_check':
+            self.run_update_check()
         else:
             raise ValueError(f"Unknown task type: {task.task_type}")
 
@@ -149,3 +151,11 @@ class Command(BaseCommand):
             # TODO: Send email notifications
         else:
             self.stdout.write(f"    No expiring domains found")
+
+    def run_update_check(self):
+        """Check for system updates from GitHub."""
+        from django.core.management import call_command
+        try:
+            call_command('check_updates', verbosity=1)
+        except Exception as e:
+            self.stdout.write(f"    Update check failed: {e}")
