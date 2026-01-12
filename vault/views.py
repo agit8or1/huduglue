@@ -11,6 +11,7 @@ from audit.models import AuditLog
 from .models import Password, PasswordBreachCheck
 from .forms import PasswordForm
 from .breach_checker import PasswordBreachChecker
+from .encryption import EncryptionError
 
 
 @login_required
@@ -155,14 +156,33 @@ def password_create(request):
     if request.method == 'POST':
         form = PasswordForm(request.POST, organization=org)
         if form.is_valid():
-            password = form.save(commit=False)
-            password.organization = org
-            password.created_by = request.user
-            password.last_modified_by = request.user
-            password.save()
-            form.save_m2m()  # Save tags
-            messages.success(request, f"Password '{password.title}' created successfully.")
-            return redirect('vault:password_detail', pk=password.pk)
+            try:
+                password = form.save(commit=False)
+                password.organization = org
+                password.created_by = request.user
+                password.last_modified_by = request.user
+                password.save()
+                form.save_m2m()  # Save tags
+                messages.success(request, f"Password '{password.title}' created successfully.")
+                return redirect('vault:password_detail', pk=password.pk)
+            except EncryptionError as e:
+                # Handle malformed APP_MASTER_KEY error
+                error_msg = str(e)
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                    messages.error(
+                        request,
+                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
+                        "Please regenerate it using the following commands:<br><br>"
+                        "<code>cd ~/huduglue<br>"
+                        "source venv/bin/activate<br>"
+                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
+                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
+                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
+                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        extra_tags='safe'
+                    )
+                else:
+                    messages.error(request, f"Encryption error: {error_msg}")
     else:
         form = PasswordForm(organization=org)
 
@@ -184,12 +204,31 @@ def password_edit(request, pk):
     if request.method == 'POST':
         form = PasswordForm(request.POST, instance=password, organization=org)
         if form.is_valid():
-            password = form.save(commit=False)
-            password.last_modified_by = request.user
-            password.save()
-            form.save_m2m()
-            messages.success(request, f"Password '{password.title}' updated successfully.")
-            return redirect('vault:password_detail', pk=password.pk)
+            try:
+                password = form.save(commit=False)
+                password.last_modified_by = request.user
+                password.save()
+                form.save_m2m()
+                messages.success(request, f"Password '{password.title}' updated successfully.")
+                return redirect('vault:password_detail', pk=password.pk)
+            except EncryptionError as e:
+                # Handle malformed APP_MASTER_KEY error
+                error_msg = str(e)
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                    messages.error(
+                        request,
+                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
+                        "Please regenerate it using the following commands:<br><br>"
+                        "<code>cd ~/huduglue<br>"
+                        "source venv/bin/activate<br>"
+                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
+                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
+                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
+                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        extra_tags='safe'
+                    )
+                else:
+                    messages.error(request, f"Encryption error: {error_msg}")
     else:
         form = PasswordForm(instance=password, organization=org)
 

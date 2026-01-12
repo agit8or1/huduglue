@@ -12,6 +12,7 @@ from .models import PSAConnection, PSACompany, PSAContact, PSATicket, RMMConnect
 from .forms import PSAConnectionForm, RMMConnectionForm
 from .sync import PSASync
 from .providers import get_provider
+from vault.encryption import EncryptionError
 
 
 @login_required
@@ -36,11 +37,30 @@ def integration_create(request):
     if request.method == 'POST':
         form = PSAConnectionForm(request.POST, organization=org)
         if form.is_valid():
-            connection = form.save(commit=False)
-            connection.organization = org
-            connection.save()
-            messages.success(request, f"Connection '{connection.name}' created successfully.")
-            return redirect('integrations:integration_detail', pk=connection.pk)
+            try:
+                connection = form.save(commit=False)
+                connection.organization = org
+                connection.save()
+                messages.success(request, f"Connection '{connection.name}' created successfully.")
+                return redirect('integrations:integration_detail', pk=connection.pk)
+            except EncryptionError as e:
+                # Handle malformed APP_MASTER_KEY error
+                error_msg = str(e)
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                    messages.error(
+                        request,
+                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
+                        "Please regenerate it using the following commands:<br><br>"
+                        "<code>cd ~/huduglue<br>"
+                        "source venv/bin/activate<br>"
+                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
+                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
+                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
+                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        extra_tags='safe'
+                    )
+                else:
+                    messages.error(request, f"Encryption error: {error_msg}")
     else:
         form = PSAConnectionForm(organization=org)
 
@@ -76,9 +96,28 @@ def integration_edit(request, pk):
     if request.method == 'POST':
         form = PSAConnectionForm(request.POST, instance=connection, organization=org)
         if form.is_valid():
-            connection = form.save()
-            messages.success(request, f"Connection '{connection.name}' updated successfully.")
-            return redirect('integrations:integration_detail', pk=connection.pk)
+            try:
+                connection = form.save()
+                messages.success(request, f"Connection '{connection.name}' updated successfully.")
+                return redirect('integrations:integration_detail', pk=connection.pk)
+            except EncryptionError as e:
+                # Handle malformed APP_MASTER_KEY error
+                error_msg = str(e)
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                    messages.error(
+                        request,
+                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
+                        "Please regenerate it using the following commands:<br><br>"
+                        "<code>cd ~/huduglue<br>"
+                        "source venv/bin/activate<br>"
+                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
+                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
+                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
+                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        extra_tags='safe'
+                    )
+                else:
+                    messages.error(request, f"Encryption error: {error_msg}")
     else:
         form = PSAConnectionForm(instance=connection, organization=org)
 
@@ -240,11 +279,30 @@ def rmm_create(request):
     if request.method == 'POST':
         form = RMMConnectionForm(request.POST, organization=org)
         if form.is_valid():
-            connection = form.save(commit=False)
-            connection.organization = org
-            connection.save()
-            messages.success(request, f"RMM connection '{connection.name}' created successfully.")
-            return redirect('integrations:rmm_detail', pk=connection.pk)
+            try:
+                connection = form.save(commit=False)
+                connection.organization = org
+                connection.save()
+                messages.success(request, f"RMM connection '{connection.name}' created successfully.")
+                return redirect('integrations:rmm_detail', pk=connection.pk)
+            except EncryptionError as e:
+                # Handle malformed APP_MASTER_KEY error
+                error_msg = str(e)
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                    messages.error(
+                        request,
+                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
+                        "Please regenerate it using the following commands:<br><br>"
+                        "<code>cd ~/huduglue<br>"
+                        "source venv/bin/activate<br>"
+                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
+                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
+                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
+                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        extra_tags='safe'
+                    )
+                else:
+                    messages.error(request, f"Encryption error: {error_msg}")
     else:
         form = RMMConnectionForm(organization=org)
 
@@ -282,9 +340,28 @@ def rmm_edit(request, pk):
     if request.method == 'POST':
         form = RMMConnectionForm(request.POST, instance=connection, organization=org)
         if form.is_valid():
-            connection = form.save()
-            messages.success(request, f"RMM connection '{connection.name}' updated successfully.")
-            return redirect('integrations:rmm_detail', pk=connection.pk)
+            try:
+                connection = form.save()
+                messages.success(request, f"RMM connection '{connection.name}' updated successfully.")
+                return redirect('integrations:rmm_detail', pk=connection.pk)
+            except EncryptionError as e:
+                # Handle malformed APP_MASTER_KEY error
+                error_msg = str(e)
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                    messages.error(
+                        request,
+                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
+                        "Please regenerate it using the following commands:<br><br>"
+                        "<code>cd ~/huduglue<br>"
+                        "source venv/bin/activate<br>"
+                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
+                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
+                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
+                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        extra_tags='safe'
+                    )
+                else:
+                    messages.error(request, f"Encryption error: {error_msg}")
     else:
         form = RMMConnectionForm(instance=connection, organization=org)
 
