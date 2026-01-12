@@ -39,6 +39,17 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 
 ### 📦 Core Features
 
+#### Auto-Update System (NEW in 2.14.21!)
+- **One-Click Updates** - Update HuduGlue directly from the web interface
+- **Real-Time Progress** - Animated progress modal showing all 5 update steps
+- **Automatic Service Restart** - Service restarts automatically after update
+- **Zero Downtime** - Updates complete in 20-30 seconds with automatic reload
+- **Background Execution** - Updates run in background thread, no browser timeouts
+- **Smart Dependency Management** - Only installs missing packages, no unnecessary rebuilds
+- **Version Detection** - Automatic detection of new releases from GitHub
+- **Safety Features** - Delayed restart using systemd-run to prevent self-termination
+- **No SSH Required** - Non-technical users can update without command line access
+
 #### Asset Management
 - **Comprehensive Asset Tracking** - Track all IT assets with custom fields, relationships, and lifecycle management
 - **Rackmount Tracking** - NetBox-style rack visualization with U-space management
@@ -170,7 +181,24 @@ Full implementations for:
 
 ### Latest Release - January 2026
 
-**v2.14.5** - ITFlow PSA Integration (Latest Release)
+**v2.14.21** - 🎉 **Auto-Update System Complete!** (Latest Release)
+- **One-Click Web Updates** - Update HuduGlue directly from the web interface without SSH access
+- **Real-Time Progress Tracking** - Animated modal shows all 5 steps with live status updates
+- **Automatic Service Restart** - Service restarts automatically using systemd-run with 3-second delay
+- **Zero Manual Intervention** - Complete end-to-end automation from git pull to service reload
+- **Smart Dependency Management** - Only installs missing packages, avoids rebuilding compiled packages
+- **Production Ready** - Fully tested and verified working in v2.14.19 → v2.14.20 update
+- **Better UX** - Clear messaging about restart timing (may take up to a minute)
+- **Total Update Time** - 20-30 seconds from start to finish
+
+**Technical Implementation:**
+- Background thread execution prevents browser timeouts
+- Full path resolution for all system commands (`/usr/bin/sudo`, `/usr/bin/systemd-run`, `/usr/bin/systemctl`)
+- AJAX polling for progress updates every second
+- Passwordless sudo permissions configured via `/etc/sudoers.d/huduglue-auto-update`
+- Industry-standard delayed restart approach prevents process self-termination
+
+**v2.14.5** - ITFlow PSA Integration
 - **New Integration** - Complete ITFlow PSA provider implementation
 - **Fixed Error** - "Unknown provider type: itflow" now resolved
 - **Full Support** - Clients, contacts, and tickets synchronization
@@ -293,6 +321,7 @@ This automated installer will:
 - ✅ Create superuser account
 - ✅ Collect static files
 - ✅ **Start production server automatically** (Gunicorn with systemd)
+- ✅ **Configure auto-update permissions** (sudoers for one-click web updates)
 
 **When the installer finishes, your server is RUNNING and ready to use!**
 
@@ -306,6 +335,23 @@ The installer automatically detects existing installations and offers:
 4. **Exit** - Leave existing installation untouched
 
 No manual cleanup needed! The installer handles everything.
+
+### Web-Based Auto-Update (NEW in 2.14.21!)
+
+Once installed, you can update HuduGlue **directly from the web interface**:
+
+1. Navigate to **System Settings → System Updates**
+2. Click **"Check for Updates Now"** to detect new versions
+3. Click **"Apply Update"** when an update is available
+4. Watch real-time progress through all 5 steps:
+   - Step 1: Git Pull
+   - Step 2: Install Dependencies
+   - Step 3: Run Migrations
+   - Step 4: Collect Static Files
+   - Step 5: Restart Service
+5. Page automatically reloads with the new version (20-30 seconds total)
+
+**No SSH access required!** Non-technical users can update safely from the web interface.
 
 **System Requirements:**
 - Ubuntu 20.04+ or Debian 11+
