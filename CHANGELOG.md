@@ -5,6 +5,34 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.1] - 2026-01-12
+
+### 🐛 Bug Fixes
+
+- **Critical IntegrityError Fix**
+  - Fixed IntegrityError: "Field 'auth_source' doesn't have a default value" when changing admin password
+  - Added `default='local'` to auth_source field in migration
+  - Added RunPython operation to set auth_source='local' for all existing UserProfile records
+  - Fixed azure_ad_oid field to have proper `default=''`
+
+- **Installer & Upgrade Improvements**
+  - Added .env file validation before upgrade process starts
+  - Added SECRET_KEY validation in .env to prevent "SECRET_KEY must be set" errors during upgrade
+  - Added write permission check before venv creation to prevent permission denied errors
+  - Added helpful error messages showing:
+    - Directory ownership and current user
+    - Exact commands to fix permission issues (`sudo chown -R $USER:$USER $INSTALL_DIR`)
+    - Clear instructions when .env is missing or corrupted
+
+- **Session Documentation**
+  - Added comprehensive SESSION_SUMMARY.md documenting all recent work
+  - Includes all features, changes, testing, and support commands
+
+### 🔧 Files Modified
+
+- `accounts/migrations/0005_add_azure_fields_to_userprofile.py` - Fixed auth_source defaults
+- `install.sh` - Added validation and permission checks
+
 ## [2.14.0] - 2026-01-12
 
 ### ✨ New Features
