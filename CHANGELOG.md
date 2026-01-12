@@ -5,6 +5,30 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.16] - 2026-01-12
+
+### ✅ Verification Release
+
+- **Auto-Update System Fully Functional**
+  - Confirmed working end-to-end auto-update with automatic restart
+  - All components validated: progress UI, git pull, dependencies, migrations, static files, service restart
+  - Test verified on v2.14.14 → v2.14.15 successful update
+  - Production-ready auto-update system
+
+### 🎉 Achievement Unlocked
+
+The auto-update system is now **complete and working**:
+- ✅ Real-time progress modal with animated step indicators
+- ✅ Fast pip install (no unnecessary package rebuilds)
+- ✅ Delayed service restart using systemd-run --on-active=3
+- ✅ Passwordless sudo permissions for systemctl commands
+- ✅ Automatic page reload showing new version
+
+**No manual intervention required for updates!**
+
+---
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
 ## [2.14.15] - 2026-01-12
 
 ### 🧪 Test Release
