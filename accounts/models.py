@@ -219,7 +219,25 @@ class UserProfile(BaseModel):
         ('daily', 'Daily Digest'),
         ('weekly', 'Weekly Digest'),
     ], default='realtime')
-    
+
+    # Authentication Source (for SSO tracking)
+    auth_source = models.CharField(
+        max_length=20,
+        choices=[
+            ('local', 'Local'),
+            ('ldap', 'LDAP/Active Directory'),
+            ('azure_ad', 'Azure AD / Microsoft Entra ID'),
+        ],
+        default='local',
+        help_text='Authentication source for this user'
+    )
+    azure_ad_oid = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='Azure AD Object ID (OID)'
+    )
+
     class Meta:
         db_table = 'user_profiles'
 

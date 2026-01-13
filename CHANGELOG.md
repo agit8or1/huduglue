@@ -5,6 +5,29 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.22] - 2026-01-12
+
+### 🐛 Critical Bug Fixes
+
+- **Fixed IntegrityError on User Profile Page**
+  - Added missing `auth_source` and `azure_ad_oid` fields to UserProfile model
+  - Fields were defined in migration but missing from model definition
+  - Resolves "(1364, "Field 'auth_source' doesn't have a default value")" error
+  - Users can now access their profile page without errors
+
+- **Fixed IntegrityError on RMM Connection Creation**
+  - Added organization validation check before creating RMM connections
+  - Prevents "(1048, "Column 'organization_id' cannot be null")" error
+  - Users must select an organization before creating RMM connections
+  - Clear error message directs users to select organization first
+
+### 🔒 Security
+
+- Both fixes ensure data integrity and prevent database constraint violations
+
+---
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
 ## [2.14.21] - 2026-01-12
 
 ### 🎉 Auto-Update System Complete!
