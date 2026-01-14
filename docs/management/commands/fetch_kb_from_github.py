@@ -51,12 +51,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING('Note: Generating articles locally (GitHub fixtures not yet available)'))
         self.stdout.write('')
 
-        # Simply delegate to the seed_kb_articles command
-        # This generates the 1,042 comprehensive IT articles
+        # Simply delegate to the seed_professional_kb command
+        # This generates 12 high-quality professional IT documentation articles
         from django.core.management import call_command
 
         try:
-            call_command('seed_kb_articles', delete=options['delete'], stdout=self.stdout, stderr=self.stderr)
+            call_command('seed_professional_kb', stdout=self.stdout, stderr=self.stderr)
 
             self.stdout.write('')
             self.stdout.write(self.style.SUCCESS('=' * 70))
