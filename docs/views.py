@@ -240,8 +240,8 @@ def global_kb_list(request):
 
     documents = documents.order_by('-updated_at')
 
-    # Get global categories (organization=None) for filters
-    categories = DocumentCategory.objects.filter(organization__isnull=True).order_by('order', 'name')
+    # Get global categories (organization=None) for filters - sorted alphabetically
+    categories = DocumentCategory.objects.filter(organization__isnull=True).order_by('name')
     from core.models import Tag
     # Global KB doesn't use tags, but keep for template compatibility
     tags = Tag.objects.none()
