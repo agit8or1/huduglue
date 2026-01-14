@@ -528,7 +528,27 @@ HuduGlue has undergone comprehensive security auditing and continuous vulnerabil
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions! Here's how you can help:
+
+### 💡 Feature Requests & Ideas
+
+Have an idea for a new feature? We use a community-driven voting system:
+
+1. **Start with a Discussion** → [Share your idea](https://github.com/agit8or1/huduglue/discussions/new?category=ideas)
+2. **Vote on existing ideas** → [Browse and upvote](https://github.com/agit8or1/huduglue/discussions/categories/ideas) (👍 reactions)
+3. **Track the Roadmap** → [View what's being built](https://github.com/agit8or1/huduglue/projects)
+
+Popular ideas (high votes + alignment with project goals) are promoted to Feature Request issues and added to the Roadmap.
+
+📖 **Read the full guide:** [docs/FEATURE_REQUESTS.md](docs/FEATURE_REQUESTS.md)
+
+### 🐛 Bug Reports
+
+Found a bug? [Report it here](https://github.com/agit8or1/huduglue/issues/new?template=bug_report.yml)
+
+### 🔨 Code Contributions
+
+Ready to contribute code? See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Development Setup
 

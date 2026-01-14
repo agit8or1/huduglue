@@ -5,6 +5,51 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.22.0] - 2026-01-14
+
+### ✨ New Features
+- **Added:** Community-driven feature request and voting system using GitHub-native tools
+  - GitHub Discussions integration for proposing ideas and community voting
+  - Structured Issue Form for formal feature requests (.github/ISSUE_TEMPLATE/feature_request.yml)
+  - Discussion template for brainstorming ideas (.github/DISCUSSION_TEMPLATE/idea.yml)
+  - Comprehensive feature request documentation (docs/FEATURE_REQUESTS.md)
+  - Manual update troubleshooting guide (docs/MANUAL_UPDATE_GUIDE.md)
+  - GitHub setup guide for maintainers (docs/GITHUB_SETUP_MANUAL_STEPS.md)
+  - Updated README.md with feature request process and community guidelines
+  - System includes:
+    - 💡 Ideas category for proposing features
+    - 👍 Voting via reactions
+    - 📊 Polls for priority decisions
+    - 🗺️ Roadmap Project tracking (Triage → Planned → In Progress → Done)
+    - 🏷️ Comprehensive labeling system (type, status, priority, area)
+
+### 🐛 Bug Fixes
+- **Fixed:** Theme field now visible in user profile edit page
+  - Added Color Theme dropdown to profile preferences
+  - Shows current theme in profile view page
+- **Fixed:** Assets page dark mode white background issue
+  - Tables now properly inherit theme colors
+  - Removed hardcoded white backgrounds from custom.css
+  - Dark mode tables now use theme-aware background colors
+
+### 📚 Documentation
+- **Added:** Comprehensive manual CLI update guide with troubleshooting
+  - Quick update commands
+  - Full step-by-step update process with verification
+  - Common issues and solutions (version mismatch, static files, migrations, 502 errors)
+  - Automated update script template
+  - Emergency rollback procedures
+- **Updated:** README.md with feature request and voting process
+- **Updated:** Contributing section with clear paths for different contribution types
+
+### 🔧 Technical Changes
+- Updated table CSS to use CSS custom properties (--surface) for theme compatibility
+- Added theme field display to profile view and edit templates
+- Created structured GitHub issue and discussion templates
+- Prepared label and project configuration documentation for GitHub setup
+
+---
+
 ## [2.21.0] - 2026-01-14
 
 ### ✨ New Features
