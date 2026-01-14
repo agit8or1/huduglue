@@ -4,7 +4,7 @@
 
 HuduGlue implements defense-in-depth security with multiple layers of protection based on OWASP best practices, Django security guidelines, and enterprise SaaS security requirements.
 
-**Version:** 2.20.0
+**Version:** 2.24.37
 **Last Updated:** 2026-01-14
 **Architecture:** Django 6.0.1 + DRF + Gunicorn + MariaDB + Anthropic AI
 
@@ -1144,39 +1144,70 @@ AuditLog.objects.filter(organization=org).order_by('-timestamp')
 
 **Configuration:**
 ```python
-# Django admin → Settings → Snyk
-SNYK_API_TOKEN=<your-snyk-token>
+# Django admin → Settings → Snyk Security
+SNYK_API_TOKEN=<your-snyk-token>  # Optional for enhanced features
 SNYK_ENABLED=True
-SNYK_SCAN_SCHEDULE='daily'
+SNYK_SCAN_SCHEDULE='daily'  # Options: daily, weekly, monthly
+SNYK_AUTO_FIX=False  # Enable automated dependency updates
+SNYK_SEVERITY_THRESHOLD='low'  # Alert on: critical, high, medium, low
 ```
 
 **What Gets Scanned:**
-- Python dependencies (requirements.txt)
-- JavaScript dependencies (package.json)
-- Docker images (if using Docker)
+- **Python Dependencies** - All packages in requirements.txt and installed packages
+- **JavaScript Dependencies** - package.json, package-lock.json, node_modules
+- **Docker Images** - Container security scanning (if using Docker deployment)
+- **Infrastructure as Code** - Kubernetes/Terraform configs (if present)
+- **License Compliance** - Check for problematic licenses
 
 **Scan Process:**
-1. Runs `snyk test` on codebase
-2. Parses JSON output
-3. Stores results in database
-4. Shows in Security Dashboard
-5. Tracks trends over time
+1. **Automatic Scans** - Runs on configured schedule via systemd timer
+2. **Manual Scans** - One-click from Admin → Settings → Snyk Security → Run Scan
+3. **GitHub Integration** - Automatic scans on pull requests (if GitHub Actions enabled)
+4. **Result Processing**:
+   - Parses JSON output from Snyk CLI
+   - Categorizes by severity (critical, high, medium, low)
+   - Stores in database with timestamp
+   - Tracks trends and changes over time
+   - Generates remediation recommendations
 
-**Dashboard:**
-- Total vulnerabilities
-- By severity (critical, high, medium, low)
-- Trend analysis (up/down/stable)
-- Recent scan history
-- Remediation advice
+**Web UI Dashboard (Admin → Settings → Snyk Security):**
+- **Total Vulnerability Count** - Current known vulnerabilities
+- **Severity Breakdown** - Critical, high, medium, low counts with color coding
+- **Trend Analysis** - Graph showing vulnerability trends (improving/worsening)
+- **Recent Scan History** - List of recent scans with timestamps and results
+- **Detailed Findings** - Package name, current version, vulnerable version, fixed version
+- **Remediation Advice** - Specific upgrade commands and breaking change warnings
+- **Severity Filters** - Filter view by severity level
+- **Export Options** - Download scan results as JSON/CSV
+
+**Features:**
+- **Zero-Config Mode** - Works without API token (limited features)
+- **Enhanced Mode** - With API token: deeper scans, more context, automated fixes
+- **Email Alerts** - Notify admins when critical vulnerabilities found
+- **Threshold Alerts** - Only alert on specified severity levels
+- **Ignore List** - Mark specific vulnerabilities as accepted risk
+- **Scheduled Reports** - Weekly/monthly summary emails
 
 **Run Scan:**
 ```bash
-# Manual scan
+# Manual scan via CLI
 python manage.py run_snyk_scan
 
-# Or via UI
-# Admin → Settings → Snyk → Run Scan
+# With options
+python manage.py run_snyk_scan --severity-threshold high --json
+
+# Or via Web UI
+# Admin → Settings → Snyk Security → Run Scan Now button
+
+# Check status
+python manage.py check_snyk_status
 ```
+
+**Integration with CI/CD:**
+- GitHub Actions workflow included (`.github/workflows/snyk.yml`)
+- Automatic scans on push to main branch
+- PR checks for new vulnerabilities
+- Fail build on critical vulnerabilities (configurable)
 
 ### Log Files
 
@@ -1372,7 +1403,7 @@ See separate section below for copy/paste implementation guide.
 ---
 
 **Last Updated:** 2026-01-14
-**Version:** 2.20.0
+**Version:** 2.24.37
 **Maintainer:** HuduGlue Security Team
 
 ---

@@ -1,11 +1,12 @@
 # HuduGlue 🐕
 
-[![Version 2.14.22](https://img.shields.io/badge/version-2.14.22-brightgreen)](https://github.com/agit8or1/huduglue)
+[![Version 2.24.37](https://img.shields.io/badge/version-2.24.37-brightgreen)](https://github.com/agit8or1/huduglue)
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-green)](https://github.com/agit8or1/huduglue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Django 6.0](https://img.shields.io/badge/django-6.0-blue)](https://www.djangoproject.com/)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/)
 [![Known Vulnerabilities](https://snyk.io/test/github/agit8or1/huduglue/badge.svg)](https://snyk.io/test/github/agit8or1/huduglue)
+[![Security Monitoring](https://img.shields.io/badge/security-Snyk%20%7C%20HaveIBeenPwned-blue)](https://github.com/agit8or1/huduglue)
 
 A complete, self-hosted IT documentation platform designed for Managed Service Providers (MSPs) and IT departments. Built with Django 6, HuduGlue provides secure asset management, encrypted password vault, knowledge base, PSA integrations, and comprehensive monitoring tools.
 
@@ -22,6 +23,7 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 - **AES-GCM Encryption** - Military-grade encryption for all sensitive data
 - **Argon2 Password Hashing** - Industry-standard password security
 - **Password Breach Detection** - HaveIBeenPwned integration with k-anonymity (your passwords never leave your server)
+- **Snyk Security Scanning** - Automated vulnerability scanning for Python and JavaScript dependencies with web UI
 - **Automated CVE Scanning** - Continuous vulnerability monitoring and security advisory checks
 - **Brute-Force Protection** - Account lockout after failed attempts
 - **Rate Limiting** - All endpoints protected
@@ -160,12 +162,16 @@ Full implementations for:
 - Sync metadata (phone, address, website)
 
 ### 🖥️ RMM Integrations (5 Providers)
-Full implementations for:
-- **NinjaOne** - Device management, monitoring, alerts, and software inventory
-- **Datto RMM** - Device sync, software inventory, and automated asset mapping
-- **ConnectWise Automate** - Device management, scripting, and automation
-- **Atera** - Device monitoring, ticketing integration, and remote access
-- **Tactical RMM** - Open-source RMM with full API support and agent management
+**Phase 1 Infrastructure Complete (v2.24.x)** - Ready for provider implementations:
+- **Base Models & Architecture** - RMMConnection, RMMDevice, RMMAlert, RMMSoftware models with encryption
+- **Provider Registry** - Extensible provider system with BaseRMMProvider abstract class
+- **Admin Interface** - Full Django admin integration for RMM management
+- **Database Schema** - Complete migrations and indexes for optimal performance
+- **Tactical RMM** (Fully Implemented) - Device management, alerts, software inventory, WebSocket updates
+- **NinjaOne** (Infrastructure Ready) - OAuth 2.0 authentication, device sync, monitoring
+- **Datto RMM** (Infrastructure Ready) - API key authentication, device inventory, alerts
+- **Atera** (Infrastructure Ready) - Agent management, ticketing integration
+- **ConnectWise Automate** (Infrastructure Ready) - Computer management, script execution
 - **Auto Asset Mapping** - Automatically link RMM devices to asset records based on serial number and hostname
 - **Scheduled Sync** - Automatic device synchronization on configurable intervals
 - **Device Monitoring** - Track online/offline status, last seen timestamps
@@ -178,9 +184,43 @@ Full implementations for:
 - **Software Inventory** - Sync installed software from RMM platforms
 - **Alert Integration** - Pull RMM alerts and monitoring data
 
-## 🆕 What's New in v2.14
+## 🆕 What's New in v2.24
 
 ### Latest Release - January 2026
+
+**v2.24.37** - 📚 **Comprehensive Professional KB Article Library** (Latest Release)
+- **Windows Administration Articles** - 4 comprehensive guides (1,576 lines of professional content):
+  - How to Reset Windows Local Administrator Password (5 methods including Utilman.exe replacement)
+  - Optimize Windows 10/11 Performance - Complete optimization guide
+  - Create and Manage Group Policy Objects (10 common GPO configurations)
+  - Configure and Troubleshoot Windows Updates - Complete guide with error fixes
+- **Professional Formatting** - Emoji icons for organization, syntax-highlighted code blocks
+- **Step-by-Step Procedures** - Comprehensive troubleshooting and best practices
+- **Real-World MSP Content** - Ready-to-use documentation for client support
+
+**v2.24.36** - 🎨 **Enhanced UI Visibility & Navigation**
+- **Breadcrumb Backgrounds** - Standalone breadcrumbs now have gradient backgrounds for better readability
+- **Dark Mode Support** - Breadcrumb styling adapts to dark theme
+- **Improved Contrast** - All UI elements now meet WCAG accessibility standards
+
+**v2.24.35** - 🐛 **UI Color Corrections**
+- **Snyk Page Improvements** - Changed alert colors from warning to info for better context
+- **Visual Consistency** - Standardized alert usage across all settings pages
+
+**v2.24.34** - 🔧 **Database Compatibility & Menu Standardization**
+- **SQLite Support** - Fixed maintenance page database queries for SQLite compatibility
+- **Cross-Database Queries** - Added database-agnostic table size queries (MySQL/PostgreSQL/SQLite)
+- **Settings Navigation** - Standardized all settings pages to 12-item menu
+- **System Updates Header** - Added background card for better visibility
+
+**v2.24.33-25** - 🎨 **Comprehensive UI Polish**
+- **Rounded Corners** - Fixed card headers with gradient backgrounds across entire application
+- **Enhanced Visibility** - Card headers now have depth with subtle shadows and gradients
+- **CSS Refactoring** - Improved specificity and consistency for all Bootstrap components
+
+## 🆕 What's New in v2.14
+
+### Previous Releases - January 2026
 
 **v2.14.21** - 🎉 **Auto-Update System Complete!** (Latest Release)
 - **One-Click Web Updates** - Update HuduGlue directly from the web interface without SSH access
@@ -584,10 +624,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- **Version**: 2.11.7
+- **Version**: 2.24.37
 - **Release Date**: January 2026
 - **Status**: Production Ready
 - **Maintained**: Yes
+- **Security**: Snyk monitored, HaveIBeenPwned integrated
 
 ## 💬 Support
 
