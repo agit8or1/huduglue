@@ -138,6 +138,76 @@
         </div>
     </div>
 
+    <!-- Debug Information -->
+    {% if debug_info %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">
+                        <i class="fas fa-bug"></i> Update Check Debug Info
+                    </h5>
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> {{ debug_info.error }}
+                    </div>
+                    <p><strong>Current Version:</strong> {{ debug_info.current_version }}</p>
+                    <p><strong>GitHub API URL:</strong> <code>{{ debug_info.github_api_url }}</code></p>
+                    <p><strong>Checked at:</strong> {{ update_info.checked_at }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Update Check Details (for transparency) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle"></i> Update Check Details
+                    </h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="200">Current Version:</th>
+                            <td>{{ update_info.current_version }}</td>
+                        </tr>
+                        <tr>
+                            <th>Latest Version:</th>
+                            <td>{{ update_info.latest_version|default:"Unknown" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Update Available:</th>
+                            <td>
+                                {% if update_info.update_available %}
+                                <span class="badge bg-warning">Yes</span>
+                                {% else %}
+                                <span class="badge bg-success">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Last Checked:</th>
+                            <td>{{ update_info.checked_at|default:"Never" }}</td>
+                        </tr>
+                        {% if update_info.error %}
+                        <tr>
+                            <th>Error:</th>
+                            <td class="text-danger">{{ update_info.error }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                    <p class="text-muted mb-0">
+                        <small>
+                            <i class="fas fa-lightbulb"></i>
+                            Update checks query GitHub tags via API. If checks fail, verify internet connectivity and GitHub availability.
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Manual CLI Update Instructions -->
     <div class="row mb-4">
         <div class="col-12">
