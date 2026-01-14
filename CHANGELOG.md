@@ -5,6 +5,211 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.20.0] - 2026-01-14
+
+### 🔒 Major Security Enhancement Release
+
+This release implements comprehensive production security hardening based on OWASP best practices and enterprise SaaS security requirements.
+
+### ✨ New Security Features
+
+**DRF Production Hardening:**
+- Browsable API automatically disabled in production (JSON-only)
+- Strict renderer configuration (JSON/Form/MultiPart only)
+- Enhanced throttling with granular rate limits:
+  - Anonymous: 50/hour (reduced from 100/hour)
+  - Login: 10/hour (new, prevents brute force)
+  - Password reset: 5/hour (new, prevents abuse)
+  - Token operations: 20/hour (new)
+  - AI requests: 100/day + 10/minute burst (new)
+
+**Enhanced Security Headers:**
+- HSTS with 1-year max-age in production (31536000 seconds)
+- Proper SSL redirect configuration (auto-enabled in production)
+- Referrer-Policy: strict-origin-when-cross-origin
+- Enhanced CSP with frame-ancestors, object-src, base-uri, form-action controls
+- Permissions-Policy (disables geolocation, camera, microphone, payment, USB, FLoC)
+- Proxy SSL header configuration for Gunicorn behind nginx/caddy
+
+**AI Endpoint Abuse Controls:**
+- Per-user request limits (100/day configurable)
+- Per-organization request limits (1000/day configurable)
+- Per-user spend caps ($10/day configurable)
+- Per-organization spend caps ($100/day configurable)
+- Burst protection (10/minute)
+- Request size limits (10,000 characters)
+- PII redaction (emails, phones, SSNs, credit cards, API keys)
+- Usage tracking and auditing
+- Automatic 429 responses when limits exceeded
+
+**Tenant Isolation Testing:**
+- Comprehensive automated test suite for multi-tenancy security
+- Tests cross-org access attempts for passwords, assets, documents, audit logs
+- Tests API endpoint isolation
+- Tests bulk operations respect tenant boundaries
+- Tests OrganizationManager filtering
+- Tests foreign key relationships
+
+**Secrets Management:**
+- Centralized SecretsManager class
+- Key rotation utilities (rotate all encrypted secrets)
+- Secret validation command
+- Key generation utilities
+- Log sanitization (removes secrets from logs)
+- Separate encryption keys per environment
+- PBKDF2-SHA256 key derivation
+
+### 🛠️ New Tools & Utilities
+
+**Custom DRF Throttles** (`api/throttles.py`):
+- `LoginThrottle` - 10/hour for login attempts
+- `PasswordResetThrottle` - 5/hour for password resets
+- `TokenThrottle` - 20/hour for API token operations
+- `AIRequestThrottle` - 100/day for AI requests
+- `AIBurstThrottle` - 10/minute burst protection
+- `StaffOnlyThrottle` - Bypass for staff users
+
+**AI Abuse Control** (`core/ai_abuse_control.py`):
+- `AIAbuseControlMiddleware` - Automatic protection for AI endpoints
+- `PIIRedactor` - Regex-based PII detection and redaction
+- `get_ai_usage_stats()` - Track user/org AI usage
+- Configurable limits and caps
+
+**Security Headers Middleware** (`core/security_headers_middleware.py`):
+- Automatic Permissions-Policy header injection
+- Referrer-Policy header
+- Defensive X-Content-Type-Options and X-Frame-Options
+
+**Secrets Management** (`core/secrets_management.py`):
+- `SecretsManager` - Encryption/decryption with Fernet
+- `SecretRotationPlan` - Key rotation utilities
+- `sanitize_log_data()` - Remove secrets from logs
+- `validate_secrets_configuration()` - Environment validation
+- Management command: `python manage.py secrets [validate|generate-key|rotate]`
+
+**Tenant Isolation Tests** (`core/tests/test_tenant_isolation.py`):
+- `TenantIsolationTestCase` - Model-level tests
+- `TenantIsolationAPITestCase` - API endpoint tests
+- Run with: `python manage.py test core.tests.test_tenant_isolation`
+
+### ⚙️ Configuration Changes
+
+**New Environment Variables:**
+```bash
+# AI Abuse Controls
+AI_MAX_PROMPT_LENGTH=10000
+AI_MAX_DAILY_REQUESTS_PER_USER=100
+AI_MAX_DAILY_REQUESTS_PER_ORG=1000
+AI_MAX_DAILY_SPEND_PER_USER=10.00
+AI_MAX_DAILY_SPEND_PER_ORG=100.00
+AI_PII_REDACTION_ENABLED=True
+
+# Security (with better defaults)
+SECURE_SSL_REDIRECT=True (auto in production)
+SECURE_HSTS_SECONDS=31536000 (auto in production)
+SECURE_HSTS_PRELOAD=False (manual opt-in)
+SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO (auto in production)
+SECURE_REFERRER_POLICY=strict-origin-when-cross-origin
+```
+
+**Middleware Order Updated:**
+- Added `SecurityHeadersMiddleware` (after Django's SecurityMiddleware)
+- Added `AIAbuseControlMiddleware` (before AuditLoggingMiddleware)
+
+### 📚 Documentation
+
+**New Files:**
+- `SECURITY.md` - Comprehensive security documentation covering:
+  - Production security checklist
+  - Environment configuration guide
+  - Tenant isolation architecture
+  - API security configuration
+  - AI endpoint protection details
+  - Secrets management procedures
+  - Security headers explained
+  - Rate limiting configuration
+  - Incident response procedures
+
+**Updated Files:**
+- `config/settings.py` - Enhanced with detailed security comments
+- `api/throttles.py` - Custom throttle classes
+- `core/ai_abuse_control.py` - AI protection middleware
+- `core/security_headers_middleware.py` - Additional headers
+- `core/secrets_management.py` - Secrets utilities
+- `core/tests/test_tenant_isolation.py` - Automated tests
+
+### 🔧 Technical Improvements
+
+**DRF Configuration:**
+- Production-safe renderer classes (JSON-only when DEBUG=False)
+- Enhanced throttle rates with separate scopes
+- Strict parser classes (JSON, Form, MultiPart only)
+
+**Security Headers:**
+- CSP upgraded with additional directives
+- Permissions-Policy replaces deprecated Feature-Policy
+- HSTS defaults to 1 year in production
+- Referrer policy prevents URL leakage
+
+**AI Protection:**
+- Middleware-level enforcement (can't be bypassed)
+- Cache-based rate limiting (24-hour rolling window)
+- Detailed error responses with reset times
+- Usage tracking for billing/auditing
+
+**Secrets:**
+- Centralized encryption/decryption
+- Key rotation support
+- Validation utilities
+- Log sanitization
+
+### 🚀 Deployment Notes
+
+**Before Upgrading:**
+1. Ensure all secrets are configured (run `python manage.py secrets validate`)
+2. Test HSTS with short duration first (300 seconds)
+3. Review AI spend limits for your budget
+4. Run tenant isolation tests in staging
+5. Update environment variables
+
+**After Upgrading:**
+1. Verify security headers with: https://securityheaders.com/
+2. Check CSP compliance in browser console
+3. Run tenant isolation tests: `python manage.py test core.tests.test_tenant_isolation`
+4. Monitor AI usage: Check `/admin/` for usage stats
+5. Review audit logs for any unusual activity
+
+**Breaking Changes:**
+- None - all changes are opt-in via environment variables or backwards compatible
+
+### 📊 Security Metrics
+
+Before this release:
+- DRF browsable API exposed in production
+- Generic rate limits only
+- No AI abuse protection
+- No automated tenant isolation tests
+- Manual secret rotation
+- Basic CSP
+
+After this release:
+- JSON-only API in production
+- Granular rate limits (6 different scopes)
+- Comprehensive AI protection (4 layers)
+- Automated tenant isolation test suite
+- Automated secret rotation utilities
+- Enhanced CSP with 10+ directives
+- Permissions-Policy
+- HSTS preload-ready
+
+### 🔗 References
+
+- OWASP Top 10: https://owasp.org/www-project-top-ten/
+- Django Security: https://docs.djangoproject.com/en/5.0/topics/security/
+- DRF Security: https://www.django-rest-framework.org/topics/security/
+- CSP: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+- Permissions-Policy: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
+
 ## [2.19.0] - 2026-01-14
 
 ### 🐛 Bug Fixes

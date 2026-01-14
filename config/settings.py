@@ -74,6 +74,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'core.security_headers_middleware.SecurityHeadersMiddleware',  # Enhanced security headers
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -85,6 +86,7 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
     'core.middleware.CurrentOrganizationMiddleware',
     'accounts.middleware.Enforce2FAMiddleware',
+    'core.ai_abuse_control.AIAbuseControlMiddleware',  # AI endpoint protection
     'audit.middleware.AuditLoggingMiddleware',
 ]
 
@@ -251,21 +253,51 @@ else:
             CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
             CSRF_TRUSTED_ORIGINS.append(f'http://{host}')
 
+# Security Headers - Enhanced for Production
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
-SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
-SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
-SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False' if DEBUG else 'True').lower() == 'true'
 
-# Content Security Policy (basic)
+# HSTS - Strict Transport Security (31536000 = 1 year in production)
+# Start with shorter duration, increase to 1 year after testing
+SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0' if DEBUG else '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'False').lower() == 'true'  # Only enable after 1 year+ HSTS
+
+# Proxy SSL Header (for Gunicorn behind nginx/caddy)
+# Set this if you're behind a reverse proxy that terminates SSL
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if not DEBUG else None
+
+# Referrer Policy - Don't leak URLs to external sites
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Content Security Policy - Stricter (use django-csp for full control)
+# NOTE: unsafe-inline is required for some Django admin and DRF browsable API features
+# In production with JSON-only API, you can remove unsafe-inline
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
+CSP_FONT_SRC = ("'self'", "data:", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
 CSP_FRAME_SRC = ("'self'", "https://embed.diagrams.net", "https://*.diagrams.net")
+CSP_FRAME_ANCESTORS = ("'none'",)  # Clickjacking protection
 CSP_CONNECT_SRC = ("'self'", "https://embed.diagrams.net", "https://*.diagrams.net")
 CSP_IMG_SRC = ("'self'", "data:", "https://embed.diagrams.net", "https://*.diagrams.net", "https://api.qrserver.com")
+CSP_OBJECT_SRC = ("'none'",)  # Block plugins
+CSP_BASE_URI = ("'self'",)  # Restrict base tag
+CSP_FORM_ACTION = ("'self'",)  # Restrict form submissions
+CSP_UPGRADE_INSECURE_REQUESTS = not DEBUG  # Upgrade HTTP to HTTPS in production
+
+# Additional Security Headers via Middleware
+# Permissions-Policy (formerly Feature-Policy)
+PERMISSIONS_POLICY = {
+    'geolocation': [],  # Disable geolocation
+    'microphone': [],   # Disable microphone
+    'camera': [],       # Disable camera
+    'payment': [],      # Disable payment API
+    'usb': [],          # Disable USB
+    'interest-cohort': [],  # Disable FLoC (privacy)
+}
 
 # Django Axes (brute force protection)
 AXES_FAILURE_LIMIT = int(os.getenv('AXES_FAILURE_LIMIT', '5'))
@@ -297,6 +329,14 @@ HIBP_DEFAULT_SCAN_FREQUENCY = int(os.getenv('HIBP_SCAN_FREQUENCY', '24'))
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
 CLAUDE_MODEL = os.getenv('CLAUDE_MODEL', 'claude-sonnet-4-5-20250929')
 
+# AI Abuse Controls (cost protection and PII redaction)
+AI_MAX_PROMPT_LENGTH = int(os.getenv('AI_MAX_PROMPT_LENGTH', '10000'))  # characters
+AI_MAX_DAILY_REQUESTS_PER_USER = int(os.getenv('AI_MAX_DAILY_REQUESTS_PER_USER', '100'))
+AI_MAX_DAILY_REQUESTS_PER_ORG = int(os.getenv('AI_MAX_DAILY_REQUESTS_PER_ORG', '1000'))
+AI_MAX_DAILY_SPEND_PER_USER = float(os.getenv('AI_MAX_DAILY_SPEND_PER_USER', '10.00'))  # USD
+AI_MAX_DAILY_SPEND_PER_ORG = float(os.getenv('AI_MAX_DAILY_SPEND_PER_ORG', '100.00'))  # USD
+AI_PII_REDACTION_ENABLED = os.getenv('AI_PII_REDACTION_ENABLED', 'True').lower() == 'true'
+
 # Google Maps API for geocoding and satellite imagery
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
 
@@ -326,9 +366,33 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
+        # Anonymous (per-IP) - strict limits
+        'anon': '50/hour',
+        # Authenticated users - reasonable limits
         'user': '1000/hour',
+        # Sensitive endpoints - much stricter
+        'login': '10/hour',
+        'password_reset': '5/hour',
+        'token': '20/hour',
+        # AI endpoints - cost protection
+        'ai_request': '100/day',
+        'ai_burst': '10/minute',
     },
+    # Production: Disable browsable API, use JSON-only
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ] if not DEBUG else [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    # Strict parsers
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    # Schema/docs require authentication
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
 # Encryption settings
