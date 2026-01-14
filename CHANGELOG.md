@@ -5,6 +5,16 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.20.1] - 2026-01-14
+
+### 🐛 Bug Fixes
+- **Fixed:** Internal Server Error caused by CoreAPI schema dependency issue
+  - Disabled schema generation in production (not needed without browsable API)
+  - Switched to OpenAPI schema in development (modern, no coreapi dependency)
+  - Resolves AttributeError: 'NoneType' object has no attribute 'Field'
+
+---
+
 ## [2.20.0] - 2026-01-14
 
 ### 🔒 Major Security Enhancement Release
