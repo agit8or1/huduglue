@@ -736,9 +736,15 @@ footer small {
 /* ===== Breadcrumb ===== */
 .breadcrumb {
     background-color: transparent !important;
-    padding: var(--spacing-md) 0;
-    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-sm) 0;
+    margin-bottom: 0;
     border-radius: var(--border-radius-lg) !important;
+}
+
+/* Standalone breadcrumb (not in card) needs margin */
+.breadcrumb:not(.mb-0) {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md) 0;
 }
 
 .breadcrumb-item {
