@@ -611,22 +611,68 @@ def maintenance(request):
     # Database table sizes
     table_sizes = []
     try:
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT table_name,
-                       ROUND((data_length + index_length) / 1024 / 1024, 2) AS size_mb,
-                       table_rows
-                FROM information_schema.tables
-                WHERE table_schema = DATABASE()
-                ORDER BY (data_length + index_length) DESC
-                LIMIT 20
-            """)
-            for row in cursor.fetchall():
-                table_sizes.append({
-                    'name': row[0],
-                    'size_mb': row[1],
-                    'rows': row[2],
-                })
+        db_engine = connection.settings_dict['ENGINE']
+
+        if 'mysql' in db_engine:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT table_name,
+                           ROUND((data_length + index_length) / 1024 / 1024, 2) AS size_mb,
+                           table_rows
+                    FROM information_schema.tables
+                    WHERE table_schema = DATABASE()
+                    ORDER BY (data_length + index_length) DESC
+                    LIMIT 20
+                """)
+                for row in cursor.fetchall():
+                    table_sizes.append({
+                        'name': row[0],
+                        'size_mb': row[1],
+                        'rows': row[2],
+                    })
+        elif 'postgresql' in db_engine:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT tablename,
+                           ROUND(pg_total_relation_size(schemaname||'.'||tablename) / 1024.0 / 1024.0, 2) AS size_mb,
+                           NULL as rows
+                    FROM pg_tables
+                    WHERE schemaname = 'public'
+                    ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+                    LIMIT 20
+                """)
+                for row in cursor.fetchall():
+                    table_sizes.append({
+                        'name': row[0],
+                        'size_mb': row[1],
+                        'rows': row[2],
+                    })
+        elif 'sqlite' in db_engine:
+            # For SQLite, get list of tables and their row counts
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+                tables = cursor.fetchall()
+
+                for table_row in tables:
+                    table_name = table_row[0]
+                    # Skip SQLite system tables
+                    if table_name.startswith('sqlite_'):
+                        continue
+
+                    try:
+                        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                        row_count = cursor.fetchone()[0]
+                        table_sizes.append({
+                            'name': table_name,
+                            'size_mb': None,  # SQLite doesn't provide per-table sizes easily
+                            'rows': row_count,
+                        })
+                    except Exception:
+                        continue
+
+                # Sort by row count
+                table_sizes.sort(key=lambda x: x['rows'] or 0, reverse=True)
+                table_sizes = table_sizes[:20]
     except Exception as e:
         messages.warning(request, f'Could not fetch table sizes: {e}')
 
