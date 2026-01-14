@@ -40,6 +40,21 @@ Complete feature documentation for HuduGlue - Self-hosted IT documentation platf
 - **Rate Limiting** - Per-user and per-endpoint rate limiting
 - **Security Headers** - CSP, HSTS, X-Frame-Options, X-Content-Type-Options
 
+### Vulnerability Scanning & Monitoring
+- **Snyk Security Integration** (NEW in v2.24.x):
+  - Automated vulnerability scanning for Python dependencies (requirements.txt)
+  - JavaScript dependency scanning (package.json, node_modules)
+  - Docker image scanning (if using containerized deployment)
+  - Web UI dashboard showing vulnerability counts by severity (critical, high, medium, low)
+  - Trend analysis tracking vulnerabilities over time
+  - One-click manual scan from Admin → Settings → Snyk Security
+  - Scheduled automatic scanning (configurable: daily, weekly, monthly)
+  - Detailed remediation advice with upgrade paths
+  - Integration with GitHub security advisories
+  - API token configuration in Django admin settings
+  - Scan history with timestamps and result storage
+  - Zero-config setup with optional API token for enhanced features
+
 ### File Upload Security
 - **File Type Whitelist** - Only approved file types allowed
 - **File Size Limits** - Maximum 25MB per file
@@ -300,49 +315,67 @@ Automatically create and manage organizations from PSA companies during synchron
 ## 🖥️ RMM Integrations
 
 ### Supported RMM Platforms
-Phase 1 infrastructure complete (v2.12.0), provider implementations in progress:
+**Phase 1 Infrastructure Complete (v2.24.x)** - Ready for provider implementations:
+
+**Complete RMM Infrastructure:**
+- **Base Models** - RMMConnection, RMMDevice, RMMAlert, RMMSoftware with full encryption
+- **Provider Registry** - Extensible BaseRMMProvider abstract class for easy provider additions
+- **Admin Interface** - Complete Django admin integration with connection testing
+- **Database Schema** - Optimized migrations and indexes for performance
+- **Sync Engine** - Scheduled synchronization with systemd timer support
+- **Asset Mapping** - Automatic linking of RMM devices to HuduGlue assets
+
+**Provider Implementations:**
 
 1. **Tactical RMM** (Fully Implemented)
-   - Devices, Sites, Agents
-   - Monitoring checks and alerts
-   - Software inventory
-   - Token-based authentication
-   - WebSocket real-time updates
+   - Complete device, site, and agent management
+   - Real-time monitoring checks and alert integration
+   - Comprehensive software inventory tracking
+   - Token-based authentication with automatic refresh
+   - WebSocket support for real-time updates
+   - Full CRUD operations for all entity types
 
 2. **NinjaOne** (Infrastructure Ready)
-   - Device management
-   - Policy assignments
-   - Monitoring and alerts
-   - OAuth 2.0 authentication
+   - OAuth 2.0 authentication framework configured
+   - Device management API endpoints mapped
+   - Policy assignment structure in place
+   - Monitoring and alert models ready
+   - Ready for API implementation
 
 3. **Datto RMM** (Infrastructure Ready)
-   - Device inventory
-   - Component tracking
-   - Monitoring alerts
-   - API key authentication
+   - API key authentication configured
+   - Device inventory sync structure ready
+   - Component tracking models in place
+   - Alert integration endpoints mapped
+   - Ready for API implementation
 
 4. **Atera** (Infrastructure Ready)
-   - Agent management
-   - Ticket integration
-   - Alerts and monitoring
-   - API key authentication
+   - API key authentication configured
+   - Agent management framework ready
+   - Ticket integration models in place
+   - Alert and monitoring structure ready
+   - Ready for API implementation
 
 5. **ConnectWise Automate** (Infrastructure Ready)
-   - Computer management
-   - Location tracking
-   - Script execution
-   - API authentication
+   - API authentication configured
+   - Computer management structure ready
+   - Location tracking models in place
+   - Script execution framework prepared
+   - Ready for API implementation
 
 ### Integration Features
-- **Automated Device Sync** - Scheduled synchronization via systemd timers
-- **Manual Sync** - On-demand sync with force option
-- **Asset Mapping** - Link RMM devices to asset records
-- **Alert Management** - Import and track RMM alerts
-- **Software Inventory** - Track installed software per device
-- **Online Status Tracking** - Monitor device connectivity
-- **Error Handling** - Comprehensive error logging
-- **Sync History** - Track sync operations
-- **Test Connection** - Verify credentials before saving
+- **Automated Device Sync** - Scheduled synchronization via systemd timers (configurable intervals)
+- **Manual Sync** - On-demand sync with force option and real-time feedback
+- **Asset Mapping** - Automatic linking of RMM devices to asset records by serial number/hostname
+- **Alert Management** - Import and track RMM alerts with severity levels and status
+- **Software Inventory** - Track installed software per device with version tracking
+- **Online Status Tracking** - Real-time monitoring of device connectivity and last-seen timestamps
+- **Error Handling** - Comprehensive error logging with detailed debugging information
+- **Sync History** - Complete audit trail of all sync operations with statistics
+- **Test Connection** - Pre-save credential validation to ensure connectivity
+- **Encrypted Credentials** - All API keys and tokens encrypted with AES-256-GCM
+- **Multi-Connection Support** - Multiple RMM connections per organization
+- **Provider Abstraction** - Unified interface across all RMM platforms
 
 ### Organization Auto-Import (NEW in v2.12.0)
 Automatically create and manage organizations from RMM sites/clients during synchronization:
