@@ -20,19 +20,16 @@ def user_theme(request):
             background_url = profile.background_image.url
         elif background_mode == 'random':
             # Get a random background from the internet
-            # Using Unsplash Source API for high-quality random images
-            # Categories: nature, architecture, technology, abstract, business
-            import random
-
-            categories = ['nature', 'architecture', 'technology', 'abstract', 'business', 'minimal']
-            category = random.choice(categories)
+            # Using Lorem Picsum for high-quality random images
+            import time
 
             # Use timestamp-based seed for randomization (changes every page load)
-            import time
-            seed = int(time.time() * 1000) % 10000
+            seed = int(time.time() * 1000)
 
-            # Unsplash Source provides random images in various categories
-            background_url = f'https://source.unsplash.com/1920x1080/?{category}&sig={seed}'
+            # Lorem Picsum provides random placeholder images
+            # Grayscale option for subtle backgrounds: &grayscale
+            # Blur option for softer backgrounds: &blur=2
+            background_url = f'https://picsum.photos/1920/1080?random={seed}'
 
     return {
         'user_theme': theme,
