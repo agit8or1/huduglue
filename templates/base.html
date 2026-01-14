@@ -16,14 +16,6 @@
     <link href="{% static 'css/themes.css' %}" rel="stylesheet">
     <link href="{% static 'css/custom.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
-    <script>
-        // Initialize theme before page renders to avoid flash
-        (function() {
-            const savedTheme = localStorage.getItem('theme') ||
-                              (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        })();
-    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -130,12 +122,6 @@
                             <button class="btn btn-outline-light btn-sm" type="submit"><i class="fas fa-search"></i></button>
                         </form>
                     </li>
-                    <!-- Theme Toggle -->
-                    <li class="nav-item">
-                        <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
-                            <i class="fas fa-moon" id="themeIcon"></i>
-                        </button>
-                    </li>
                     {% if current_organization %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="orgDropdown" role="button" data-bs-toggle="dropdown">
@@ -207,53 +193,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        // Theme toggle functionality
-        (function() {
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            const htmlElement = document.documentElement;
-
-            // Get current theme
-            function getCurrentTheme() {
-                return htmlElement.getAttribute('data-bs-theme') || 'light';
-            }
-
-            // Update icon based on theme
-            function updateIcon(theme) {
-                if (theme === 'dark') {
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
-                } else {
-                    themeIcon.classList.remove('fa-sun');
-                    themeIcon.classList.add('fa-moon');
-                }
-            }
-
-            // Set initial icon
-            updateIcon(getCurrentTheme());
-
-            // Toggle theme
-            if (themeToggle) {
-                themeToggle.addEventListener('click', function() {
-                    const currentTheme = getCurrentTheme();
-                    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-                    htmlElement.setAttribute('data-bs-theme', newTheme);
-                    localStorage.setItem('theme', newTheme);
-                    updateIcon(newTheme);
-                });
-            }
-
-            // Listen for system theme changes
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem('theme')) {
-                    const newTheme = e.matches ? 'dark' : 'light';
-                    htmlElement.setAttribute('data-bs-theme', newTheme);
-                    updateIcon(newTheme);
-                }
-            });
-        })();
-
         // Initialize Select2 for tags fields
         $(document).ready(function() {
             $('select[id*="tags"]').select2({

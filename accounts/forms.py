@@ -219,7 +219,11 @@ class UserProfileForm(forms.ModelForm):
         ]
         # Add all other timezones
         all_timezones = [(tz, tz) for tz in pytz.common_timezones if tz not in dict(common_timezones).keys()]
-        self.fields['timezone'].choices = common_timezones + [('---', '--- All Timezones ---')] + all_timezones
+        timezone_choices = common_timezones + [('---', '--- All Timezones ---')] + all_timezones
+
+        # Set choices on both field and widget
+        self.fields['timezone'].choices = timezone_choices
+        self.fields['timezone'].widget.choices = timezone_choices
 
         # Set initial values for User fields
         if self.user:
@@ -227,15 +231,9 @@ class UserProfileForm(forms.ModelForm):
             self.fields['last_name'].initial = self.user.last_name
             self.fields['email'].initial = self.user.email
 
-        # Ensure timezone and theme show current values
+        # Debug logging (can be removed later)
         if self.instance and self.instance.pk:
-            logger.info(f"UserProfileForm: instance.timezone={self.instance.timezone}, instance.theme={self.instance.theme}")
-            logger.info(f"UserProfileForm: timezone field value before: {self.fields['timezone'].initial}")
-            logger.info(f"UserProfileForm: theme field value before: {self.fields['theme'].initial}")
-            self.fields['timezone'].initial = self.instance.timezone
-            self.fields['theme'].initial = self.instance.theme
-            logger.info(f"UserProfileForm: timezone field value after: {self.fields['timezone'].initial}")
-            logger.info(f"UserProfileForm: theme field value after: {self.fields['theme'].initial}")
+            logger.debug(f"UserProfileForm: timezone={self.instance.timezone}, theme={self.instance.theme}")
     
     def save(self, commit=True):
         profile = super().save(commit=False)
