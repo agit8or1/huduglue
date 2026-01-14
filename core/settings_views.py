@@ -681,3 +681,34 @@ def settings_ai(request):
         'current_attom_key': current_attom_key,
         'current_tab': 'ai',
     })
+
+
+@login_required
+@user_passes_test(is_superuser)
+def settings_snyk(request):
+    """Snyk security scanning settings."""
+    settings = SystemSetting.get_settings()
+
+    if request.method == 'POST':
+        # Snyk Settings
+        settings.snyk_enabled = request.POST.get('snyk_enabled') == 'on'
+        
+        # Only update API token if provided
+        snyk_token = request.POST.get('snyk_api_token', '').strip()
+        if snyk_token:
+            settings.snyk_api_token = snyk_token
+        
+        settings.snyk_org_id = request.POST.get('snyk_org_id', '').strip()
+        settings.snyk_severity_threshold = request.POST.get('snyk_severity_threshold', 'high')
+        settings.snyk_scan_frequency = request.POST.get('snyk_scan_frequency', 'daily')
+        
+        settings.updated_by = request.user
+        settings.save()
+
+        messages.success(request, 'Snyk security settings updated successfully.')
+        return redirect('core:settings_snyk')
+
+    return render(request, 'core/settings_snyk.html', {
+        'settings': settings,
+        'current_tab': 'snyk',
+    })

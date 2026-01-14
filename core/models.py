@@ -348,6 +348,34 @@ class SystemSetting(models.Model):
     azure_ad_auto_create_users = models.BooleanField(default=True, help_text='Automatically create users on first Azure AD login')
     azure_ad_sync_groups = models.BooleanField(default=False, help_text='Sync Azure AD groups to roles')
 
+    # Snyk Security Scanning Settings
+    snyk_enabled = models.BooleanField(default=False, help_text='Enable Snyk security scanning')
+    snyk_api_token = models.CharField(max_length=500, blank=True, help_text='Snyk API token for vulnerability scanning')
+    snyk_org_id = models.CharField(max_length=255, blank=True, help_text='Snyk organization ID (optional)')
+    snyk_severity_threshold = models.CharField(
+        max_length=20,
+        default='high',
+        choices=[
+            ('low', 'Low'),
+            ('medium', 'Medium'),
+            ('high', 'High'),
+            ('critical', 'Critical'),
+        ],
+        help_text='Minimum severity level to report'
+    )
+    snyk_scan_frequency = models.CharField(
+        max_length=20,
+        default='daily',
+        choices=[
+            ('hourly', 'Every Hour'),
+            ('daily', 'Daily'),
+            ('weekly', 'Weekly'),
+            ('manual', 'Manual Only'),
+        ],
+        help_text='How often to run automatic scans'
+    )
+    snyk_last_scan = models.DateTimeField(null=True, blank=True, help_text='Timestamp of last Snyk scan')
+
     # Metadata
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='system_settings_updates')

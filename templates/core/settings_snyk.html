@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Snyk Security - HuduGlue{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Snyk Security</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog"></i> Settings</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'core:settings_general' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-sliders-h"></i> General
+                </a>
+                <a href="{% url 'core:settings_security' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-shield-alt"></i> Security
+                </a>
+                <a href="{% url 'core:settings_smtp' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-envelope"></i> SMTP/Email
+                </a>
+                <a href="{% url 'core:settings_scheduler' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clock"></i> Task Scheduler
+                </a>
+                <a href="{% url 'core:settings_directory' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-users-cog"></i> Directory Services
+                </a>
+                <a href="{% url 'core:settings_ai' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-robot"></i> AI & LLM
+                </a>
+                <a href="{% url 'core:settings_snyk' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-bug"></i> Snyk Security
+                </a>
+                <a href="{% url 'core:system_status' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-heartbeat"></i> System Status
+                </a>
+                <a href="{% url 'core:maintenance' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tools"></i> Maintenance
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bug"></i> Snyk Security Scanning</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-shield-alt"></i>
+                    <strong>About Snyk:</strong> Snyk is a comprehensive security platform that scans your dependencies and code for vulnerabilities, license issues, and security misconfigurations. It provides real-time monitoring, automatic fix suggestions, and prioritized vulnerability reports.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <h5 class="mb-3">Configuration</h5>
+
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" id="snyk_enabled" name="snyk_enabled"
+                               {% if settings.snyk_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="snyk_enabled">
+                            <strong>Enable Snyk Security Scanning</strong>
+                        </label>
+                        <div class="form-text">Enable automatic vulnerability scanning of dependencies and code</div>
+                    </div>
+
+                    <div id="snykSettings" {% if not settings.snyk_enabled %}style="display:none"{% endif %}>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle"></i> <strong>Setup Instructions</strong>
+                            <hr>
+                            <h6 class="mt-3 mb-2">1. Create Snyk Account</h6>
+                            <ul class="small">
+                                <li>Go to <a href="https://snyk.io" target="_blank" rel="noopener">snyk.io</a></li>
+                                <li>Sign up with your GitHub account (free for open source)</li>
+                                <li>Connect the HuduGlue repository</li>
+                            </ul>
+
+                            <h6 class="mb-2">2. Get API Token</h6>
+                            <ul class="small">
+                                <li>Go to Account Settings → General</li>
+                                <li>Click to reveal your Auth Token</li>
+                                <li>Copy the token and paste it below</li>
+                            </ul>
+
+                            <h6 class="mb-2">3. Get Organization ID (Optional)</h6>
+                            <ul class="small">
+                                <li>Go to Settings → General</li>
+                                <li>Find your Organization ID in the URL or settings page</li>
+                                <li>Format: <code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code></li>
+                            </ul>
+
+                            <h6 class="mb-2">4. Configure GitHub Actions</h6>
+                            <ul class="small">
+                                <li>Go to GitHub repository → Settings → Secrets and variables → Actions</li>
+                                <li>Add new repository secret: <code>SNYK_TOKEN</code></li>
+                                <li>Paste your Snyk API token as the value</li>
+                                <li>The workflow file is already included: <code>.github/workflows/snyk-security.yml</code></li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="snyk_api_token" class="form-label">Snyk API Token *</label>
+                            <input type="password" class="form-control font-monospace" id="snyk_api_token" name="snyk_api_token"
+                                   placeholder="Leave blank to keep current token">
+                            <div class="form-text">
+                                Get your token at <a href="https://app.snyk.io/account" target="_blank">app.snyk.io/account</a>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="snyk_org_id" class="form-label">Organization ID (Optional)</label>
+                            <input type="text" class="form-control font-monospace" id="snyk_org_id" name="snyk_org_id"
+                                   value="{{ settings.snyk_org_id }}"
+                                   placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                            <div class="form-text">
+                                Optional: Specify which Snyk organization to use for scans
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="snyk_severity_threshold" class="form-label">Severity Threshold</label>
+                            <select class="form-select" id="snyk_severity_threshold" name="snyk_severity_threshold">
+                                <option value="low" {% if settings.snyk_severity_threshold == 'low' %}selected{% endif %}>Low (All vulnerabilities)</option>
+                                <option value="medium" {% if settings.snyk_severity_threshold == 'medium' %}selected{% endif %}>Medium and above</option>
+                                <option value="high" {% if settings.snyk_severity_threshold == 'high' %}selected{% endif %}>High and Critical only (Recommended)</option>
+                                <option value="critical" {% if settings.snyk_severity_threshold == 'critical' %}selected{% endif %}>Critical only</option>
+                            </select>
+                            <div class="form-text">
+                                Only report vulnerabilities at or above this severity level
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="snyk_scan_frequency" class="form-label">Scan Frequency</label>
+                            <select class="form-select" id="snyk_scan_frequency" name="snyk_scan_frequency">
+                                <option value="hourly" {% if settings.snyk_scan_frequency == 'hourly' %}selected{% endif %}>Every Hour</option>
+                                <option value="daily" {% if settings.snyk_scan_frequency == 'daily' %}selected{% endif %}>Daily (Recommended)</option>
+                                <option value="weekly" {% if settings.snyk_scan_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+                                <option value="manual" {% if settings.snyk_scan_frequency == 'manual' %}selected{% endif %}>Manual Only</option>
+                            </select>
+                            <div class="form-text">
+                                How often to run automatic vulnerability scans
+                            </div>
+                        </div>
+
+                        {% if settings.snyk_last_scan %}
+                        <div class="mb-3">
+                            <label class="form-label">Last Scan</label>
+                            <div class="form-control-plaintext">
+                                {{ settings.snyk_last_scan|date:"Y-m-d H:i:s" }} UTC
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-check-circle"></i> <strong>What Snyk Scans:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>Dependencies:</strong> Python packages in requirements.txt</li>
+                                <li><strong>Code Security:</strong> SQL injection, XSS, command injection</li>
+                                <li><strong>Secrets:</strong> Hardcoded API keys, passwords</li>
+                                <li><strong>Licenses:</strong> Open source license compliance</li>
+                                <li><strong>Configuration:</strong> Insecure crypto, weak algorithms</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            {% if settings.updated_at %}
+                            Last updated: {{ settings.updated_at }}
+                            {% if settings.updated_by %}
+                            by {{ settings.updated_by.username }}
+                            {% endif %}
+                            {% endif %}
+                        </small>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle Snyk settings visibility
+document.getElementById('snyk_enabled').addEventListener('change', function() {
+    document.getElementById('snykSettings').style.display = this.checked ? 'block' : 'none';
+});
+</script>
+{% endblock %}
