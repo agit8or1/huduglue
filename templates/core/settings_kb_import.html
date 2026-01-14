@@ -3,6 +3,10 @@
 {% block title %}KB Article Import - HuduGlue{% endblock %}
 
 {% block content %}
+<script>
+// Make CSRF token available globally
+const CSRF_TOKEN = '{{ csrf_token }}';
+</script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
@@ -243,7 +247,7 @@ function importArticles(source) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': CSRF_TOKEN
         },
         body: `source=${source}&delete_existing=${deleteExisting}`
     })
@@ -319,7 +323,7 @@ function deleteGlobalArticles() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': CSRF_TOKEN
         }
     })
     .then(response => {
