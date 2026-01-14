@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db import connection
 from django.conf import settings as django_settings
+from django.utils import timezone
 from .models import SystemSetting, ScheduledTask
 import platform
 import sys
@@ -884,8 +885,8 @@ def snyk_scan_status(request, scan_id):
             'high_count': scan.high_count,
             'medium_count': scan.medium_count,
             'low_count': scan.low_count,
-            'completed': scan.status in ['completed', 'failed'],
-            'error_message': scan.error_message if scan.status == 'failed' else None,
+            'completed': scan.status in ['completed', 'failed', 'cancelled', 'timeout'],
+            'error_message': scan.error_message if scan.status in ['failed', 'timeout'] else None,
         })
     except SnykScan.DoesNotExist:
         return JsonResponse({
@@ -972,6 +973,58 @@ def apply_snyk_remediation(request):
         return JsonResponse({
             'success': False,
             'message': 'Upgrade timed out after 2 minutes'
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+
+@login_required
+@user_passes_test(is_superuser)
+def cancel_snyk_scan(request, scan_id):
+    """Cancel a running Snyk scan."""
+    from django.http import JsonResponse
+    from core.models import SnykScan
+
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request method'
+        })
+
+    try:
+        scan = SnykScan.objects.get(scan_id=scan_id)
+
+        if scan.status not in ['pending', 'running']:
+            return JsonResponse({
+                'success': False,
+                'message': f'Cannot cancel scan in {scan.status} state'
+            })
+
+        # Mark scan as cancelled
+        scan.cancel_requested = True
+        scan.status = 'cancelled'
+        scan.completed_at = timezone.now()
+        scan.error_message = 'Scan cancelled by user'
+
+        if scan.started_at:
+            duration = (timezone.now() - scan.started_at).total_seconds()
+            scan.duration_seconds = int(duration)
+
+        scan.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Scan cancelled successfully'
+        })
+
+    except SnykScan.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Scan not found'
         })
 
     except Exception as e:
