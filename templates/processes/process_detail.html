@@ -78,20 +78,33 @@
 
 <!-- Process Stages -->
 <div class="card">
-    <div class="card-header py-2">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
         <h6 class="mb-0"><i class="fas fa-list-ol"></i> Process Stages</h6>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="interactiveModeToggle">
+            <label class="form-check-label" for="interactiveModeToggle">
+                <small><i class="fas fa-check-square"></i> Interactive Checklist Mode</small>
+            </label>
+        </div>
     </div>
     <div class="card-body">
         {% if stages %}
         <ol class="list-group list-group-numbered">
             {% for stage in stages %}
-            <li class="list-group-item">
+            <li class="list-group-item stage-item" data-stage-id="{{ stage.id }}">
                 <div class="d-flex w-100 justify-content-between">
                     <div class="flex-grow-1">
-                        <h5 class="mb-1">{{ stage.title }}</h5>
+                        <div class="d-flex align-items-start">
+                            <div class="stage-checkbox me-2" style="display: none;">
+                                <input type="checkbox" class="form-check-input stage-check" data-stage-id="{{ stage.id }}">
+                            </div>
+                            <div>
+                                <h5 class="mb-1 stage-title">{{ stage.title }}</h5>
                         {% if stage.description %}
                         <p class="mb-2 text-muted">{{ stage.description }}</p>
                         {% endif %}
+                            </div>
+                        </div>
 
                         <!-- Linked Entities -->
                         <div class="mt-2">
@@ -170,4 +183,145 @@
         <i class="fas fa-arrow-left"></i> Back to Processes
     </a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let activeExecutionId = null;
+
+    // Toggle interactive mode
+    $('#interactiveModeToggle').change(function() {
+        const isChecked = $(this).is(':checked');
+
+        if (isChecked) {
+            // Show checkboxes
+            $('.stage-checkbox').show();
+
+            // Create execution if not exists
+            if (!activeExecutionId) {
+                createQuickExecution();
+            }
+        } else {
+            // Hide checkboxes
+            $('.stage-checkbox').hide();
+        }
+    });
+
+    // Create quick execution (auto-assigned to current user)
+    function createQuickExecution() {
+        $.ajax({
+            url: '{% url "processes:execution_create" process.slug %}',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: {
+                'assigned_to': '{{ request.user.id }}',
+                'due_date': '',
+                'notes': 'Quick checklist mode'
+            },
+            success: function(response) {
+                if (response.execution_id) {
+                    activeExecutionId = response.execution_id;
+                    loadExecutionState();
+                }
+            },
+            error: function() {
+                // If execution creation fails, just use localStorage
+                loadLocalState();
+            }
+        });
+    }
+
+    // Load execution state from server
+    function loadExecutionState() {
+        // Load completion status for each stage
+        $.ajax({
+            url: `/processes/execution/${activeExecutionId}/status/`,
+            method: 'GET',
+            success: function(data) {
+                data.completions.forEach(function(completion) {
+                    const checkbox = $(`.stage-check[data-stage-id="${completion.stage_id}"]`);
+                    checkbox.prop('checked', completion.is_completed);
+
+                    if (completion.is_completed) {
+                        checkbox.closest('.stage-item').addClass('list-group-item-success');
+                        checkbox.closest('.stage-item').find('.stage-title').addClass('text-decoration-line-through');
+                    }
+                });
+            }
+        });
+    }
+
+    // Load state from localStorage (fallback)
+    function loadLocalState() {
+        const stateKey = 'process_{{ process.id }}_state';
+        const savedState = localStorage.getItem(stateKey);
+
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            state.forEach(function(stageId) {
+                const checkbox = $(`.stage-check[data-stage-id="${stageId}"]`);
+                checkbox.prop('checked', true);
+                checkbox.closest('.stage-item').addClass('list-group-item-success');
+                checkbox.closest('.stage-item').find('.stage-title').addClass('text-decoration-line-through');
+            });
+        }
+    }
+
+    // Handle checkbox change
+    $('.stage-check').change(function() {
+        const checkbox = $(this);
+        const stageId = checkbox.data('stage-id');
+        const isChecked = checkbox.is(':checked');
+
+        if (activeExecutionId) {
+            // Update on server
+            $.ajax({
+                url: `/processes/stage/${stageId}/complete/`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                data: {
+                    execution_id: activeExecutionId,
+                    is_completed: isChecked
+                },
+                success: function() {
+                    updateStageVisual(checkbox, isChecked);
+                }
+            });
+        } else {
+            // Save to localStorage
+            const stateKey = 'process_{{ process.id }}_state';
+            let state = JSON.parse(localStorage.getItem(stateKey) || '[]');
+
+            if (isChecked) {
+                if (!state.includes(stageId)) {
+                    state.push(stageId);
+                }
+            } else {
+                state = state.filter(id => id !== stageId);
+            }
+
+            localStorage.setItem(stateKey, JSON.stringify(state));
+            updateStageVisual(checkbox, isChecked);
+        }
+    });
+
+    function updateStageVisual(checkbox, isChecked) {
+        const item = checkbox.closest('.stage-item');
+        const title = item.find('.stage-title');
+
+        if (isChecked) {
+            item.addClass('list-group-item-success');
+            title.addClass('text-decoration-line-through');
+        } else {
+            item.removeClass('list-group-item-success');
+            title.removeClass('text-decoration-line-through');
+        }
+    }
+});
+</script>
 {% endblock %}

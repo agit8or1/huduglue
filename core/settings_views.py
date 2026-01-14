@@ -1168,9 +1168,9 @@ def restart_application(request):
         })
 
     try:
-        # Restart Gunicorn service using sudo
+        # Restart Gunicorn service using sudo (full path)
         result = subprocess.run(
-            ['sudo', '/bin/systemctl', 'restart', 'huduglue-gunicorn.service'],
+            ['/usr/bin/sudo', '/bin/systemctl', 'restart', 'huduglue-gunicorn.service'],
             capture_output=True,
             text=True,
             timeout=30
@@ -1197,6 +1197,53 @@ def restart_application(request):
         return JsonResponse({
             'success': False,
             'message': str(e)
+        })
+
+
+@login_required
+@user_passes_test(is_superuser)
+def cleanup_old_snyk_scans(request):
+    """Cleanup old Snyk scans, keeping only the last 30."""
+    from django.http import JsonResponse
+    from core.models import SnykScan
+
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request method'
+        })
+
+    try:
+        # Get all scans ordered by completion time (newest first)
+        all_scans = SnykScan.objects.all().order_by('-completed_at', '-created_at')
+        total_count = all_scans.count()
+
+        if total_count <= 30:
+            return JsonResponse({
+                'success': True,
+                'message': f'No cleanup needed. Only {total_count} scans exist.',
+                'deleted_count': 0,
+                'remaining_count': total_count
+            })
+
+        # Get scans to keep (last 30)
+        scans_to_keep = list(all_scans[:30].values_list('id', flat=True))
+
+        # Delete old scans
+        deleted = SnykScan.objects.exclude(id__in=scans_to_keep).delete()
+        deleted_count = deleted[0]  # First element is count of deleted objects
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Cleanup complete. Deleted {deleted_count} old scans.',
+            'deleted_count': deleted_count,
+            'remaining_count': 30
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Cleanup failed: {str(e)}'
         })
 
 
