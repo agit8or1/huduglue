@@ -55,6 +55,7 @@ urlpatterns = [
     path('settings/snyk/scan/status/<str:scan_id>/', settings_views.snyk_scan_status, name='snyk_scan_status'),
     path('settings/snyk/scan/cancel/<str:scan_id>/', settings_views.cancel_snyk_scan, name='cancel_snyk_scan'),
     path('settings/snyk/remediate/', settings_views.apply_snyk_remediation, name='apply_snyk_remediation'),
+    path('settings/snyk/scans/cleanup/', settings_views.cleanup_old_snyk_scans, name='cleanup_old_snyk_scans'),
     path('settings/kb-import/', settings_views.settings_kb_import, name='settings_kb_import'),
     path('settings/kb-import/import/', settings_views.import_kb_articles, name='import_kb_articles'),
     path('settings/kb-import/delete/', settings_views.delete_global_kb_articles, name='delete_global_kb_articles'),

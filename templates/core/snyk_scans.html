@@ -16,9 +16,14 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-history"></i> Snyk Scan History</h5>
-                <a href="{% url 'core:settings_snyk' %}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-cog"></i> Settings
-                </a>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-warning" id="cleanupScansBtn" title="Keep last 30 scans, delete older">
+                        <i class="fas fa-broom"></i> Cleanup Old Scans
+                    </button>
+                    <a href="{% url 'core:settings_snyk' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 {% if latest_scan %}
@@ -121,4 +126,47 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('cleanupScansBtn').addEventListener('click', function() {
+    const btn = this;
+    const originalHtml = btn.innerHTML;
+
+    if (!confirm('This will delete all scans except the last 30. Are you sure?')) {
+        return;
+    }
+
+    // Disable button
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cleaning up...';
+
+    // Call cleanup endpoint
+    fetch('{% url "core:cleanup_old_snyk_scans" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${data.message}\n\nDeleted: ${data.deleted_count}\nRemaining: ${data.remaining_count}`);
+            // Reload page to show updated list
+            window.location.reload();
+        } else {
+            alert(`Error: ${data.message}`);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    })
+    .catch(error => {
+        alert(`Error: ${error.message}`);
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    });
+});
+</script>
 {% endblock %}
