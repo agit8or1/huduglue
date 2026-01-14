@@ -1191,9 +1191,9 @@ def settings_kb_import(request):
     return render(request, 'core/settings_kb_import.html', context)
 
 
+@require_POST
 @login_required
 @user_passes_test(is_superuser)
-@require_POST
 def import_kb_articles(request):
     """Import KB articles from seed command."""
     from django.http import JsonResponse
@@ -1242,9 +1242,9 @@ def import_kb_articles(request):
         })
 
 
+@require_POST
 @login_required
 @user_passes_test(is_superuser)
-@require_POST
 def delete_global_kb_articles(request):
     """Delete all global KB articles."""
     from django.http import JsonResponse
