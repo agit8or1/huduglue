@@ -37,26 +37,83 @@ class UpdateService:
 
     def check_for_updates(self):
         """
-        Check GitHub for new releases.
+        Check GitHub for new versions by comparing git tags.
 
         Returns:
             dict with 'update_available', 'latest_version', 'current_version',
             'release_url', 'release_notes'
         """
+        logger.info(f"Starting update check. Current version: {self.current_version}")
+
         try:
-            # Get latest release from GitHub API
-            url = f'{self.github_api}/{self.repo_owner}/{self.repo_name}/releases/latest'
+            # Get all tags from GitHub API (sorted by date, most recent first)
+            url = f'{self.github_api}/{self.repo_owner}/{self.repo_name}/tags'
+            logger.info(f"Fetching tags from: {url}")
+
             response = requests.get(url, timeout=10)
+            logger.info(f"GitHub API response status: {response.status_code}")
             response.raise_for_status()
 
-            data = response.json()
-            latest_version = data['tag_name'].lstrip('v')
-            release_notes = data.get('body', 'No release notes available')
-            release_url = data.get('html_url', '')
-            published_at = data.get('published_at', '')
+            tags = response.json()
+            if not tags:
+                logger.warning("No tags found in repository")
+                return {
+                    'update_available': False,
+                    'latest_version': None,
+                    'current_version': self.current_version,
+                    'error': 'No tags found',
+                    'checked_at': timezone.now().isoformat(),
+                }
+
+            # Find the latest semantic version tag
+            latest_tag = None
+            latest_version_parsed = None
+
+            for tag in tags:
+                tag_name = tag['name'].lstrip('v')
+                try:
+                    # Parse as semantic version
+                    tag_version = version.parse(tag_name)
+                    if latest_version_parsed is None or tag_version > latest_version_parsed:
+                        latest_version_parsed = tag_version
+                        latest_tag = tag
+                except:
+                    # Skip non-semantic version tags
+                    continue
+
+            if not latest_tag:
+                logger.warning("No valid semantic version tags found")
+                return {
+                    'update_available': False,
+                    'latest_version': None,
+                    'current_version': self.current_version,
+                    'error': 'No valid version tags found',
+                    'checked_at': timezone.now().isoformat(),
+                }
+
+            latest_version = latest_tag['name'].lstrip('v')
+            logger.info(f"Latest tag from GitHub: {latest_version}")
 
             # Compare versions
             update_available = version.parse(latest_version) > version.parse(self.current_version)
+            logger.info(f"Version comparison: {latest_version} > {self.current_version} = {update_available}")
+
+            # Try to get release notes if a release exists for this tag
+            release_notes = 'No release notes available'
+            release_url = f'https://github.com/{self.repo_owner}/{self.repo_name}/releases/tag/v{latest_version}'
+            published_at = None
+
+            try:
+                release_response = requests.get(
+                    f'{self.github_api}/{self.repo_owner}/{self.repo_name}/releases/tags/v{latest_version}',
+                    timeout=5
+                )
+                if release_response.status_code == 200:
+                    release_data = release_response.json()
+                    release_notes = release_data.get('body', 'No release notes available')
+                    published_at = release_data.get('published_at')
+            except:
+                pass  # Release doesn't exist, that's ok
 
             return {
                 'update_available': update_available,
