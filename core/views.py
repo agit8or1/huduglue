@@ -88,6 +88,15 @@ def system_updates(request):
             update_info['latest_version']
         )
 
+    # Add debug info if there's an error
+    debug_info = None
+    if update_info.get('error'):
+        debug_info = {
+            'error': update_info.get('error'),
+            'github_api_url': f'https://api.github.com/repos/{updater.repo_owner}/{updater.repo_name}/tags',
+            'current_version': get_version(),
+        }
+
     return render(request, 'core/system_updates.html', {
         'version': get_version(),
         'update_info': update_info,
@@ -95,6 +104,7 @@ def system_updates(request):
         'recent_updates': recent_updates,
         'current_changelog': current_changelog,
         'newer_changelogs': newer_changelogs,
+        'debug_info': debug_info,
     })
 
 
