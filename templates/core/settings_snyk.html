@@ -311,10 +311,39 @@ document.getElementById('runScanBtn').addEventListener('click', function() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            progressDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scan in progress... This may take a few minutes.';
+            const scanId = data.scan_id;
+
+            // Show cancel button
+            progressDiv.innerHTML = `
+                <i class="fas fa-spinner fa-spin"></i> Scan in progress... This may take a few minutes.
+                <button type="button" class="btn btn-sm btn-danger ms-3" id="cancelScanBtn">
+                    <i class="fas fa-times"></i> Cancel Scan
+                </button>
+            `;
+
+            // Handle cancel button
+            document.getElementById('cancelScanBtn').addEventListener('click', function() {
+                if (confirm('Are you sure you want to cancel this scan?')) {
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+
+                    fetch(`/core/settings/snyk/scan/cancel/${scanId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        }
+                    })
+                    .then(r => r.json())
+                    .then(result => {
+                        if (result.success) {
+                            progressDiv.className = 'alert alert-warning';
+                            progressDiv.innerHTML = '<i class="fas fa-ban"></i> <strong>Scan Cancelled</strong>';
+                        }
+                    });
+                }
+            });
 
             // Poll for status
-            const scanId = data.scan_id;
             const pollInterval = setInterval(() => {
                 fetch(`/core/settings/snyk/scan/status/${scanId}/`)
                     .then(r => r.json())
@@ -337,6 +366,12 @@ document.getElementById('runScanBtn').addEventListener('click', function() {
                                     <br><br>
                                     <a href="{% url 'core:snyk_scans' %}" class="btn btn-sm btn-primary">View Results</a>
                                 `;
+                            } else if (status.status === 'cancelled') {
+                                progressDiv.className = 'alert alert-warning';
+                                progressDiv.innerHTML = `<i class="fas fa-ban"></i> <strong>Scan Cancelled</strong>`;
+                            } else if (status.status === 'timeout') {
+                                progressDiv.className = 'alert alert-warning';
+                                progressDiv.innerHTML = `<i class="fas fa-clock"></i> <strong>Scan Timed Out:</strong> The scan took longer than 5 minutes. <a href="{% url 'core:settings_snyk' %}" class="btn btn-sm btn-primary ms-2">Try Again</a>`;
                             } else {
                                 progressDiv.className = 'alert alert-danger';
                                 progressDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <strong>Scan Failed:</strong> ${status.error_message}`;

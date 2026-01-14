@@ -58,10 +58,20 @@ class Command(BaseCommand):
         )
         
         self.stdout.write(f'Starting Snyk scan {scan_id}...')
-        
+
         start_time = timezone.now()
-        
+
         try:
+            # Check if cancellation was requested before starting
+            scan.refresh_from_db()
+            if scan.cancel_requested:
+                scan.status = 'cancelled'
+                scan.completed_at = timezone.now()
+                scan.error_message = 'Scan cancelled by user before execution'
+                scan.save()
+                self.stdout.write(self.style.WARNING('Scan cancelled before execution'))
+                return
+
             # Find snyk binary (check nvm path first, then system path)
             import os
             import shutil
@@ -153,11 +163,13 @@ class Command(BaseCommand):
                 ))
             
         except subprocess.TimeoutExpired:
-            scan.status = 'failed'
+            scan.status = 'timeout'
             scan.error_message = 'Scan timed out after 5 minutes'
             scan.completed_at = timezone.now()
+            duration = (timezone.now() - start_time).total_seconds()
+            scan.duration_seconds = int(duration)
             scan.save()
-            self.stdout.write(self.style.ERROR('Scan timed out'))
+            self.stdout.write(self.style.ERROR('Scan timed out after 5 minutes'))
             
         except Exception as e:
             scan.status = 'failed'

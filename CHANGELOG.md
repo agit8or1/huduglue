@@ -5,6 +5,94 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0] - 2026-01-14
+
+### 🎉 Major Feature: Scan Cancellation & Timeout Management
+
+This release adds comprehensive scan management capabilities including the ability to cancel running scans and proper timeout handling.
+
+### ✨ New Features
+
+**Scan Cancellation:**
+- "Cancel Scan" button appears while scan is running
+- Confirmation prompt before cancelling
+- Graceful cancellation with proper status tracking
+- Cancellation endpoint with security checks
+- Visual feedback during cancellation process
+
+**Timeout Handling:**
+- 5-minute timeout for all Snyk scans
+- Separate "timeout" status distinct from "failed"
+- Clear timeout messages in UI
+- Duration tracking even for timed-out scans
+- "Try Again" button for timed-out scans
+
+**Enhanced Scan Statuses:**
+- Added `cancelled` status for user-cancelled scans
+- Added `timeout` status for scans exceeding time limit
+- Color-coded badges (cancelled/timeout = warning, failed = danger)
+- Improved status polling to recognize all completion states
+
+### 🔧 Technical Implementation
+
+**Database Changes:**
+- New `cancel_requested` field on SnykScan model
+- Enhanced STATUS_CHOICES with 'cancelled' and 'timeout'
+- Migration 0014_add_scan_cancellation
+
+**New Backend Endpoint:**
+- `cancel_snyk_scan()` view for scan cancellation
+- Security checks (must be pending/running to cancel)
+- Proper duration calculation on cancellation
+
+**Management Command Updates:**
+- Check for cancellation before starting scan
+- Handle TimeoutExpired with timeout status
+- Graceful shutdown on cancellation request
+
+**UI Enhancements:**
+- Real-time cancel button during scans
+- Status polling recognizes cancelled/timeout states
+- Different visual feedback for each completion type
+- Improved error messaging
+
+### 📊 Scan Management Workflow
+
+**Normal Scan:**
+1. Click "Run Scan Now"
+2. See progress with cancel button
+3. Poll status every 3 seconds
+4. View results on completion
+
+**Cancelling Scan:**
+1. Click "Cancel Scan" during execution
+2. Confirm cancellation
+3. Scan marked as cancelled immediately
+4. Status updates in real-time
+
+**Timeout Handling:**
+1. Scan runs for more than 5 minutes
+2. Automatically marked as timeout
+3. Duration and partial results saved
+4. Option to try again
+
+### 🔐 Security & Safety
+
+- Superuser-only cancellation access
+- Cannot cancel completed/failed scans
+- Proper state validation
+- Thread-safe cancellation checks
+- Clean resource cleanup
+
+**Files Changed:**
+- `core/models.py` - Added cancel_requested field and new statuses
+- `core/management/commands/run_snyk_scan.py` - Cancellation checks and timeout handling
+- `core/settings_views.py` - New cancel endpoint, updated status endpoint
+- `core/urls.py` - New cancel route
+- `templates/core/settings_snyk.html` - Cancel button and status handling
+
+---
+
 ## [2.16.1] - 2026-01-14
 
 ### ✨ New Features

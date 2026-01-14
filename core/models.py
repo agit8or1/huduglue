@@ -576,6 +576,8 @@ class SnykScan(models.Model):
         ('running', 'Running'),
         ('completed', 'Completed'),
         ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+        ('timeout', 'Timed Out'),
     ]
     
     SEVERITY_CHOICES = [
@@ -588,6 +590,7 @@ class SnykScan(models.Model):
     # Scan metadata
     scan_id = models.CharField(max_length=100, unique=True, help_text="Unique scan identifier")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    cancel_requested = models.BooleanField(default=False, help_text="User requested cancellation")
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     duration_seconds = models.IntegerField(null=True, blank=True, help_text="Scan duration in seconds")
@@ -651,5 +654,7 @@ class SnykScan(models.Model):
             'running': 'bg-info',
             'completed': 'bg-success' if not self.has_critical_issues() else 'bg-danger',
             'failed': 'bg-danger',
+            'cancelled': 'bg-warning',
+            'timeout': 'bg-warning',
         }
         return badge_map.get(self.status, 'bg-secondary')
