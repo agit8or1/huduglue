@@ -4,6 +4,8 @@ Superuser-only views for managing system configuration.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import connection
 from django.conf import settings as django_settings
@@ -1154,6 +1156,7 @@ def restart_application(request):
 
 @login_required
 @user_passes_test(is_superuser)
+@ensure_csrf_cookie
 def settings_kb_import(request):
     """Knowledge Base article import settings and management."""
     from docs.models import Document, DocumentCategory
@@ -1190,15 +1193,13 @@ def settings_kb_import(request):
 
 @login_required
 @user_passes_test(is_superuser)
+@require_POST
 def import_kb_articles(request):
     """Import KB articles from seed command."""
     from django.http import JsonResponse
     from django.core.management import call_command
     from io import StringIO
     import time
-
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
     source = request.POST.get('source', 'local')  # 'local' or 'github'
     delete_existing = request.POST.get('delete_existing') == 'true'
@@ -1243,13 +1244,11 @@ def import_kb_articles(request):
 
 @login_required
 @user_passes_test(is_superuser)
+@require_POST
 def delete_global_kb_articles(request):
     """Delete all global KB articles."""
     from django.http import JsonResponse
     from docs.models import Document
-
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
     try:
         # Delete only global articles (not organization-specific ones)
