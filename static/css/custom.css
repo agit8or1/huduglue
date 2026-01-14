@@ -198,7 +198,6 @@ h6 { font-size: 1rem; }
     border-radius: var(--border-radius-lg) !important;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-base);
-    overflow: hidden;
     margin-bottom: var(--spacing-lg);
 }
 
@@ -214,10 +213,21 @@ h6 { font-size: 1rem; }
     padding: var(--spacing-md) var(--spacing-lg);
 }
 
-/* Rounded corners for first card header */
-.card-header:first-child {
-    border-top-left-radius: var(--border-radius-lg);
-    border-top-right-radius: var(--border-radius-lg);
+/* Rounded corners for card headers */
+.card > .card-header:first-child {
+    border-top-left-radius: var(--border-radius-lg) !important;
+    border-top-right-radius: var(--border-radius-lg) !important;
+}
+
+.card > *:first-child {
+    border-top-left-radius: var(--border-radius-lg) !important;
+    border-top-right-radius: var(--border-radius-lg) !important;
+}
+
+/* Rounded corners for last elements in cards */
+.card > *:last-child {
+    border-bottom-left-radius: var(--border-radius-lg) !important;
+    border-bottom-right-radius: var(--border-radius-lg) !important;
 }
 
 .card-body {
