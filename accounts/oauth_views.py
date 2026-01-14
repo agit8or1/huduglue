@@ -91,6 +91,20 @@ def azure_status(request):
     """
     from django.http import JsonResponse
     client = AzureOAuthClient()
-    return JsonResponse({
+
+    # Basic response for login page
+    response = {
         'enabled': client.is_enabled()
-    })
+    }
+
+    # Add diagnostic info for admins/superusers
+    if request.user.is_authenticated and (request.user.is_superuser or request.user.is_staff):
+        response['debug'] = {
+            'azure_ad_enabled': client.config.get('enabled', False),
+            'has_tenant_id': bool(client.config.get('tenant_id')),
+            'has_client_id': bool(client.config.get('client_id')),
+            'has_client_secret': bool(client.config.get('client_secret')),
+            'has_redirect_uri': bool(client.config.get('redirect_uri')),
+        }
+
+    return JsonResponse(response)
