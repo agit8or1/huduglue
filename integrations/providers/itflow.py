@@ -17,6 +17,9 @@ class ITFlowProvider(BaseProvider):
     ITFlow provider.
     Requires credentials: api_key
     API Documentation: https://docs.itflow.org/api
+
+    IMPORTANT: Base URL should be just the domain without /api/v1
+    Example: https://itflow.example.com (NOT https://itflow.example.com/api/v1)
     """
     provider_name = "ITFlow"
     supports_companies = True
@@ -24,6 +27,40 @@ class ITFlowProvider(BaseProvider):
     supports_tickets = True
     supports_projects = False
     supports_agreements = False
+
+    def __init__(self, connection):
+        """Initialize ITFlow provider and normalize base URL."""
+        super().__init__(connection)
+
+        # Strip /api/v1 from base_url if user included it
+        # ITFlow API is always at /api/v1, so we'll add it automatically
+        self.base_url = self.base_url.rstrip('/')
+        if self.base_url.endswith('/api/v1'):
+            self.base_url = self.base_url[:-7]  # Remove /api/v1
+        if self.base_url.endswith('/api'):
+            self.base_url = self.base_url[:-4]  # Remove /api
+
+        logger.info(f"ITFlow base URL normalized to: {self.base_url}")
+
+    def _make_request(self, method, endpoint, **kwargs):
+        """
+        Override to automatically prepend /api/v1 to all endpoints.
+        ITFlow API is always mounted at /api/v1/.
+        """
+        # Strip leading slash from endpoint
+        endpoint = endpoint.lstrip('/')
+
+        # Remove /api/v1 prefix if endpoint already has it (for backwards compatibility)
+        if endpoint.startswith('api/v1/'):
+            endpoint = endpoint[7:]
+
+        # Prepend /api/v1
+        api_endpoint = f"/api/v1/{endpoint}"
+
+        logger.debug(f"ITFlow API request: {method} {self.base_url}{api_endpoint}")
+
+        # Call parent _make_request with the full API path
+        return super()._make_request(method, api_endpoint, **kwargs)
 
     def _get_auth_headers(self):
         """ITFlow uses API key in headers."""
@@ -71,7 +108,7 @@ class ITFlowProvider(BaseProvider):
     def test_connection(self) -> bool:
         """Test connection by fetching clients."""
         try:
-            response = self._make_request('GET', '/api/v1/clients')
+            response = self._make_request('GET', '/clients')
             return response.status_code == 200
         except Exception as e:
             logger.error(f"ITFlow connection test failed: {e}")
@@ -83,7 +120,7 @@ class ITFlowProvider(BaseProvider):
 
         try:
             # ITFlow API endpoint for clients
-            response = self._make_request('GET', '/api/v1/clients')
+            response = self._make_request('GET', '/clients')
             data = self._safe_json(response)
 
             # ITFlow returns array of clients
@@ -112,7 +149,7 @@ class ITFlowProvider(BaseProvider):
     def get_company(self, company_id: str) -> Dict:
         """Get single client from ITFlow."""
         try:
-            response = self._make_request('GET', f'/api/v1/clients/{company_id}')
+            response = self._make_request('GET', f'/clients/{company_id}')
             raw_client = self._safe_json(response)
             return self.normalize_company(raw_client)
         except Exception as e:
@@ -126,9 +163,9 @@ class ITFlowProvider(BaseProvider):
         try:
             # Get all contacts or filter by client
             if company_id:
-                response = self._make_request('GET', f'/api/v1/clients/{company_id}/contacts')
+                response = self._make_request('GET', f'/clients/{company_id}/contacts')
             else:
-                response = self._make_request('GET', '/api/v1/contacts')
+                response = self._make_request('GET', '/contacts')
 
             data = self._safe_json(response)
             contact_list = data if isinstance(data, list) else data.get('data', [])
@@ -156,7 +193,7 @@ class ITFlowProvider(BaseProvider):
     def get_contact(self, contact_id: str) -> Dict:
         """Get single contact from ITFlow."""
         try:
-            response = self._make_request('GET', f'/api/v1/contacts/{contact_id}')
+            response = self._make_request('GET', f'/contacts/{contact_id}')
             raw_contact = self._safe_json(response)
             return self.normalize_contact(raw_contact)
         except Exception as e:
@@ -170,9 +207,9 @@ class ITFlowProvider(BaseProvider):
         try:
             # Get tickets, optionally filtered by client
             if company_id:
-                response = self._make_request('GET', f'/api/v1/clients/{company_id}/tickets')
+                response = self._make_request('GET', f'/clients/{company_id}/tickets')
             else:
-                response = self._make_request('GET', '/api/v1/tickets')
+                response = self._make_request('GET', '/tickets')
 
             data = self._safe_json(response)
             ticket_list = data if isinstance(data, list) else data.get('data', [])
@@ -200,7 +237,7 @@ class ITFlowProvider(BaseProvider):
     def get_ticket(self, ticket_id: str) -> Dict:
         """Get single ticket from ITFlow."""
         try:
-            response = self._make_request('GET', f'/api/v1/tickets/{ticket_id}')
+            response = self._make_request('GET', f'/tickets/{ticket_id}')
             raw_ticket = self._safe_json(response)
             return self.normalize_ticket(raw_ticket)
         except Exception as e:

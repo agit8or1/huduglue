@@ -5,6 +5,48 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.67] - 2026-01-15
+
+### 🔧 ITFlow Integration - Fixed Base URL Handling (Issue #20)
+
+**Problem**: ITFlow API was returning HTML directory listings instead of JSON data due to incorrect URL construction.
+
+**Root Cause**:
+- ITFlow API is always mounted at `/api/v1/`
+- If users included `/api/v1` in their base URL configuration, the code would create double paths like:
+  - `https://itflow.example.com/api/v1` + `/api/v1/clients` = `https://itflow.example.com/api/v1/api/v1/clients`
+- This resulted in web server directory listings (404 with directory index enabled)
+
+**Fix**:
+- ✅ Added `__init__` override in `ITFlowProvider` to normalize base URLs:
+  - Automatically strips `/api/v1` and `/api` suffixes if user included them
+  - Logs the normalized base URL for debugging
+- ✅ Added `_make_request` override to automatically prepend `/api/v1` to all endpoints:
+  - Ensures consistent API path construction
+  - Handles both legacy endpoints (with `/api/v1`) and new endpoints (without)
+- ✅ Updated all 8 endpoint calls to remove hardcoded `/api/v1` prefix:
+  - `test_connection()`: `/clients`
+  - `list_companies()`: `/clients`
+  - `get_company()`: `/clients/{id}`
+  - `list_contacts()`: `/contacts` or `/clients/{id}/contacts`
+  - `get_contact()`: `/contacts/{id}`
+  - `list_tickets()`: `/tickets` or `/clients/{id}/tickets`
+  - `get_ticket()`: `/tickets/{id}`
+- ✅ Added clear documentation in class docstring:
+  - "Base URL should be just the domain without /api/v1"
+  - "Example: https://itflow.example.com (NOT https://itflow.example.com/api/v1)"
+
+**Impact**:
+- ✅ Users can now enter base URL as either `https://itflow.example.com` OR `https://itflow.example.com/api/v1` - both work
+- ✅ All API calls now correctly construct as: `https://itflow.example.com/api/v1/clients`
+- ✅ No more directory listing errors
+- ✅ Cleaner, more maintainable code with centralized API path handling
+
+**Files Modified**:
+- `integrations/providers/itflow.py` - Complete base URL and endpoint handling overhaul
+
+---
+
 ## [2.24.66] - 2026-01-15
 
 ### 🎯 Major Fix - Navbar Auto-Sizes Based on Available Space
