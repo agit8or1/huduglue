@@ -268,43 +268,7 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h3><i class="fas fa-shield-alt"></i> Security & Vulnerability Scanning</h3>
-
-                <div class="alert {% if scan_results.status == 'clean' %}alert-success{% else %}alert-warning{% endif %} mb-3">
-                    <h5 class="alert-heading">
-                        <i class="fas {% if scan_results.status == 'clean' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
-                        Live CVE Scan Results
-                    </h5>
-                    <p class="mb-2">
-                        This codebase has been scanned in real-time for all known CVEs (Common Vulnerabilities and Exposures) and security vulnerabilities.
-                    </p>
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Last CVE Scan:</dt>
-                        <dd class="col-sm-8"><strong>{{ scan_results.scan_time|date:"F j, Y \a\t g:i A T" }}</strong></dd>
-                        <dt class="col-sm-4">Scan Status:</dt>
-                        <dd class="col-sm-8">
-                            {% if scan_results.status == 'clean' %}
-                                <span class="badge bg-success">✓ All Clear</span>
-                            {% elif scan_results.status == 'vulnerabilities_found' %}
-                                <span class="badge bg-warning">{{ scan_results.vulnerabilities }} Vulnerability(ies) Found</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Scan Error</span>
-                            {% endif %}
-                        </dd>
-                        <dt class="col-sm-4">Known Vulnerabilities:</dt>
-                        <dd class="col-sm-8">
-                            {% if scan_results.status == 'clean' %}
-                                <span class="badge bg-success">0 Critical</span>
-                                <span class="badge bg-success">0 High</span>
-                                <span class="badge bg-success">0 Medium</span>
-                            {% else %}
-                                <span class="badge bg-warning">{{ scan_results.vulnerabilities|default:"Unknown" }} Total</span>
-                            {% endif %}
-                        </dd>
-                        <dt class="col-sm-4">Scan Tool:</dt>
-                        <dd class="col-sm-8"><code>pip-audit</code> (Python Package Vulnerability Scanner)</dd>
-                    </dl>
-                </div>
+                <h3><i class="fas fa-shield-alt"></i> Security Features</h3>
 
                 <h5><i class="fas fa-key"></i> Enhanced Encryption v2</h5>
                 <p>
@@ -338,6 +302,7 @@
                 <h5><i class="fas fa-bug"></i> Vulnerability Scanning</h5>
                 <ul class="mb-3">
                     <li><strong>CVE Scanning</strong>: All dependencies scanned against known vulnerability databases</li>
+                    <li><strong>Live Scan Results</strong>: View real-time CVE scan on <a href="{% url 'core:system_status' %}">System Status</a> page</li>
                     <li><strong>AI-Assisted Detection</strong>: Automated code analysis for SQL injection, XSS, CSRF, and more</li>
                     <li><strong>Alert-Only Mode</strong>: Findings generate alerts for human review (no automatic changes)</li>
                     <li><strong>Regular Updates</strong>: Weekly manual audits plus automated scanning on every commit</li>

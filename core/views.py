@@ -27,25 +27,11 @@ def documentation(request):
 def about(request):
     """
     About page with version and system information.
+    Fast-loading with minimal database queries.
     """
-    from .security_scan import run_vulnerability_scan, get_dependency_versions
     from assets.models import Vendor, EquipmentModel
 
-    # Get or run security scan (cached for 1 hour)
-    scan_cache_key = 'about_page_security_scan'
-    scan_results = cache.get(scan_cache_key)
-    if scan_results is None:
-        scan_results = run_vulnerability_scan()
-        cache.set(scan_cache_key, scan_results, 3600)  # Cache for 1 hour
-
-    # Get dependency versions (cached for 1 hour)
-    deps_cache_key = 'about_page_dependencies'
-    dependencies = cache.get(deps_cache_key)
-    if dependencies is None:
-        dependencies = get_dependency_versions()
-        cache.set(deps_cache_key, dependencies, 3600)  # Cache for 1 hour
-
-    # Get equipment catalog statistics (cached for 5 minutes)
+    # Get equipment catalog statistics (cached for 1 hour - fast DB query)
     stats_cache_key = 'about_page_equipment_stats'
     equipment_stats = cache.get(stats_cache_key)
     if equipment_stats is None:
@@ -53,13 +39,14 @@ def about(request):
             'vendor_count': Vendor.objects.filter(is_active=True).count(),
             'model_count': EquipmentModel.objects.filter(is_active=True).count(),
         }
-        cache.set(stats_cache_key, equipment_stats, 300)  # Cache for 5 minutes
+        cache.set(stats_cache_key, equipment_stats, 3600)  # Cache for 1 hour
+
+    # Security scan and dependencies moved to System Status page for performance
+    # These operations are slow (pip-audit takes 1-2 seconds) and not critical for About page
 
     return render(request, 'core/about.html', {
         'version': get_version(),
         'full_version': get_full_version(),
-        'scan_results': scan_results,
-        'dependencies': dependencies,
         'equipment_stats': equipment_stats,
     })
 
