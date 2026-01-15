@@ -110,8 +110,8 @@ h6 { font-size: 1rem; }
 
 /* ===== Navbar Enhancements ===== */
 
-/* Custom navbar breakpoint at 1700px - ensures navbar never overflows */
-@media (max-width: 1699px) {
+/* Custom navbar breakpoint at 1850px - ensures navbar never overflows */
+@media (max-width: 1849px) {
     .navbar-expand-custom > .container,
     .navbar-expand-custom > .container-fluid {
         flex-wrap: wrap;
@@ -128,7 +128,7 @@ h6 { font-size: 1rem; }
     }
 }
 
-@media (min-width: 1700px) {
+@media (min-width: 1850px) {
     .navbar-expand-custom {
         flex-wrap: nowrap;
         justify-content: flex-start;
@@ -201,7 +201,7 @@ h6 { font-size: 1rem; }
 }
 
 /* Allow dropdown menus to overflow navbar bounds */
-@media (min-width: 1700px) {
+@media (min-width: 1850px) {
     .navbar-collapse {
         overflow: visible;
     }
@@ -292,7 +292,7 @@ h6 { font-size: 1rem; }
 
 /* Responsive navbar adjustments for different screen sizes (when expanded) */
 /* Ultra-compact mode just above collapse breakpoint */
-@media (min-width: 1700px) and (max-width: 1799px) {
+@media (min-width: 1850px) and (max-width: 1949px) {
     .nav-link {
         padding: 0.35rem 0.4rem !important;
         font-size: 0.75rem;
@@ -307,8 +307,9 @@ h6 { font-size: 1rem; }
         height: 24px;
     }
 
+    /* Make search compact */
     .navbar .form-control-sm {
-        width: 110px;
+        width: 120px;
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
     }
@@ -318,14 +319,16 @@ h6 { font-size: 1rem; }
         font-size: 0.7rem;
     }
 
+    /* Make user/org dropdowns compact */
     #userDropdown,
     #orgDropdown {
         max-width: 90px;
         font-size: 0.75rem;
+        padding: 0.35rem 0.4rem !important;
     }
 
     .dropdown-toggle::after {
-        margin-left: 0.1rem;
+        margin-left: 0.15rem;
         border-width: 0.25em;
     }
 
@@ -334,13 +337,13 @@ h6 { font-size: 1rem; }
         margin: 0;
     }
 
-    /* Make icons normal size but text smaller */
+    /* Make icons slightly smaller */
     .nav-link i {
         font-size: 0.85rem;
         margin-right: 0.2rem;
     }
 
-    /* Ultra-compact dropdown menu */
+    /* Compact dropdown menu */
     .navbar-nav .dropdown-menu {
         font-size: 0.8rem;
     }
@@ -353,10 +356,22 @@ h6 { font-size: 1rem; }
     .navbar {
         padding: 0.4rem 0.75rem;
     }
+
+    /* Make staff badge smaller */
+    .badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.45rem;
+    }
+
+    /* Make search form more compact */
+    .navbar .d-flex {
+        margin-right: 0.3rem;
+        margin-left: 0.3rem;
+    }
 }
 
 /* Compact mode */
-@media (min-width: 1800px) and (max-width: 1999px) {
+@media (min-width: 1950px) and (max-width: 2149px) {
     .nav-link {
         padding: 0.4rem 0.5rem !important;
         font-size: 0.85rem;
@@ -377,7 +392,7 @@ h6 { font-size: 1rem; }
 }
 
 /* Standard mode */
-@media (min-width: 2000px) and (max-width: 2299px) {
+@media (min-width: 2150px) and (max-width: 2399px) {
     .nav-link {
         padding: 0.45rem 0.6rem !important;
         font-size: 0.9rem;
@@ -394,7 +409,7 @@ h6 { font-size: 1rem; }
 }
 
 /* Comfortable mode */
-@media (min-width: 2300px) {
+@media (min-width: 2400px) {
     .nav-link {
         padding: 0.5rem 0.75rem !important;
         font-size: 0.95rem;
@@ -946,8 +961,8 @@ body {
     }
 }
 
-@media (max-width: 1699px) {
-    /* Ensure navbar collapses properly below 1700px */
+@media (max-width: 1849px) {
+    /* Ensure navbar collapses properly below 1850px */
     .navbar-collapse {
         margin-top: 1rem;
     }

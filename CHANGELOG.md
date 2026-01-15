@@ -5,6 +5,35 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.63] - 2026-01-15
+
+### 🎯 Critical Fix - Increased Collapse Breakpoint to 1850px
+- **Fixed:** Right side navbar items (search, org, user) getting cut off when shrinking window
+  - Changed collapse breakpoint from 1700px to **1850px** for more breathing room
+  - Navbar now collapses to hamburger menu below 1850px instead of 1700px
+  - Ensures right-side elements (Global KB, search, org dropdown, user dropdown) never overflow
+  - Files modified: `templates/base.html`, `static/css/custom.css`
+
+### 📐 Updated Responsive Breakpoints
+- **1850-1949px (Ultra-Compact)**: 0.75rem font, 120px search, 90px dropdowns, 24px logo
+- **1950-2149px (Compact)**: 0.85rem font, 140px search, 110px dropdowns
+- **2150-2399px (Standard)**: 0.9rem font, 160px search, 130px dropdowns
+- **2400px+ (Comfortable)**: 0.95rem font, 200px search, 160-200px dropdowns
+
+### 🛡️ Why 1850px?
+- Navbar has **11 main nav items** + search + 2 dropdowns = very dense
+- 1700px was too tight, causing right-side overflow
+- 1850px provides comfortable margin for all elements
+- Collapses earlier = fewer cutoff issues
+
+### ✅ Result
+- **No overflow** at any width >= 1850px
+- **Smooth collapse** below 1850px to hamburger menu
+- **Right-side elements** (search, org, user) always visible
+- **Better mobile experience** with earlier collapse
+
+---
+
 ## [2.24.62] - 2026-01-15
 
 ### 🎨 Major Improvement - Ultra-Condensed Navbar
