@@ -52,7 +52,7 @@ class ITFlowProvider(BaseProvider):
 
         # Try to parse JSON
         try:
-            return self._safe_json(response)
+            return response.json()
         except json.JSONDecodeError as e:
             # Log the actual response content for debugging
             content_preview = response.text[:500] if response.text else "(empty)"

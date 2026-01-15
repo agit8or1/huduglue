@@ -104,6 +104,15 @@ def asset_create(request):
     """
     org = get_request_organization(request)
 
+    # Check if user has an organization assigned
+    if not org:
+        messages.error(
+            request,
+            "You must be assigned to an organization before creating assets. "
+            "Please contact your administrator to be added to an organization."
+        )
+        return redirect('core:dashboard')
+
     # Check for redirect parameter (e.g., from rack page)
     redirect_to = request.GET.get('redirect') or request.POST.get('redirect')
 

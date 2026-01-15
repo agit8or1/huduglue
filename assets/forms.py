@@ -49,6 +49,11 @@ class AssetForm(forms.ModelForm):
         if self.organization:
             self.fields['tags'].queryset = self.organization.tags.all()
             self.fields['primary_contact'].queryset = Contact.objects.for_organization(self.organization)
+        else:
+            # No organization assigned - set empty querysets to prevent errors
+            from core.models import Tag
+            self.fields['tags'].queryset = Tag.objects.none()
+            self.fields['primary_contact'].queryset = Contact.objects.none()
 
         # Populate vendor dropdown
         from .models import Vendor

@@ -5,6 +5,30 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.55] - 2026-01-15
+
+### 🐛 Critical Bug Fixes
+- **Fixed:** Asset creation failing with stack trace when user has no organization assigned (Issue #23)
+  - Added organization validation check before asset creation
+  - Users now see clear error message: "You must be assigned to an organization before creating assets"
+  - AssetForm now handles None organization gracefully with empty querysets
+  - Prevents database integrity errors and improves user experience
+  - Files modified: `assets/views.py`, `assets/forms.py`
+
+- **Fixed:** ITFlow integration infinite recursion error (Issue #20)
+  - Fixed critical bug in `_safe_json()` method that was calling itself instead of `response.json()`
+  - Recursion caused "maximum recursion depth exceeded" error during ITFlow sync
+  - ITFlow sync now works correctly with proper JSON parsing and error handling
+  - Files modified: `integrations/providers/itflow.py`
+
+### ✅ Verified Fixes
+- **Verified:** Debian 13 installation issue already resolved in v2.24.51 (Issue #19)
+  - Installer auto-detects Python versions (3.11, 3.12, or 3.13)
+  - Pillow upgraded to 11.1.* for Python 3.13 compatibility
+  - Installation works on Debian 13, 12, Ubuntu 24.04, and 22.04
+
+---
+
 ## [2.24.54] - 2026-01-15
 
 ### 🐛 Bug Fixes
