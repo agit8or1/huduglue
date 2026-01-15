@@ -5,6 +5,46 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.53] - 2026-01-15
+
+### 🐛 Bug Fixes
+- **Fixed:** Knowledge Base article display showing duplicate titles
+  - Removed duplicate `<h1>` title from document detail pages
+  - Title now renders once from markdown content
+  - Applies to both regular KB and Global KB articles
+  - Files modified: `templates/docs/document_detail.html`, `templates/docs/global_kb_detail.html`
+
+- **Fixed:** Knowledge Base article editing not loading existing content
+  - Fixed markdown editor initialization to load existing document content
+  - Markdown textarea now properly populates with `bodyTextarea.value`
+  - Users can now edit existing KB articles without losing content
+  - Files modified: `templates/docs/document_form.html`
+
+- **Fixed:** Top navbar menu items getting cut off on smaller displays
+  - Changed navbar breakpoint from `navbar-expand-lg` (992px) to `navbar-expand-xl` (1200px)
+  - Menu now collapses to hamburger earlier, preventing item cutoff
+  - Added proper ARIA attributes for accessibility
+  - Files modified: `templates/base.html`
+
+### 🧹 Repository Cleanup
+- **Removed:** 34 non-essential development and test scripts (36,000+ lines)
+  - Removed 7 screenshot generation scripts
+  - Removed 15 equipment catalog expansion scripts
+  - Removed 2 large seed data scripts (580KB combined)
+  - Removed 8 test/backup/temporary files
+  - Removed 2 optional utility scripts (preflight_check.py, check_status.sh)
+  - Only essential deployment files remain
+
+### 📸 Documentation
+- **Updated:** Complete screenshot gallery with 34 screenshots
+  - All menu options documented with screenshots
+  - Prominent 16-screenshot grid on main README
+  - Full 34-screenshot gallery in expandable section
+  - All screenshots include watermarks and random backgrounds
+  - Removed old/duplicate screenshot sections
+
+---
+
 ## [2.24.52] - 2026-01-15
 
 ### ⚡ Performance Improvements
