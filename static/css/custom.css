@@ -109,10 +109,58 @@ h6 { font-size: 1rem; }
 }
 
 /* ===== Navbar Enhancements ===== */
+
+/* Custom navbar breakpoint at 1700px - ensures navbar never overflows */
+@media (max-width: 1699px) {
+    .navbar-expand-custom .navbar-toggler {
+        display: block;
+    }
+
+    .navbar-expand-custom .navbar-collapse {
+        display: none !important;
+    }
+
+    .navbar-expand-custom .navbar-collapse.show {
+        display: block !important;
+    }
+}
+
+@media (min-width: 1700px) {
+    .navbar-expand-custom .navbar-toggler {
+        display: none;
+    }
+
+    .navbar-expand-custom .navbar-collapse {
+        display: flex !important;
+        flex-basis: auto;
+    }
+}
+
 .navbar {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 0.5rem 1rem;
     min-height: 60px;
+}
+
+/* Prevent navbar overflow at all costs */
+.navbar-container {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    overflow: visible;
+}
+
+.navbar-collapse {
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar but allow scrolling if absolutely necessary */
+.navbar-collapse::-webkit-scrollbar {
+    height: 0;
+    display: none;
 }
 
 .navbar-brand {
@@ -198,11 +246,11 @@ h6 { font-size: 1rem; }
     margin: 0 0.25rem;
 }
 
-/* Responsive navbar adjustments for different screen sizes */
-@media (min-width: 1400px) and (max-width: 1599px) {
-    /* Compact navbar for medium-large screens */
+/* Responsive navbar adjustments for different screen sizes (when expanded) */
+@media (min-width: 1700px) and (max-width: 1899px) {
+    /* Compact navbar for screens just above collapse point */
     .nav-link {
-        padding: 0.4rem 0.6rem !important;
+        padding: 0.4rem 0.55rem !important;
         font-size: 0.875rem;
     }
 
@@ -218,9 +266,15 @@ h6 { font-size: 1rem; }
     .dropdown-toggle::after {
         margin-left: 0.2rem;
     }
+
+    /* Tighter spacing for navbar items */
+    .navbar-nav .nav-item {
+        margin-left: 0;
+        margin-right: 0;
+    }
 }
 
-@media (min-width: 1600px) and (max-width: 1799px) {
+@media (min-width: 1900px) and (max-width: 2099px) {
     /* Standard spacing for large screens */
     .nav-link {
         padding: 0.45rem 0.65rem !important;
@@ -232,7 +286,7 @@ h6 { font-size: 1rem; }
     }
 }
 
-@media (min-width: 1800px) {
+@media (min-width: 2100px) {
     /* More comfortable spacing for extra-large screens */
     .nav-link {
         padding: 0.5rem 0.85rem !important;
@@ -785,20 +839,46 @@ body {
     }
 }
 
-@media (max-width: 1399px) {
-    /* Ensure navbar collapses properly */
+@media (max-width: 1699px) {
+    /* Ensure navbar collapses properly below 1700px */
     .navbar-collapse {
         margin-top: 1rem;
     }
 
     .navbar-nav {
         align-items: flex-start;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .navbar-nav .nav-item {
+        width: 100%;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem !important;
     }
 
     .navbar-nav.ms-auto {
         margin-top: 1rem;
         padding-top: 1rem;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Make dropdowns full width in collapsed mode */
+    .navbar-nav .dropdown-menu {
+        width: 100%;
+    }
+
+    /* Search form full width in collapsed mode */
+    .navbar .form-control-sm {
+        width: 100%;
+    }
+
+    /* User and org dropdowns can be wider in collapsed mode */
+    #userDropdown,
+    #orgDropdown {
+        max-width: none;
     }
 }
 

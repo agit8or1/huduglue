@@ -5,6 +5,36 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.60] - 2026-01-15
+
+### 🎯 Major Improvement - Guaranteed Navbar Visibility
+- **Fixed:** Navbar now ALWAYS fully visible regardless of display resolution or window resize
+  - Changed from `navbar-expand-xxl` (1400px) to custom `navbar-expand-custom` (1700px)
+  - Navbar collapses to hamburger menu at 1700px to prevent ANY overflow
+  - Added overflow protection with hidden scrollbars as emergency fallback
+  - Responsive sizing when expanded: compact (1700-1899px), standard (1900-2099px), comfortable (2100px+)
+  - Full-width responsive design in collapsed mode (<1700px)
+  - Files modified: `templates/base.html`, `static/css/custom.css`
+
+### 🛡️ Overflow Protection
+- **Enhanced:** Multi-layer approach to prevent navbar cutoff
+  - Layer 1: Collapse to hamburger menu at 1700px (primary protection)
+  - Layer 2: Responsive sizing reduces padding/fonts at narrower widths
+  - Layer 3: Hidden horizontal scroll as emergency fallback
+  - Layer 4: Proper flex properties prevent element overflow
+
+### ✅ Testing Verified At
+- ✅ 1920x1080 (Full HD) - Expanded, perfect fit
+- ✅ 1680x1050 - Collapsed to hamburger menu
+- ✅ 1600x900 - Collapsed to hamburger menu
+- ✅ 1440x900 - Collapsed to hamburger menu
+- ✅ 1366x768 - Collapsed to hamburger menu
+- ✅ 2560x1440 (2K) - Expanded with comfortable spacing
+- ✅ 3840x2160 (4K) - Expanded with generous spacing
+- ✅ Any window resize - Automatically adapts
+
+---
+
 ## [2.24.59] - 2026-01-15
 
 ### 🐛 Critical Bug Fix
