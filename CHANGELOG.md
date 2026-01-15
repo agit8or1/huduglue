@@ -5,6 +5,46 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.66] - 2026-01-15
+
+### 🎯 Major Fix - Navbar Auto-Sizes Based on Available Space
+- **Fixed:** Navbar staying tiny at full size (1920px) when plenty of room available
+  - **NEW LOGIC**: Start LARGE by default, shrink progressively as window shrinks
+  - **OLD LOGIC**: Start small by default, grow at large widths (backwards)
+  - Navbar now uses available space intelligently
+  - Files modified: `static/css/custom.css`
+
+### 📐 Progressive Shrinking (Correct Behavior)
+**Default (Base Styles)**: Comfortable for wide screens
+- Font: **0.9rem** (readable)
+- Search: **160px**
+- Dropdowns: **150px**
+- Logo: **30px**
+- Padding: **0.5rem 1rem**
+
+**Progressive Shrinking Using max-width**:
+- **Below 2200px**: Slightly smaller (0.875rem, 150px search, 140px dropdowns)
+- **Below 2000px**: Compact (0.825rem, 140px search, 120px dropdowns)
+- **Below 1900px**: Very compact (0.8rem, 130px search, 110px dropdowns)
+- **Below 1875px**: Ultra-compact (0.75rem, 120px search, 100px dropdowns)
+- **Below 1850px**: 🍔 Collapse to hamburger menu
+
+### ✅ Result
+- ✅ **At 1920px (Full HD)**: Comfortable, readable navbar with proper spacing
+- ✅ **At 2560px (2K)**: Even more comfortable
+- ✅ **Shrinking window**: Progressively gets smaller (correct direction)
+- ✅ **Below 1850px**: Clean hamburger menu
+- ✅ **No cutoff** at any width
+- ✅ **Auto-sizes** to use available space
+
+### 🔄 Why This Works
+- Uses `max-width` media queries (not `min-width`)
+- Starts with comfortable defaults
+- Shrinks step-by-step as space decreases
+- Natural, intuitive behavior
+
+---
+
 ## [2.24.65] - 2026-01-15
 
 ### 🐛 Critical Bug Fix - Reversed Responsive Sizing Logic
