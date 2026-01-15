@@ -5,6 +5,25 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.57] - 2026-01-15
+
+### 🐛 Bug Fixes
+- **Fixed:** Auto-update failing with "sudo: a password is required" error (Issue #5)
+  - Added pre-check to verify passwordless sudo is configured before starting update
+  - Improved error messages with clear setup instructions
+  - Added `_check_passwordless_sudo()` helper method to test sudo configuration
+  - Users now get immediate feedback if passwordless sudo is not configured
+  - Error message includes exact commands to fix the issue
+  - Files modified: `core/updater.py`
+
+### 🎯 Improvements
+- **Enhanced:** Auto-update error handling for sudo permission issues
+  - Better detection of sudo-related failures during service restart
+  - Clearer guidance directing users to passwordless sudo configuration
+  - Prevents wasting time running update steps when restart will fail
+
+---
+
 ## [2.24.56] - 2026-01-15
 
 ### 🐛 Bug Fixes

@@ -157,6 +157,21 @@ class UpdateService:
         }
 
         try:
+            # Pre-check: Verify passwordless sudo is configured (if running under systemd)
+            if self._is_systemd_service():
+                if not self._check_passwordless_sudo():
+                    raise Exception(
+                        "Passwordless sudo is not configured for auto-updates. "
+                        "Please configure it by running these commands:\n\n"
+                        "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
+                        f"$(whoami) ALL=(ALL) NOPASSWD: /bin/systemctl restart huduglue-gunicorn.service, "
+                        "/bin/systemctl status huduglue-gunicorn.service, /usr/bin/systemd-run\n"
+                        "SUDOERS\n\n"
+                        "sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update\n\n"
+                        "After configuring, refresh this page and try again. "
+                        "Or update manually via command line (see instructions below)."
+                    )
+
             # Step 1: Git pull
             if progress_tracker:
                 progress_tracker.step_start('Git Pull')
@@ -225,15 +240,31 @@ class UpdateService:
                 # Schedule restart to happen after response is sent
                 # Using systemd-run to avoid killing ourselves mid-update
                 import time
-                restart_output = self._run_command([
-                    '/usr/bin/sudo', '/usr/bin/systemd-run', '--on-active=3',
-                    '/usr/bin/systemctl', 'restart', 'huduglue-gunicorn.service'
-                ])
-                logger.info(f"Service restart scheduled: {restart_output}")
-                result['steps_completed'].append('restart_service')
-                result['output'].append(f"Service restart scheduled (3s delay): {restart_output}")
-                if progress_tracker:
-                    progress_tracker.step_complete('Restart Service')
+                try:
+                    restart_output = self._run_command([
+                        '/usr/bin/sudo', '/usr/bin/systemd-run', '--on-active=3',
+                        '/usr/bin/systemctl', 'restart', 'huduglue-gunicorn.service'
+                    ])
+                    logger.info(f"Service restart scheduled: {restart_output}")
+                    result['steps_completed'].append('restart_service')
+                    result['output'].append(f"Service restart scheduled (3s delay): {restart_output}")
+                    if progress_tracker:
+                        progress_tracker.step_complete('Restart Service')
+                except Exception as e:
+                    error_msg = str(e)
+                    if 'password is required' in error_msg or 'terminal is required' in error_msg:
+                        raise Exception(
+                            "Passwordless sudo is not configured. Auto-update requires passwordless sudo "
+                            "to restart the service. Please configure it by running:\n\n"
+                            "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
+                            f"$(whoami) ALL=(ALL) NOPASSWD: /bin/systemctl restart huduglue-gunicorn.service, "
+                            "/bin/systemctl status huduglue-gunicorn.service, /usr/bin/systemd-run\n"
+                            "SUDOERS\n\n"
+                            "sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update\n\n"
+                            "Or update manually via command line. See the system updates page for instructions."
+                        )
+                    else:
+                        raise
             else:
                 logger.warning("Not running as systemd service - skipping restart")
 
@@ -320,6 +351,34 @@ class UpdateService:
             return result.returncode == 0
         except Exception as e:
             logger.warning(f"Failed to check systemd service status: {e}")
+            return False
+
+    def _check_passwordless_sudo(self):
+        """
+        Check if passwordless sudo is configured for service restart.
+
+        Returns:
+            bool: True if passwordless sudo works, False otherwise
+        """
+        try:
+            # Test if we can run sudo without password using -n (non-interactive)
+            result = subprocess.run(
+                ['/usr/bin/sudo', '-n', '/usr/bin/systemctl', 'status', 'huduglue-gunicorn.service'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            # If returncode is 0, passwordless sudo is working
+            # If it's 1 but no password error in stderr, sudo works but service might not exist
+            if result.returncode == 0:
+                return True
+            # Check if the error is specifically about needing a password
+            if 'password is required' in result.stderr or 'a terminal is required' in result.stderr:
+                return False
+            # Other errors (like service not found) still mean sudo itself works
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to check passwordless sudo: {e}")
             return False
 
     def get_git_status(self):
