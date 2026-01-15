@@ -5,6 +5,47 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.74] - 2026-01-15
+
+### 🔧 FINAL FIX - Eliminate git pull Entirely
+
+**The Real Root Cause**: Previous fixes (v2.24.72, v2.24.73) still used `git pull` which requires git configuration for pull strategy. Users without this config would still fail.
+
+**The Solution**: Completely eliminate `git pull` from the updater.
+
+**Before** (v2.24.72-73):
+```python
+if divergent:
+    git reset --hard origin/main
+else:
+    git pull origin main  # Fails if no pull strategy configured!
+```
+
+**After** (v2.24.74):
+```python
+if updates_available:
+    git reset --hard origin/main  # Always! No git config needed!
+```
+
+**Why This Works**:
+- ✅ No dependency on git pull configuration
+- ✅ Works in ALL scenarios (fast-forward, force push, divergent)
+- ✅ Simple and reliable
+- ✅ Safe because uncommitted changes are checked in pre-flight
+- ✅ Works for users on ANY old version
+
+**Technical Details**:
+- After `git fetch origin`, compare local vs remote commit hashes
+- If different: `git reset --hard origin/main`
+- If same: Already up to date
+- Then check if it was a force push (informational only)
+
+**Impact**:
+- 🎉 Updates will now work for EVERYONE on ANY version
+- 🎉 No more git configuration issues
+- 🎉 No more "divergent branches" errors
+- 🎉 Simpler, more reliable code
+
 ## [2.24.73] - 2026-01-15
 
 ### 🔧 Self-Healing Updater - Auto-Fix Divergent Branch Errors

@@ -187,38 +187,21 @@ class UpdateService:
 
             git_output = ""
             if local_commit != remote_commit:
-                # Check if it's a simple fast-forward or divergent
+                # Updates are available - use reset --hard for reliability
+                # This avoids git pull configuration issues and works in all scenarios
+                logger.info("Updates available - resetting to remote version")
+                result['output'].append("Updating to latest version...")
+
+                git_output = self._run_command(['/usr/bin/git', 'reset', '--hard', 'origin/main'])
+                result['output'].append(f"Git reset: {git_output}")
+
+                # Check if it was a force push (informational only)
                 try:
-                    self._run_command(['/usr/bin/git', 'merge-base', '--is-ancestor', 'HEAD', 'origin/main'])
-                    is_ancestor = True
+                    self._run_command(['/usr/bin/git', 'merge-base', '--is-ancestor', f'{local_commit}', 'origin/main'])
+                    result['output'].append("✓ Fast-forward update applied")
                 except:
-                    is_ancestor = False
-
-                if not is_ancestor:
-                    # Branches are divergent (remote was force-pushed)
-                    logger.warning("Remote repository history has changed (force push detected)")
-                    result['output'].append("⚠️ Remote repository history has changed (force push detected)")
-                    result['output'].append("Resetting to remote version...")
-
-                    git_output = self._run_command(['/usr/bin/git', 'reset', '--hard', 'origin/main'])
-                    result['output'].append(f"Git reset: {git_output}")
-                else:
-                    # Simple fast-forward update
-                    logger.info("Pulling updates (fast-forward)")
-                    try:
-                        git_output = self._run_command(['/usr/bin/git', 'pull', 'origin', 'main'])
-                        result['output'].append(f"Git pull: {git_output}")
-                    except Exception as e:
-                        # SELF-HEALING: If pull fails with divergent branches, auto-fix with reset
-                        if 'divergent branches' in str(e).lower():
-                            logger.warning("Git pull failed with divergent branches - auto-healing with reset")
-                            result['output'].append("⚠️ Git pull failed (divergent branches detected)")
-                            result['output'].append("🔧 Auto-healing: Resetting to remote version...")
-                            git_output = self._run_command(['/usr/bin/git', 'reset', '--hard', 'origin/main'])
-                            result['output'].append(f"Git reset: {git_output}")
-                            result['output'].append("✅ Auto-heal successful")
-                        else:
-                            raise  # Re-raise if it's a different error
+                    result['output'].append("⚠️ Repository history changed (force push detected)")
+                    result['output'].append("✓ Reset to remote version successful")
             else:
                 logger.info("Repository already up to date")
                 result['output'].append("Repository already up to date")
