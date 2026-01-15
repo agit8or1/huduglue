@@ -5,6 +5,25 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.61] - 2026-01-15
+
+### 🐛 Critical Bug Fix
+- **Fixed:** Navbar dropdown menus not working after v2.24.60 custom breakpoint
+  - Replaced incompatible custom breakpoint CSS with Bootstrap-compatible implementation
+  - Restored proper dropdown positioning with `position: absolute` and `z-index: 1000`
+  - Changed `overflow: hidden` to `overflow: visible` on navbar-collapse for expanded mode
+  - Removed `display: none !important` that was blocking Bootstrap's dropdown toggle
+  - Dropdowns now work correctly at all screen sizes
+  - Files modified: `static/css/custom.css`
+
+### 🎯 Improvements
+- **Enhanced:** Proper Bootstrap 5 navbar expansion behavior
+  - Follows Bootstrap's standard navbar-expand pattern
+  - Compatible with Bootstrap's dropdown JavaScript
+  - Maintains responsive collapse at 1700px breakpoint
+
+---
+
 ## [2.24.60] - 2026-01-15
 
 ### 🎯 Major Improvement - Guaranteed Navbar Visibility

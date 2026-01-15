@@ -112,27 +112,72 @@ h6 { font-size: 1rem; }
 
 /* Custom navbar breakpoint at 1700px - ensures navbar never overflows */
 @media (max-width: 1699px) {
+    .navbar-expand-custom > .container,
+    .navbar-expand-custom > .container-fluid {
+        flex-wrap: wrap;
+    }
+
     .navbar-expand-custom .navbar-toggler {
         display: block;
     }
 
     .navbar-expand-custom .navbar-collapse {
-        display: none !important;
-    }
-
-    .navbar-expand-custom .navbar-collapse.show {
-        display: block !important;
+        flex-basis: 100%;
+        flex-grow: 1;
+        align-items: center;
     }
 }
 
 @media (min-width: 1700px) {
-    .navbar-expand-custom .navbar-toggler {
-        display: none;
+    .navbar-expand-custom {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+
+    .navbar-expand-custom .navbar-nav {
+        flex-direction: row;
+    }
+
+    .navbar-expand-custom .navbar-nav .dropdown-menu {
+        position: absolute;
+    }
+
+    .navbar-expand-custom .navbar-nav .nav-link {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
     }
 
     .navbar-expand-custom .navbar-collapse {
         display: flex !important;
         flex-basis: auto;
+    }
+
+    .navbar-expand-custom .navbar-toggler {
+        display: none;
+    }
+
+    .navbar-expand-custom .offcanvas {
+        position: static;
+        z-index: auto;
+        flex-grow: 1;
+        width: auto !important;
+        height: auto !important;
+        visibility: visible !important;
+        background-color: transparent !important;
+        border: 0 !important;
+        transform: none !important;
+        transition: none;
+    }
+
+    .navbar-expand-custom .offcanvas .offcanvas-header {
+        display: none;
+    }
+
+    .navbar-expand-custom .offcanvas .offcanvas-body {
+        display: flex;
+        flex-grow: 0;
+        padding: 0;
+        overflow-y: visible;
     }
 }
 
@@ -147,20 +192,19 @@ h6 { font-size: 1rem; }
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    overflow: visible;
 }
 
-.navbar-collapse {
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-width: 100%;
-    -webkit-overflow-scrolling: touch;
+/* Ensure dropdowns are visible and positioned correctly */
+.navbar-nav .dropdown-menu {
+    position: absolute;
+    z-index: 1000;
 }
 
-/* Hide scrollbar but allow scrolling if absolutely necessary */
-.navbar-collapse::-webkit-scrollbar {
-    height: 0;
-    display: none;
+/* Allow dropdown menus to overflow navbar bounds */
+@media (min-width: 1700px) {
+    .navbar-collapse {
+        overflow: visible;
+    }
 }
 
 .navbar-brand {
