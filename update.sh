@@ -124,7 +124,7 @@ LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/main)
 
 if [ "$LOCAL" != "$REMOTE" ]; then
-    # Check if it's a simple fast-forward or divergent
+    # Updates available - check if it's a force push (for informational message)
     git merge-base --is-ancestor HEAD origin/main
     IS_ANCESTOR=$?
 
@@ -133,24 +133,23 @@ if [ "$LOCAL" != "$REMOTE" ]; then
         warning "Remote repository history has changed (force push detected)"
         echo ""
         echo "This typically happens after repository maintenance."
-        echo "Your local changes will be preserved if you have any uncommitted work."
+        echo "Your local changes were already checked in Step 1."
         echo ""
-        echo "To update, we need to reset to the remote version."
-        echo ""
-        read -p "Reset to remote version and update? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            info "Resetting to remote version..."
-            git reset --hard origin/main || error_exit "Git reset failed"
-            success "Reset to remote version successfully"
-        else
-            error_exit "Update cancelled by user"
-        fi
     else
-        # Simple fast-forward update
-        info "Pulling updates..."
-        git pull origin main || error_exit "Git pull failed"
-        success "Code updated successfully"
+        # Regular update
+        info "Update available..."
+        echo ""
+    fi
+
+    # Always use reset --hard for reliability (avoids git pull configuration issues)
+    read -p "Apply update to latest version? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        info "Updating to latest version..."
+        git reset --hard origin/main || error_exit "Git reset failed"
+        success "Updated to latest version successfully"
+    else
+        error_exit "Update cancelled by user"
     fi
 else
     success "Already up to date"

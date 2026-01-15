@@ -5,6 +5,43 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.75] - 2026-01-15
+
+### 🔧 Fixed CLI update.sh - Eliminate git pull
+
+**Problem**: The CLI `update.sh` script had the same issue as the web updater (fixed in v2.24.74) - it still used `git pull` which fails without git pull strategy configuration.
+
+**The Fix**: Applied the same solution to `update.sh` - eliminate `git pull` entirely.
+
+**Before** (v2.24.71-74):
+```bash
+if divergent:
+    git reset --hard origin/main  # After user confirms
+else:
+    git pull origin main  # ❌ Fails if no pull strategy!
+```
+
+**After** (v2.24.75):
+```bash
+if updates_available:
+    git reset --hard origin/main  # Always! After user confirms
+```
+
+**Changes**:
+- Removed `git pull origin main` from update.sh
+- Always use `git reset --hard origin/main` after user confirmation
+- Simplified prompt: "Apply update to latest version?" (same for all scenarios)
+- Force push detection is now informational only
+
+**Impact**:
+- ✅ CLI updates now work without git configuration
+- ✅ Consistent behavior between CLI and web updater
+- ✅ Both update methods work for all users
+
+**Now BOTH update methods work perfectly!**
+- Web auto-update (fixed in v2.24.74)
+- CLI ./update.sh (fixed in v2.24.75)
+
 ## [2.24.74] - 2026-01-15
 
 ### 🔧 FINAL FIX - Eliminate git pull Entirely
