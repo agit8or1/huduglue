@@ -5,6 +5,60 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.71] - 2026-01-15
+
+### 🔧 Fixed Update Script - Handle Force Push Gracefully (Issue #24)
+
+**Problem**: After repository maintenance (force push), users couldn't update with `./update.sh`:
+```
+fatal: Need to specify how to reconcile divergent branches.
+ERROR: Git pull failed
+```
+
+**Root Cause**:
+- Repository was force-pushed during maintenance (email change, contributor cleanup)
+- Users' local repos had divergent history from remote
+- `git pull` failed without strategy specified
+
+**The Fix**:
+Enhanced `update.sh` with intelligent update logic:
+
+1. **Fetch First**: `git fetch origin` to get latest remote refs
+2. **Detect Divergence**: Check if local and remote have diverged
+3. **Smart Handling**:
+   - If simple fast-forward: Normal `git pull` ✓
+   - If divergent (force push detected): Prompt user to reset ⚠️
+   - If already up-to-date: Skip pull ✓
+
+**New Behavior**:
+```bash
+⚠ Remote repository history has changed (force push detected)
+
+This typically happens after repository maintenance.
+Your local changes will be preserved if you have any uncommitted work.
+
+To update, we need to reset to the remote version.
+
+Reset to remote version and update? (y/N):
+```
+
+**Impact**:
+- ✅ Updates work smoothly after force pushes
+- ✅ User prompted before destructive operations
+- ✅ Clear explanation of what's happening
+- ✅ Uncommitted work preserved (checked in Step 1)
+
+**Files Modified:**
+- `update.sh` - Added divergent branch detection and handling
+- `config/version.py` - Bumped to v2.24.71
+
+**Note**: This fix addresses the update failure. If you're experiencing navbar display issues after updating, please provide:
+- Screenshot of the issue
+- Browser and resolution used
+- Any console errors (F12 → Console tab)
+
+---
+
 ## [2.24.70] - 2026-01-15
 
 ### 📝 Documentation Update - Remove Dependabot References

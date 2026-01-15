@@ -117,8 +117,44 @@ echo -e "${YELLOW}Step 2: Pulling Updates${NC}"
 echo "-----------------------------------"
 
 info "Fetching latest code from GitHub..."
-git pull origin main || error_exit "Git pull failed"
-success "Code updated successfully"
+git fetch origin || error_exit "Git fetch failed"
+
+# Check if branches are divergent (happens after force push to remote)
+LOCAL=$(git rev-parse HEAD)
+REMOTE=$(git rev-parse origin/main)
+
+if [ "$LOCAL" != "$REMOTE" ]; then
+    # Check if it's a simple fast-forward or divergent
+    git merge-base --is-ancestor HEAD origin/main
+    IS_ANCESTOR=$?
+
+    if [ $IS_ANCESTOR -ne 0 ]; then
+        # Branches are divergent (remote was force-pushed)
+        warning "Remote repository history has changed (force push detected)"
+        echo ""
+        echo "This typically happens after repository maintenance."
+        echo "Your local changes will be preserved if you have any uncommitted work."
+        echo ""
+        echo "To update, we need to reset to the remote version."
+        echo ""
+        read -p "Reset to remote version and update? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            info "Resetting to remote version..."
+            git reset --hard origin/main || error_exit "Git reset failed"
+            success "Reset to remote version successfully"
+        else
+            error_exit "Update cancelled by user"
+        fi
+    else
+        # Simple fast-forward update
+        info "Pulling updates..."
+        git pull origin main || error_exit "Git pull failed"
+        success "Code updated successfully"
+    fi
+else
+    success "Already up to date"
+fi
 
 echo ""
 echo -e "${YELLOW}Step 3: Installing Dependencies${NC}"
