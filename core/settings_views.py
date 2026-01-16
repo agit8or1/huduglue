@@ -1675,10 +1675,13 @@ def import_demo_data(request):
             call_command(
                 'import_demo_data',
                 organization=str(organization.id),
-                user=request.user.username
+                user=request.user.username,
+                force=True  # Always force when importing from web UI
             )
         except Exception as e:
             print(f"Demo data import error: {e}")
+            import traceback
+            traceback.print_exc()
 
     thread = threading.Thread(target=run_import)
     thread.daemon = True

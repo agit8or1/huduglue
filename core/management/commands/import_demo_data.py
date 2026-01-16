@@ -38,6 +38,11 @@ class Command(BaseCommand):
             type=str,
             help='Username to assign as creator (defaults to first superuser)'
         )
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Delete existing demo data before importing (WARNING: Destructive!)'
+        )
 
     def handle(self, *args, **options):
         org_identifier = options['organization']
@@ -79,6 +84,32 @@ class Command(BaseCommand):
 
         self.stdout.write(f'Importing into organization: {organization.name}')
         self.stdout.write(f'Created by user: {user.username}')
+
+        # Check if data already exists
+        existing_docs = organization.documents.filter(
+            title__in=['Network Infrastructure Overview', 'Backup and Recovery Procedures', 'Security Policy', 'Server Maintenance Runbook', 'New Employee Onboarding']
+        ).count()
+
+        if existing_docs > 0:
+            if options.get('force'):
+                self.stdout.write(self.style.WARNING(
+                    f'Found {existing_docs} existing demo documents. Deleting all demo data due to --force flag...'
+                ))
+                # Delete existing demo data
+                organization.documents.all().delete()
+                organization.assets.all().delete()
+                organization.passwords.all().delete()
+                Diagram.objects.filter(organization=organization).all().delete()
+                organization.processes.all().delete()
+                self.stdout.write(self.style.SUCCESS('✓ Existing data deleted'))
+            else:
+                self.stdout.write(self.style.WARNING(
+                    f'⚠️  Demo data already exists in {organization.name} ({existing_docs} demo documents found).'
+                ))
+                self.stdout.write(
+                    'Run with --force to delete existing data and re-import, or import into a different organization.'
+                )
+                return
 
         try:
             with transaction.atomic():

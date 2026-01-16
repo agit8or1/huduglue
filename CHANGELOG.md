@@ -5,6 +5,29 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.97] - 2026-01-16
+
+### 🐛 Bug Fix
+
+**Demo Data Import - Finally Fixed:**
+- **Fixed** demo data import failing when data already exists
+- **Added** `--force` flag to delete existing data before re-importing
+- **Web interface** now automatically uses `--force` when importing
+- **Issue**: Command failed with UNIQUE constraint errors on duplicate slugs
+- **Root cause**: Import tried to create documents that already existed
+- **Solution**: Check for existing data, skip or delete with --force flag
+- **Result**: Web import now works reliably, always replaces existing demo data
+
+**Acme Corporation Demo Data:**
+- ✅ 5 Documents (Network Infrastructure, Backup Procedures, Security Policy, Runbook, Onboarding)
+- ✅ 3 Diagrams (Network, Rack, Flowchart)
+- ✅ 10 Assets (Workstations, Servers, Switches, Firewall, APs)
+- ✅ 5 Passwords (Domain Admin, WiFi, Firewall, File Server, Email)
+
+**Changes:**
+- core/management/commands/import_demo_data.py - Added --force flag and duplicate detection
+- core/settings_views.py - Web import now passes force=True automatically
+
 ## [2.24.96] - 2026-01-16
 
 ### 🧪 Testing Release
