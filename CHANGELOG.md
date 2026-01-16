@@ -5,6 +5,20 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.93] - 2026-01-16
+
+### 🐛 Bug Fix
+
+**Update Modal Positioning:**
+- **Increased** margin-top from 120px to 250px on update progress modal
+- **Increased** margin-top to 250px on update confirmation modal
+- **Issue**: Top of modals still getting cut off at 120px
+- **Solution**: Moved modals significantly lower on screen for better visibility
+- **User confirmed**: Original positioning was insufficient
+
+**Changes:**
+- templates/core/system_updates.html - Increased both modal margin-top values to 250px
+
 ## [2.24.92] - 2026-01-16
 
 ### 🐛 Bug Fixes
