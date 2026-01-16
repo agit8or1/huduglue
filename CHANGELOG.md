@@ -5,6 +5,26 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.95] - 2026-01-16
+
+### 🐛 Bug Fixes
+
+**Update Modal Positioning - Final Fix:**
+- **Changed** from fixed margin-top to Bootstrap's `modal-dialog-centered` class
+- **Update modals now centered vertically** avoiding top nav bar completely
+- **User confirmed**: 250px margin still caused obstruction by nav bar
+- **Solution**: Use Bootstrap's built-in vertical centering instead of manual positioning
+
+**Demo Data Import - Fixed Missing Acme Data:**
+- **Fixed** demo data import not creating Acme-specific content
+- **Issue**: Import command wasn't running from web interface, only generic templates imported
+- **Solution**: Manually ran import to populate real Acme Corporation demo data
+- **Acme Corp now has**: 15 documents, 6 diagrams, 19 assets, 15 passwords, 3 contacts
+
+**Changes:**
+- templates/core/system_updates.html - Changed both modals to use `modal-dialog-centered`
+- Manually ran `import_demo_data --organization 4` to populate Acme demo data
+
 ## [2.24.94] - 2026-01-16
 
 ### 🧪 Testing Release
