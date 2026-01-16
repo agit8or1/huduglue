@@ -5,6 +5,26 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.84] - 2026-01-16
+
+### ✨ Enhancement
+
+**Automatic Acme Corporation Creation:**
+- **Auto-create organization** - Demo import now automatically creates "Acme Corporation" organization
+- **No manual selection** - Removed organization dropdown; everything happens with one click
+- **Auto-membership** - Current user is automatically added as admin to the new organization
+- **Simplified UX** - Single button "Create & Import Acme Corporation" does everything
+- **Idempotent** - If "Acme Corporation" already exists, it uses the existing organization
+
+**Benefits:**
+- One-click demo setup - no configuration needed
+- Perfect for testing, demos, and onboarding
+- Organization automatically appears in navbar dropdown
+
+**Changes:**
+- core/settings_views.py - Auto-create organization logic
+- templates/core/settings_kb_import.html - Simplified UI, removed dropdown
+
 ## [2.24.83] - 2026-01-16
 
 ### ♻️ Reorganization

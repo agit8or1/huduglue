@@ -118,42 +118,32 @@ const CSRF_TOKEN = '{{ csrf_token }}';
             </div>
             <div class="card-body">
                 <p class="mb-3">
-                    Import complete demo data for "Acme Corporation" including documents, diagrams, assets, passwords, KB articles, and processes.
-                    This is useful for testing and demonstration purposes.
+                    This will automatically create (or use existing) "Acme Corporation" organization and populate it with complete demo data including documents, diagrams, assets, passwords, KB articles, and processes.
                 </p>
 
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i> <strong>What will be imported:</strong>
                     <ul class="mb-0 mt-2">
-                        <li>IT Procedures, Security Policies, and Runbooks</li>
-                        <li>Network and Rack Diagrams</li>
-                        <li>Workstations, Servers, and Network Equipment</li>
-                        <li>Sample Passwords (demo credentials)</li>
-                        <li>Knowledge Base Articles</li>
-                        <li>IT Processes with execution history</li>
+                        <li><strong>Organization:</strong> Creates "Acme Corporation" (if it doesn't exist)</li>
+                        <li><strong>Documents:</strong> IT Procedures, Security Policies, and Runbooks</li>
+                        <li><strong>Diagrams:</strong> Network and Rack Diagrams</li>
+                        <li><strong>Assets:</strong> Workstations, Servers, and Network Equipment</li>
+                        <li><strong>Passwords:</strong> Sample Passwords (demo credentials)</li>
+                        <li><strong>KB Articles:</strong> Knowledge Base Articles</li>
+                        <li><strong>Processes:</strong> IT Processes with execution history</li>
                     </ul>
                 </div>
 
-                <div class="mb-3">
-                    <label for="demo_organization" class="form-label">Select Organization *</label>
-                    <select class="form-select" id="demo_organization" required>
-                        <option value="">-- Select Organization --</option>
-                        {% for org in user.organization_memberships.all %}
-                        <option value="{{ org.organization.id }}">{{ org.organization.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <div class="form-text">Demo data will be imported into this organization</div>
-                </div>
-
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i> <strong>Warning:</strong>
-                    This will add demo data to the selected organization. Make sure you select the correct organization.
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> <strong>Note:</strong>
+                    You will automatically be added as an admin to the "Acme Corporation" organization.
+                    You can switch to it from the organization dropdown in the navbar.
                 </div>
 
                 <div id="importDemoResults" style="display: none;"></div>
 
-                <button type="button" class="btn btn-primary" id="importDemoBtn">
-                    <i class="fas fa-download"></i> Import Acme Corporation Demo
+                <button type="button" class="btn btn-primary btn-lg" id="importDemoBtn">
+                    <i class="fas fa-building"></i> Create & Import Acme Corporation
                 </button>
             </div>
         </div>
@@ -411,21 +401,15 @@ function deleteGlobalArticles() {
 // Acme Corporation Demo Import
 document.getElementById('importDemoBtn').addEventListener('click', function() {
     const btn = this;
-    const organizationId = document.getElementById('demo_organization').value;
     const resultsDiv = document.getElementById('importDemoResults');
 
-    if (!organizationId) {
-        alert('Please select an organization');
-        return;
-    }
-
-    if (!confirm('Are you sure you want to import Acme Corporation demo data? This will add multiple items to the selected organization.')) {
+    if (!confirm('This will create "Acme Corporation" organization (if it doesn\'t exist) and import demo data. Continue?')) {
         return;
     }
 
     // Disable button
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating & Importing...';
     resultsDiv.style.display = 'none';
 
     // Send AJAX request
@@ -434,8 +418,7 @@ document.getElementById('importDemoBtn').addEventListener('click', function() {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRFToken': CSRF_TOKEN
-        },
-        body: `organization_id=${organizationId}`
+        }
     })
     .then(response => response.json())
     .then(data => {
@@ -457,7 +440,7 @@ document.getElementById('importDemoBtn').addEventListener('click', function() {
 
         // Re-enable button
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-download"></i> Import Acme Corporation Demo';
+        btn.innerHTML = '<i class="fas fa-building"></i> Create & Import Acme Corporation';
     })
     .catch(error => {
         resultsDiv.innerHTML = `
@@ -469,7 +452,7 @@ document.getElementById('importDemoBtn').addEventListener('click', function() {
 
         // Re-enable button
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-download"></i> Import Acme Corporation Demo';
+        btn.innerHTML = '<i class="fas fa-building"></i> Create & Import Acme Corporation';
     });
 });
 </script>

@@ -1637,9 +1637,10 @@ def _format_for_itglue(data):
 @login_required
 @user_passes_test(is_superuser)
 def import_demo_data(request):
-    """Import Acme Corporation demo data."""
+    """Import Acme Corporation demo data - automatically creates 'Acme Corporation' org."""
     from django.http import JsonResponse
     from django.core.management import call_command
+    from accounts.models import OrganizationMembership
     import threading
 
     if request.method != 'POST':
@@ -1648,21 +1649,25 @@ def import_demo_data(request):
             'message': 'Invalid request method'
         })
 
-    organization_id = request.POST.get('organization_id')
+    # Get or create Acme Corporation organization
+    organization, created = Organization.objects.get_or_create(
+        name='Acme Corporation',
+        defaults={
+            'description': 'Demo company with sample data for testing and demonstration',
+            'is_active': True,
+        }
+    )
 
-    if not organization_id:
-        return JsonResponse({
-            'success': False,
-            'message': 'Organization ID is required'
-        })
-
-    try:
-        organization = Organization.objects.get(id=organization_id)
-    except Organization.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'message': 'Organization not found'
-        })
+    # Add current user to the organization if not already a member
+    if not OrganizationMembership.objects.filter(
+        user=request.user,
+        organization=organization
+    ).exists():
+        OrganizationMembership.objects.create(
+            user=request.user,
+            organization=organization,
+            role='admin'
+        )
 
     # Run import in background thread
     def run_import():
@@ -1679,7 +1684,8 @@ def import_demo_data(request):
     thread.daemon = True
     thread.start()
 
+    action = 'created' if created else 'using existing'
     return JsonResponse({
         'success': True,
-        'message': f'Demo data import started for {organization.name}. This may take a few minutes...'
+        'message': f'Demo data import started! {action.capitalize()} "Acme Corporation" organization. This may take a few minutes...'
     })
