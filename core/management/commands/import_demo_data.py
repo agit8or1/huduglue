@@ -14,6 +14,7 @@ import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.text import slugify
 from django.db import transaction
 
 from core.models import Organization
@@ -146,11 +147,13 @@ class Command(BaseCommand):
                 passwords = self._create_passwords(organization, user)
                 stats['passwords'] = len(passwords)
 
+                # Import processes/workflows
+                self.stdout.write('Importing workflows...')
+                processes = self._create_processes(organization, user, documents, passwords)
+                stats['processes'] = len(processes)
+
                 # Skip KB articles - no KB model exists yet
                 stats['kb_articles'] = 0
-
-                # Skip processes - model structure needs verification
-                stats['processes'] = 0
 
                 self.stdout.write(
                     self.style.SUCCESS(
@@ -563,41 +566,227 @@ class Command(BaseCommand):
 
         return passwords
 
-    def _create_processes(self, organization, user):
-        """Create demo processes."""
+    def _create_processes(self, organization, user, documents, passwords):
+        """Create demo workflows with stages."""
+        from processes.models import ProcessStage
+
+        # Find specific documents and passwords to link
+        onboarding_doc = next((d for d in documents if 'Onboarding' in d.title), None)
+        security_doc = next((d for d in documents if 'Security' in d.title or 'Password' in d.title), None)
+        backup_doc = next((d for d in documents if 'Backup' in d.title), None)
+        runbook_doc = next((d for d in documents if 'Runbook' in d.title), None)
+
+        domain_admin_pw = next((p for p in passwords if 'Domain Admin' in p.title), None)
+        firewall_pw = next((p for p in passwords if 'Firewall' in p.title), None)
+
         processes_data = [
             {
                 'title': 'New Employee Onboarding',
-                'description': 'Complete IT onboarding process for new employees',
-                'process_steps': [
-                    {'order': 1, 'title': 'Create AD Account', 'description': 'Create Active Directory user account'},
-                    {'order': 2, 'title': 'Provision Email', 'description': 'Create Exchange mailbox'},
-                    {'order': 3, 'title': 'Assign Equipment', 'description': 'Order and assign laptop'},
-                    {'order': 4, 'title': 'Setup Workstation', 'description': 'Configure laptop with required software'},
+                'description': 'Complete IT onboarding workflow for new employees',
+                'category': 'onboarding',
+                'stages': [
+                    {
+                        'order': 1,
+                        'title': 'Create Active Directory Account',
+                        'description': '1. Open Active Directory Users and Computers\n2. Navigate to appropriate OU\n3. Create new user with naming convention: firstname.lastname\n4. Set temporary password\n5. Enable account and require password change at next login',
+                        'linked_password': domain_admin_pw,
+                    },
+                    {
+                        'order': 2,
+                        'title': 'Provision Email Account',
+                        'description': '1. Log into Exchange Admin Center\n2. Create new mailbox for user\n3. Assign appropriate license\n4. Add to relevant distribution groups\n5. Configure mobile device policy',
+                    },
+                    {
+                        'order': 3,
+                        'title': 'Assign Security Groups',
+                        'description': '1. Review department access requirements\n2. Add user to department security groups\n3. Add to file share groups\n4. Grant application access as needed\n5. Document all group memberships',
+                        'linked_document': security_doc,
+                    },
+                    {
+                        'order': 4,
+                        'title': 'Provision and Configure Workstation',
+                        'description': '1. Assign laptop from inventory\n2. Install standard software package\n3. Join to domain\n4. Configure encryption (BitLocker)\n5. Install and configure VPN client\n6. Test all required applications',
+                    },
+                    {
+                        'order': 5,
+                        'title': 'First Day Setup and Training',
+                        'description': '1. Provide credentials securely\n2. Help user log in for first time\n3. Guide password setup\n4. Review security policies\n5. Configure MFA/2FA\n6. Demonstrate key applications',
+                        'linked_document': onboarding_doc,
+                    },
                 ]
             },
             {
-                'title': 'Server Patching',
-                'description': 'Monthly server patching and maintenance',
-                'process_steps': [
-                    {'order': 1, 'title': 'Backup Verification', 'description': 'Verify backups are current'},
-                    {'order': 2, 'title': 'Apply Patches', 'description': 'Install security updates'},
-                    {'order': 3, 'title': 'Reboot', 'description': 'Restart server if required'},
-                    {'order': 4, 'title': 'Verify Services', 'description': 'Test critical services'},
+                'title': 'Server Maintenance Runbook',
+                'description': 'Monthly maintenance workflow for production servers',
+                'category': 'maintenance',
+                'stages': [
+                    {
+                        'order': 1,
+                        'title': 'Pre-Maintenance Checks',
+                        'description': '1. Verify change control approval received\n2. Confirm maintenance window scheduled\n3. Check backup completion status\n4. Review server health dashboard\n5. Notify stakeholders of upcoming maintenance',
+                        'linked_document': backup_doc,
+                    },
+                    {
+                        'order': 2,
+                        'title': 'Create Backup and Snapshot',
+                        'description': '1. Take VM snapshot (if applicable)\n2. Run full backup job manually\n3. Verify backup completed successfully\n4. Document backup location and timestamp\n5. Confirm restore point is valid',
+                        'linked_document': backup_doc,
+                    },
+                    {
+                        'order': 3,
+                        'title': 'Apply Security Patches',
+                        'description': '1. Review available patches\n2. Download patches to staging area\n3. Apply Windows/Linux updates\n4. Apply application-specific patches\n5. Document all patches applied',
+                    },
+                    {
+                        'order': 4,
+                        'title': 'System Maintenance Tasks',
+                        'description': '1. Clear temporary files and logs\n2. Update antivirus definitions\n3. Check disk space usage\n4. Review event logs for errors\n5. Optimize databases if needed',
+                        'linked_document': runbook_doc,
+                    },
+                    {
+                        'order': 5,
+                        'title': 'Reboot and Verify Services',
+                        'description': '1. Gracefully restart the server\n2. Monitor boot process\n3. Verify all services started\n4. Test critical applications\n5. Check network connectivity\n6. Validate with smoke tests',
+                    },
+                    {
+                        'order': 6,
+                        'title': 'Post-Maintenance Documentation',
+                        'description': '1. Document all changes made\n2. Update maintenance log\n3. Remove old snapshots\n4. Notify stakeholders of completion\n5. Close change control ticket',
+                    },
+                ]
+            },
+            {
+                'title': 'Security Incident Response',
+                'description': 'Workflow for responding to security incidents',
+                'category': 'incident',
+                'stages': [
+                    {
+                        'order': 1,
+                        'title': 'Initial Detection and Reporting',
+                        'description': '1. Document initial alert or report\n2. Record time of detection\n3. Identify affected systems/users\n4. Assess initial severity\n5. Notify security team lead',
+                    },
+                    {
+                        'order': 2,
+                        'title': 'Containment',
+                        'description': '1. Isolate affected systems from network\n2. Disable compromised user accounts\n3. Block malicious IP addresses at firewall\n4. Prevent lateral movement\n5. Preserve evidence for investigation',
+                        'linked_password': firewall_pw,
+                    },
+                    {
+                        'order': 3,
+                        'title': 'Investigation and Analysis',
+                        'description': '1. Collect logs from affected systems\n2. Analyze attack vectors and entry points\n3. Identify scope of compromise\n4. Document attacker tactics and IOCs\n5. Determine root cause',
+                    },
+                    {
+                        'order': 4,
+                        'title': 'Eradication',
+                        'description': '1. Remove malware/unauthorized access\n2. Patch vulnerabilities exploited\n3. Reset compromised credentials\n4. Update firewall and IDS rules\n5. Verify threats eliminated',
+                        'linked_document': security_doc,
+                    },
+                    {
+                        'order': 5,
+                        'title': 'Recovery and Monitoring',
+                        'description': '1. Restore systems from clean backups\n2. Bring systems back online gradually\n3. Implement enhanced monitoring\n4. Verify normal operations\n5. Watch for signs of re-infection',
+                    },
+                    {
+                        'order': 6,
+                        'title': 'Post-Incident Review',
+                        'description': '1. Document full incident timeline\n2. Conduct lessons learned meeting\n3. Update security policies/procedures\n4. Implement preventive measures\n5. File final incident report',
+                    },
+                ]
+            },
+            {
+                'title': 'Firewall Configuration Change',
+                'description': 'Workflow for safely implementing firewall rule changes',
+                'category': 'change',
+                'stages': [
+                    {
+                        'order': 1,
+                        'title': 'Request and Approval',
+                        'description': '1. Submit change request with justification\n2. Document required rule changes\n3. Identify affected services/systems\n4. Obtain manager approval\n5. Schedule implementation window',
+                    },
+                    {
+                        'order': 2,
+                        'title': 'Backup Current Configuration',
+                        'description': '1. Log into firewall admin console\n2. Export current configuration\n3. Save backup with timestamp\n4. Store in secure location\n5. Verify backup file integrity',
+                        'linked_password': firewall_pw,
+                    },
+                    {
+                        'order': 3,
+                        'title': 'Implement Changes',
+                        'description': '1. Document each rule being added/modified\n2. Apply changes in firewall console\n3. Follow principle of least privilege\n4. Add detailed comments to rules\n5. Review before committing',
+                    },
+                    {
+                        'order': 4,
+                        'title': 'Testing and Validation',
+                        'description': '1. Test affected services immediately\n2. Verify traffic flows as expected\n3. Check for unintended blocks\n4. Monitor firewall logs\n5. Confirm with stakeholders',
+                    },
+                    {
+                        'order': 5,
+                        'title': 'Documentation and Closure',
+                        'description': '1. Update network documentation\n2. Document business justification\n3. Update change log\n4. Notify relevant teams\n5. Close change request',
+                    },
+                ]
+            },
+            {
+                'title': 'Employee Offboarding',
+                'description': 'IT offboarding workflow when employee leaves',
+                'category': 'offboarding',
+                'stages': [
+                    {
+                        'order': 1,
+                        'title': 'Disable Active Directory Account',
+                        'description': '1. Disable AD account immediately\n2. Reset password to random value\n3. Remove from all security groups\n4. Document account status\n5. Set account expiration date',
+                        'linked_password': domain_admin_pw,
+                    },
+                    {
+                        'order': 2,
+                        'title': 'Revoke System Access',
+                        'description': '1. Disable email account\n2. Remove VPN access\n3. Disable remote desktop access\n4. Revoke application licenses\n5. Remove from cloud services (O365, AWS, etc.)',
+                    },
+                    {
+                        'order': 3,
+                        'title': 'Collect Company Equipment',
+                        'description': '1. Retrieve laptop/desktop\n2. Collect mobile devices\n3. Recover security badges/keys\n4. Get chargers and accessories\n5. Document all items returned',
+                    },
+                    {
+                        'order': 4,
+                        'title': 'Data Backup and Transfer',
+                        'description': '1. Backup user home directory\n2. Backup email/calendar to PST\n3. Transfer files to manager\n4. Archive important documents\n5. Document data retention',
+                    },
+                    {
+                        'order': 5,
+                        'title': 'Final Cleanup',
+                        'description': '1. Wipe workstation\n2. Remove from asset inventory\n3. Cancel software licenses\n4. Update documentation\n5. Close offboarding ticket',
+                    },
                 ]
             },
         ]
 
         processes = []
         for data in processes_data:
+            # Create the process
             process = Process.objects.create(
                 organization=organization,
                 title=data['title'],
+                slug=slugify(data['title']),
                 description=data['description'],
-                process_steps=data.get('process_steps', []),
+                category=data.get('category', 'other'),
+                is_published=True,
                 created_by=user,
             )
+
+            # Create stages for this process
+            for stage_data in data['stages']:
+                ProcessStage.objects.create(
+                    process=process,
+                    order=stage_data['order'],
+                    title=stage_data['title'],
+                    description=stage_data['description'],
+                    linked_document=stage_data.get('linked_document'),
+                    linked_password=stage_data.get('linked_password'),
+                )
+
             processes.append(process)
-            self.stdout.write(f'  Created process: {process.title}')
+            self.stdout.write(f'  Created workflow: {process.title} ({len(data["stages"])} stages)')
 
         return processes

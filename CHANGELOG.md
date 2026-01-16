@@ -5,6 +5,33 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.99] - 2026-01-16
+
+### ✨ Feature Enhancement
+
+**Demo Data Import - Added Complete Workflows:**
+- **Added** 5 comprehensive sample workflows with 27 detailed stages
+- **Fixed** workflows not being created (was hardcoded to 0)
+- **Implemented** proper Process and ProcessStage creation
+- **Added** entity linking (stages linked to documents and passwords)
+
+**Workflow Categories:**
+- 👤 **Employee Onboarding** (5 stages): AD account creation → email provisioning → security groups → workstation setup → first day training
+- 👋 **Employee Offboarding** (5 stages): Disable accounts → revoke access → collect equipment → backup data → cleanup
+- 🔧 **Server Maintenance** (6 stages): Pre-checks → backup → patching → maintenance → reboot → documentation
+- 🚨 **Security Incident Response** (6 stages): Detection → containment → investigation → eradication → recovery → post-incident review
+- 🔥 **Firewall Configuration** (5 stages): Request/approval → backup config → implement → testing → documentation
+
+**Workflow Features:**
+- Detailed step-by-step instructions for each stage
+- Category tagging (onboarding, offboarding, maintenance, incident, change)
+- **Linked entities**: 6 stages linked to relevant documents, 4 stages linked to passwords
+- Real-world examples for MSPs and IT departments
+
+**Changes:**
+- core/management/commands/import_demo_data.py - Rewrote _create_processes method with stages
+- Added slugify import for proper URL-safe workflow slugs
+
 ## [2.24.98] - 2026-01-16
 
 ### 🐛 Bug Fix
