@@ -5,6 +5,23 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.108] - 2026-01-16
+
+### 🐛 Bug Fixes & Logging Improvements
+
+**Added Proper Logging for Demo Data Import:**
+- **Added** comprehensive logging to demo data import process
+- **Added** logger info messages at key points: import start, organization creation, user membership, import completion
+- **Added** logger error messages with full tracebacks when import fails
+- **Changed** from print() to proper logging.getLogger('core')
+- **Result**: Demo data import progress and errors now visible in Django logs
+
+**Why This Matters:**
+- Users and admins can now see exactly what happens during demo data import
+- Errors are properly logged with full tracebacks for debugging
+- Import success/failure is tracked in log files
+- Makes it much easier to diagnose why demo data might not show up
+
 ## [2.24.107] - 2026-01-16
 
 ### 🎨 UI Improvements

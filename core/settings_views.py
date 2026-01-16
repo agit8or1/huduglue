@@ -17,7 +17,10 @@ import os
 import shutil
 import psutil
 import django
+import logging
 from datetime import datetime, timedelta
+
+logger = logging.getLogger('core')
 
 
 def is_superuser(user):
@@ -1649,6 +1652,8 @@ def import_demo_data(request):
             'message': 'Invalid request method'
         })
 
+    logger.info(f"Demo data import requested by user: {request.user.username}")
+
     # Get or create Acme Corporation organization
     organization, created = Organization.objects.get_or_create(
         name='Acme Corporation',
@@ -1657,6 +1662,11 @@ def import_demo_data(request):
             'is_active': True,
         }
     )
+
+    if created:
+        logger.info(f"Created new 'Acme Corporation' organization (ID: {organization.id})")
+    else:
+        logger.info(f"Using existing 'Acme Corporation' organization (ID: {organization.id})")
 
     # Add current user to the organization if not already a member
     if not Membership.objects.filter(
@@ -1668,9 +1678,13 @@ def import_demo_data(request):
             organization=organization,
             role='admin'
         )
+        logger.info(f"Added user {request.user.username} as admin to Acme Corporation")
+    else:
+        logger.info(f"User {request.user.username} already member of Acme Corporation")
 
     # Run import in background thread
     def run_import():
+        logger.info(f"Starting demo data import for organization ID {organization.id}")
         try:
             call_command(
                 'import_demo_data',
@@ -1678,10 +1692,11 @@ def import_demo_data(request):
                 user=request.user.username,
                 force=True  # Always force when importing from web UI
             )
+            logger.info(f"✓ Demo data import completed successfully for organization ID {organization.id}")
         except Exception as e:
-            print(f"Demo data import error: {e}")
+            logger.error(f"✗ Demo data import FAILED for organization ID {organization.id}: {e}")
             import traceback
-            traceback.print_exc()
+            logger.error(traceback.format_exc())
 
     thread = threading.Thread(target=run_import)
     thread.daemon = True
