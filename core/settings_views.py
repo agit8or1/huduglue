@@ -1690,5 +1690,7 @@ def import_demo_data(request):
     action = 'created' if created else 'using existing'
     return JsonResponse({
         'success': True,
-        'message': f'Demo data import started! {action.capitalize()} "Acme Corporation" organization. This may take a few minutes...'
+        'message': f'Demo data import started! {action.capitalize()} "Acme Corporation" organization. Wait 30 seconds, then: (1) Switch to "Acme Corporation" organization using the dropdown in the top-right navbar, (2) Refresh the page to see the imported data (5 docs, 3 diagrams, 10 assets, 5 passwords, 5 workflows).',
+        'organization_id': organization.id,
+        'organization_name': organization.name
     })
