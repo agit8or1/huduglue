@@ -5,6 +5,20 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.96] - 2026-01-16
+
+### 🧪 Testing Release
+
+**Version Bump for Modal Positioning Testing:**
+- **Purpose**: Test vertically-centered update modals (modal-dialog-centered)
+- **User requested**: Bump version to verify modal positioning fix from v2.24.95
+- **Expected**: Confirmation and progress modals should be perfectly centered, not blocked by nav bar
+- **No functional changes**: Version bump only for UI testing
+
+**Changes:**
+- config/version.py - Version bump to 2.24.96
+- CHANGELOG.md - Testing release notes
+
 ## [2.24.95] - 2026-01-16
 
 ### 🐛 Bug Fixes
