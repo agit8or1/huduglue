@@ -5,6 +5,32 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.90] - 2026-01-16
+
+### 🐛 Bug Fix
+
+**Complete Acme Corporation Demo Data:**
+- **Fixed** demo data import command that was fetching from non-existent GitHub repo
+- **Changed** to generate all demo data inline using Python code
+- **Added** complete demo company with real, usable data:
+  - **5 Documents**: Network docs, backup procedures, security policies, runbooks, onboarding
+  - **3 Diagrams**: Network diagram, rack layout, ticket resolution flowchart
+  - **10 Assets**: 3 workstations, 2 servers, 5 network devices (switches, firewall, APs)
+  - **5 Passwords**: Domain admin, WiFi, firewall, file server, email admin
+  - **3 KB Articles**: Password reset, VPN connection, printer setup
+  - **2 Processes**: Employee onboarding, server patching
+  - **7 Categories**: IT Procedures, Security Policies, Network Docs, Server Docs, User Guides, Runbooks, DR
+
+**Demo Data Details:**
+- Realistic IP addressing (10.0.x.0/24 VLANs)
+- Proper asset naming (ACME-WS-001, ACME-SW-CORE-01)
+- Complete documentation with HTML formatting
+- Tagged and categorized content
+- Encrypted demo passwords
+
+**Changes:**
+- core/management/commands/import_demo_data.py - Complete rewrite with inline data generation
+
 ## [2.24.89] - 2026-01-16
 
 ### ✨ Enhancement

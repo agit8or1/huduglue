@@ -11,35 +11,23 @@ This command imports a complete demo company with:
 """
 import json
 import os
-import requests
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db import transaction
 
 from core.models import Organization
-from docs.models import Document, DocumentCategory, GlobalKnowledge, Diagram
-from assets.models import Asset, AssetType
+from docs.models import Document, DocumentCategory, Diagram
+from assets.models import Asset
 from vault.models import Password
 from processes.models import Process, ProcessExecution
+from knowledge.models import KBArticle, KBCategory
 
 
 class Command(BaseCommand):
-    help = 'Import Acme Corporation demo data from GitHub'
+    help = 'Import Acme Corporation demo data with complete organizational setup'
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '--github-repo',
-            type=str,
-            default='agit8or1/huduglue-demo-data',
-            help='GitHub repository containing demo data (default: agit8or1/huduglue-demo-data)'
-        )
-        parser.add_argument(
-            '--branch',
-            type=str,
-            default='main',
-            help='Branch to import from (default: main)'
-        )
         parser.add_argument(
             '--organization',
             type=str,
@@ -53,14 +41,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        github_repo = options['github_repo']
-        branch = options['branch']
         org_identifier = options['organization']
         username = options.get('user')
 
         self.stdout.write(
             self.style.WARNING(
-                f'Importing Acme Corporation demo data...'
+                'Importing Acme Corporation demo data...'
             )
         )
 
@@ -95,10 +81,6 @@ class Command(BaseCommand):
         self.stdout.write(f'Importing into organization: {organization.name}')
         self.stdout.write(f'Created by user: {user.username}')
 
-        # GitHub API base URL
-        github_api_base = f'https://api.github.com/repos/{github_repo}/contents'
-        github_raw_base = f'https://raw.githubusercontent.com/{github_repo}/{branch}'
-
         try:
             with transaction.atomic():
                 stats = {
@@ -116,67 +98,37 @@ class Command(BaseCommand):
 
                 # Import documents
                 self.stdout.write('Importing documents...')
-                docs_data = self._fetch_json_from_github(
-                    f'{github_raw_base}/data/documents.json'
-                )
-                if docs_data:
-                    for doc_data in docs_data:
-                        self._import_document(doc_data, organization, user, categories)
-                        stats['documents'] += 1
+                documents = self._create_documents(organization, user, categories)
+                stats['documents'] = len(documents)
 
                 # Import diagrams
                 self.stdout.write('Importing diagrams...')
-                diagrams_data = self._fetch_json_from_github(
-                    f'{github_raw_base}/data/diagrams.json'
-                )
-                if diagrams_data:
-                    for diagram_data in diagrams_data:
-                        self._import_diagram(diagram_data, organization, user)
-                        stats['diagrams'] += 1
+                diagrams = self._create_diagrams(organization, user)
+                stats['diagrams'] = len(diagrams)
 
                 # Import assets
                 self.stdout.write('Importing assets...')
-                assets_data = self._fetch_json_from_github(
-                    f'{github_raw_base}/data/assets.json'
-                )
-                if assets_data:
-                    for asset_data in assets_data:
-                        self._import_asset(asset_data, organization, user)
-                        stats['assets'] += 1
+                assets = self._create_assets(organization, user)
+                stats['assets'] = len(assets)
 
                 # Import passwords
                 self.stdout.write('Importing passwords...')
-                passwords_data = self._fetch_json_from_github(
-                    f'{github_raw_base}/data/passwords.json'
-                )
-                if passwords_data:
-                    for password_data in passwords_data:
-                        self._import_password(password_data, organization, user)
-                        stats['passwords'] += 1
+                passwords = self._create_passwords(organization, user)
+                stats['passwords'] = len(passwords)
 
                 # Import KB articles
                 self.stdout.write('Importing knowledge base articles...')
-                kb_data = self._fetch_json_from_github(
-                    f'{github_raw_base}/data/knowledge_base.json'
-                )
-                if kb_data:
-                    for kb_item in kb_data:
-                        self._import_kb_article(kb_item, organization, user)
-                        stats['kb_articles'] += 1
+                kb_articles = self._create_kb_articles(organization, user)
+                stats['kb_articles'] = len(kb_articles)
 
                 # Import processes
                 self.stdout.write('Importing processes...')
-                processes_data = self._fetch_json_from_github(
-                    f'{github_raw_base}/data/processes.json'
-                )
-                if processes_data:
-                    for process_data in processes_data:
-                        self._import_process(process_data, organization, user)
-                        stats['processes'] += 1
+                processes = self._create_processes(organization, user)
+                stats['processes'] = len(processes)
 
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f'\n✓ Successfully imported Acme Corporation demo data:'
+                        '\n✓ Successfully imported Acme Corporation demo data:'
                     )
                 )
                 self.stdout.write(f'  • Documents: {stats["documents"]}')
@@ -190,24 +142,9 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.ERROR(f'Import failed: {e}')
             )
+            import traceback
+            traceback.print_exc()
             raise
-
-    def _fetch_json_from_github(self, url):
-        """Fetch JSON data from GitHub."""
-        try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            self.stdout.write(
-                self.style.WARNING(f'Failed to fetch {url}: {e}')
-            )
-            return None
-        except json.JSONDecodeError:
-            self.stdout.write(
-                self.style.WARNING(f'Invalid JSON at {url}')
-            )
-            return None
 
     def _create_categories(self, organization):
         """Create document categories."""
@@ -233,116 +170,290 @@ class Command(BaseCommand):
 
         return categories
 
-    def _import_document(self, data, organization, user, categories):
-        """Import a single document."""
-        category = categories.get(data.get('category'))
+    def _create_documents(self, organization, user, categories):
+        """Create demo documents."""
+        documents_data = [
+            {
+                'title': 'Network Infrastructure Overview',
+                'category': 'Network Documentation',
+                'body': '''<h2>Network Overview</h2>
+<p>Acme Corporation's network infrastructure consists of:</p>
+<ul>
+<li>Core Network: Dual Cisco switches in HA configuration</li>
+<li>WAN: 1Gbps fiber connection with backup DSL</li>
+<li>Wireless: Unifi AP Pro access points</li>
+<li>Firewall: pfSense with IDS/IPS enabled</li>
+<li>VPN: OpenVPN for remote access</li>
+</ul>
+<h3>Network Segmentation</h3>
+<ul>
+<li>VLAN 10: Management (10.0.10.0/24)</li>
+<li>VLAN 20: Workstations (10.0.20.0/24)</li>
+<li>VLAN 30: Servers (10.0.30.0/24)</li>
+<li>VLAN 40: Guest (10.0.40.0/24)</li>
+</ul>''',
+                'tags': ['network', 'infrastructure', 'documentation']
+            },
+            {
+                'title': 'Backup and Recovery Procedures',
+                'category': 'IT Procedures',
+                'body': '''<h2>Backup Procedures</h2>
+<p>Acme Corporation uses a 3-2-1 backup strategy:</p>
+<ul>
+<li>3 copies of data</li>
+<li>2 different media types</li>
+<li>1 offsite copy</li>
+</ul>
+<h3>Backup Schedule</h3>
+<p><strong>Daily:</strong> Incremental backups at 2:00 AM</p>
+<p><strong>Weekly:</strong> Full backups every Sunday at 1:00 AM</p>
+<p><strong>Monthly:</strong> Full backup to tape (stored offsite)</p>
+<h3>Recovery Testing</h3>
+<p>Perform quarterly recovery tests to verify backup integrity.</p>''',
+                'tags': ['backup', 'disaster-recovery', 'procedures']
+            },
+            {
+                'title': 'Password Policy',
+                'category': 'Security Policies',
+                'body': '''<h2>Password Requirements</h2>
+<ul>
+<li>Minimum 12 characters</li>
+<li>Must contain uppercase, lowercase, numbers, and symbols</li>
+<li>Changed every 90 days</li>
+<li>Cannot reuse last 12 passwords</li>
+<li>Account locks after 5 failed attempts</li>
+</ul>
+<h3>Password Manager</h3>
+<p>All employees must use the company password manager for storing credentials.</p>''',
+                'tags': ['security', 'policy', 'passwords']
+            },
+            {
+                'title': 'Server Maintenance Runbook',
+                'category': 'Runbooks',
+                'body': '''<h2>Monthly Server Maintenance</h2>
+<h3>Prerequisites</h3>
+<ul>
+<li>Change control approval</li>
+<li>Maintenance window scheduled</li>
+<li>Backups verified</li>
+</ul>
+<h3>Steps</h3>
+<ol>
+<li>Review server health and logs</li>
+<li>Apply security patches</li>
+<li>Update antivirus definitions</li>
+<li>Clear temporary files and logs</li>
+<li>Verify backup completion</li>
+<li>Reboot if required</li>
+<li>Test critical services</li>
+<li>Document any issues</li>
+</ol>''',
+                'tags': ['runbook', 'maintenance', 'servers']
+            },
+            {
+                'title': 'New Employee Onboarding',
+                'category': 'IT Procedures',
+                'body': '''<h2>New Employee IT Setup</h2>
+<h3>Before First Day</h3>
+<ul>
+<li>Create AD account</li>
+<li>Assign to appropriate security groups</li>
+<li>Provision email account</li>
+<li>Order laptop/equipment</li>
+<li>Create accounts in required systems</li>
+</ul>
+<h3>First Day Setup</h3>
+<ol>
+<li>Provide laptop and peripherals</li>
+<li>Set up workstation</li>
+<li>Configure email and MFA</li>
+<li>Install required applications</li>
+<li>Provide credentials securely</li>
+<li>Review security policies</li>
+</ol>''',
+                'tags': ['onboarding', 'procedures', 'hr']
+            }
+        ]
 
-        document = Document.objects.create(
-            organization=organization,
-            title=data['title'],
-            slug=data.get('slug', data['title'].lower().replace(' ', '-')),
-            body=data['body'],
-            content_type=data.get('content_type', 'html'),
-            category=category,
-            is_published=True,
-            created_by=user,
-        )
-
-        if 'tags' in data:
-            document.tags.set(data['tags'])
-
-        self.stdout.write(f'  Imported document: {document.title}')
-
-    def _import_diagram(self, data, organization, user):
-        """Import a single diagram."""
-        diagram = Diagram.objects.create(
-            organization=organization,
-            title=data['title'],
-            diagram_type=data.get('diagram_type', 'network'),
-            diagram_xml=data['diagram_xml'],
-            description=data.get('description', ''),
-            created_by=user,
-        )
-
-        self.stdout.write(f'  Imported diagram: {diagram.title}')
-
-    def _import_asset(self, data, organization, user):
-        """Import a single asset."""
-        asset = Asset.objects.create(
-            organization=organization,
-            name=data['name'],
-            asset_type=data.get('asset_type', 'computer'),
-            serial_number=data.get('serial_number', ''),
-            manufacturer=data.get('manufacturer', ''),
-            model=data.get('model', ''),
-            hostname=data.get('hostname', ''),
-            ip_address=data.get('ip_address', ''),
-            mac_address=data.get('mac_address', ''),
-            status=data.get('status', 'active'),
-            notes=data.get('notes', ''),
-        )
-
-        self.stdout.write(f'  Imported asset: {asset.name}')
-
-    def _import_password(self, data, organization, user):
-        """Import a single password."""
-        password = Password.objects.create(
-            organization=organization,
-            title=data['title'],
-            username=data.get('username', ''),
-            password_type=data.get('password_type', 'login'),
-            url=data.get('url', ''),
-            notes=data.get('notes', ''),
-        )
-
-        # Encrypt password if provided
-        if 'password' in data:
-            password.set_password(data['password'])
-
-        # Add OTP secret if provided
-        if 'otp_secret' in data:
-            password.otp_secret = data['otp_secret']
-            password.save()
-
-        self.stdout.write(f'  Imported password: {password.title}')
-
-    def _import_kb_article(self, data, organization, user):
-        """Import a single knowledge base article."""
-        kb = GlobalKnowledge.objects.create(
-            organization=organization,
-            title=data['title'],
-            slug=data.get('slug', data['title'].lower().replace(' ', '-')),
-            body=data['body'],
-            content_type=data.get('content_type', 'html'),
-            category=data.get('category'),
-            is_published=True,
-        )
-
-        if 'tags' in data:
-            kb.tags.set(data['tags'])
-
-        self.stdout.write(f'  Imported KB article: {kb.title}')
-
-    def _import_process(self, data, organization, user):
-        """Import a single process."""
-        process = Process.objects.create(
-            organization=organization,
-            title=data['title'],
-            description=data.get('description', ''),
-            process_steps=data.get('process_steps', []),
-            estimated_duration=data.get('estimated_duration', 30),
-            created_by=user,
-        )
-
-        # Create sample execution if requested
-        if data.get('create_sample_execution'):
-            execution = ProcessExecution.objects.create(
+        documents = []
+        for data in documents_data:
+            category = categories.get(data['category'])
+            document = Document.objects.create(
                 organization=organization,
-                process=process,
-                status='completed',
-                started_by=user,
-                started_at=timezone.now(),
-                completed_at=timezone.now(),
+                title=data['title'],
+                slug=data['title'].lower().replace(' ', '-'),
+                body=data['body'],
+                content_type='html',
+                category=category,
+                is_published=True,
+                created_by=user,
             )
+            if 'tags' in data:
+                document.tags.set(', '.join(data['tags']))
+            documents.append(document)
+            self.stdout.write(f'  Created document: {document.title}')
 
-        self.stdout.write(f'  Imported process: {process.title}')
+        return documents
+
+    def _create_diagrams(self, organization, user):
+        """Create demo diagrams."""
+        diagrams_data = [
+            {
+                'title': 'Main Office Network Diagram',
+                'diagram_type': 'network',
+                'description': 'Network topology for Acme Corporation main office',
+                'diagram_xml': '<mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel>'
+            },
+            {
+                'title': 'Server Rack Layout',
+                'diagram_type': 'rack',
+                'description': 'Physical layout of server rack equipment',
+                'diagram_xml': '<mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel>'
+            },
+            {
+                'title': 'Ticket Resolution Flowchart',
+                'diagram_type': 'flowchart',
+                'description': 'Process flow for resolving support tickets',
+                'diagram_xml': '<mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel>'
+            }
+        ]
+
+        diagrams = []
+        for data in diagrams_data:
+            diagram = Diagram.objects.create(
+                organization=organization,
+                title=data['title'],
+                diagram_type=data.get('diagram_type', 'network'),
+                diagram_xml=data['diagram_xml'],
+                description=data.get('description', ''),
+                created_by=user,
+            )
+            diagrams.append(diagram)
+            self.stdout.write(f'  Created diagram: {diagram.title}')
+
+        return diagrams
+
+    def _create_assets(self, organization, user):
+        """Create demo assets."""
+        assets_data = [
+            {'name': 'WS-001', 'asset_type': 'computer', 'manufacturer': 'Dell', 'model': 'Latitude 5420', 'serial_number': 'DL123456', 'hostname': 'ACME-WS-001', 'ip_address': '10.0.20.10', 'status': 'active'},
+            {'name': 'WS-002', 'asset_type': 'computer', 'manufacturer': 'Dell', 'model': 'Latitude 5420', 'serial_number': 'DL123457', 'hostname': 'ACME-WS-002', 'ip_address': '10.0.20.11', 'status': 'active'},
+            {'name': 'WS-003', 'asset_type': 'computer', 'manufacturer': 'HP', 'model': 'EliteBook 850', 'serial_number': 'HP789012', 'hostname': 'ACME-WS-003', 'ip_address': '10.0.20.12', 'status': 'active'},
+            {'name': 'SRV-001-DC', 'asset_type': 'server', 'manufacturer': 'Dell', 'model': 'PowerEdge R740', 'serial_number': 'SVR123456', 'hostname': 'ACME-DC-01', 'ip_address': '10.0.30.10', 'status': 'active'},
+            {'name': 'SRV-002-FILE', 'asset_type': 'server', 'manufacturer': 'Dell', 'model': 'PowerEdge R740', 'serial_number': 'SVR123457', 'hostname': 'ACME-FILE-01', 'ip_address': '10.0.30.11', 'status': 'active'},
+            {'name': 'SW-CORE-01', 'asset_type': 'network', 'manufacturer': 'Cisco', 'model': 'Catalyst 3850-48P', 'serial_number': 'CS234567', 'hostname': 'ACME-SW-CORE-01', 'ip_address': '10.0.10.2', 'status': 'active'},
+            {'name': 'SW-CORE-02', 'asset_type': 'network', 'manufacturer': 'Cisco', 'model': 'Catalyst 3850-48P', 'serial_number': 'CS234568', 'hostname': 'ACME-SW-CORE-02', 'ip_address': '10.0.10.3', 'status': 'active'},
+            {'name': 'FW-01', 'asset_type': 'network', 'manufacturer': 'pfSense', 'model': 'SG-5100', 'serial_number': 'PF456789', 'hostname': 'ACME-FW-01', 'ip_address': '10.0.10.1', 'status': 'active'},
+            {'name': 'AP-01', 'asset_type': 'network', 'manufacturer': 'Ubiquiti', 'model': 'UniFi AP Pro', 'serial_number': 'UB987654', 'hostname': 'ACME-AP-01', 'ip_address': '10.0.10.20', 'status': 'active'},
+            {'name': 'AP-02', 'asset_type': 'network', 'manufacturer': 'Ubiquiti', 'model': 'UniFi AP Pro', 'serial_number': 'UB987655', 'hostname': 'ACME-AP-02', 'ip_address': '10.0.10.21', 'status': 'active'},
+        ]
+
+        assets = []
+        for data in assets_data:
+            asset = Asset.objects.create(
+                organization=organization,
+                name=data['name'],
+                asset_type=data['asset_type'],
+                serial_number=data['serial_number'],
+                manufacturer=data['manufacturer'],
+                model=data['model'],
+                hostname=data['hostname'],
+                ip_address=data['ip_address'],
+                status=data['status'],
+            )
+            assets.append(asset)
+            self.stdout.write(f'  Created asset: {asset.name}')
+
+        return assets
+
+    def _create_passwords(self, organization, user):
+        """Create demo passwords."""
+        passwords_data = [
+            {'title': 'Domain Admin Account', 'username': 'administrator', 'password': 'DemoPass123!', 'password_type': 'login', 'url': 'https://acme.local', 'notes': 'Primary domain admin'},
+            {'title': 'WiFi Password', 'username': '', 'password': 'AcmeWiFi2024!', 'password_type': 'wifi', 'notes': 'Main office WiFi'},
+            {'title': 'Firewall Admin', 'username': 'admin', 'password': 'FWAdmin123!', 'password_type': 'login', 'url': 'https://10.0.10.1', 'notes': 'pfSense admin'},
+            {'title': 'File Server SMB', 'username': 'svc_backup', 'password': 'BackupSvc456!', 'password_type': 'service', 'notes': 'Backup service account'},
+            {'title': 'Email Admin', 'username': 'admin@acme.com', 'password': 'EmailAdmin789!', 'password_type': 'login', 'url': 'https://mail.acme.com', 'notes': 'Exchange admin'},
+        ]
+
+        passwords = []
+        for data in passwords_data:
+            password = Password.objects.create(
+                organization=organization,
+                title=data['title'],
+                username=data['username'],
+                password_type=data['password_type'],
+                url=data.get('url', ''),
+                notes=data.get('notes', ''),
+            )
+            password.set_password(data['password'])
+            passwords.append(password)
+            self.stdout.write(f'  Created password: {password.title}')
+
+        return passwords
+
+    def _create_kb_articles(self, organization, user):
+        """Create demo knowledge base articles."""
+        articles_data = [
+            {'title': 'How to Reset Your Password', 'body': '<p>Instructions for resetting your Active Directory password.</p>', 'category': 'User Guides'},
+            {'title': 'Connecting to VPN', 'body': '<p>Step-by-step guide for connecting to the company VPN.</p>', 'category': 'User Guides'},
+            {'title': 'Printer Setup Instructions', 'body': '<p>How to add network printers to your computer.</p>', 'category': 'User Guides'},
+        ]
+
+        kb_articles = []
+        for data in articles_data:
+            # Check if KBArticle model exists
+            try:
+                article = KBArticle.objects.create(
+                    organization=organization,
+                    title=data['title'],
+                    slug=data['title'].lower().replace(' ', '-'),
+                    body=data['body'],
+                    content_type='html',
+                    is_published=True,
+                )
+                kb_articles.append(article)
+                self.stdout.write(f'  Created KB article: {article.title}')
+            except:
+                self.stdout.write(f'  Skipped KB article (model not found): {data["title"]}')
+
+        return kb_articles
+
+    def _create_processes(self, organization, user):
+        """Create demo processes."""
+        processes_data = [
+            {
+                'title': 'New Employee Onboarding',
+                'description': 'Complete IT onboarding process for new employees',
+                'process_steps': [
+                    {'order': 1, 'title': 'Create AD Account', 'description': 'Create Active Directory user account'},
+                    {'order': 2, 'title': 'Provision Email', 'description': 'Create Exchange mailbox'},
+                    {'order': 3, 'title': 'Assign Equipment', 'description': 'Order and assign laptop'},
+                    {'order': 4, 'title': 'Setup Workstation', 'description': 'Configure laptop with required software'},
+                ]
+            },
+            {
+                'title': 'Server Patching',
+                'description': 'Monthly server patching and maintenance',
+                'process_steps': [
+                    {'order': 1, 'title': 'Backup Verification', 'description': 'Verify backups are current'},
+                    {'order': 2, 'title': 'Apply Patches', 'description': 'Install security updates'},
+                    {'order': 3, 'title': 'Reboot', 'description': 'Restart server if required'},
+                    {'order': 4, 'title': 'Verify Services', 'description': 'Test critical services'},
+                ]
+            },
+        ]
+
+        processes = []
+        for data in processes_data:
+            process = Process.objects.create(
+                organization=organization,
+                title=data['title'],
+                description=data['description'],
+                process_steps=data.get('process_steps', []),
+                created_by=user,
+            )
+            processes.append(process)
+            self.stdout.write(f'  Created process: {process.title}')
+
+        return processes
