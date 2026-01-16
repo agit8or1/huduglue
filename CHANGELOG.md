@@ -5,6 +5,26 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.101] - 2026-01-16
+
+### 🐛 Bug Fix
+
+**Update Progress Bar - Added Client-Side Persistence:**
+- **Fixed** progress bar still resetting during service restart despite file-based storage
+- **Issue**: When gunicorn restarts (step 5), API endpoint briefly unavailable, JavaScript gets error/idle state and resets progress to 0
+- **Root cause**: Frontend polling didn't handle service downtime - reset UI when API returned errors or idle state
+- **Solution**: Added client-side progress memory that persists during API failures
+
+**How It Works:**
+- JavaScript now caches `lastKnownProgress` in memory
+- When API returns error (503/502 during restart): keeps showing last known progress
+- When API returns "idle" state: compares to cached progress, keeps showing cached if non-zero
+- Only updates UI when receiving real progress data (status='running' or steps_completed > 0)
+- Result: Progress displays 1→2→3→4→5 smoothly without resetting
+
+**Changes:**
+- templates/core/system_updates.html - Enhanced pollProgress() with client-side state management
+
 ## [2.24.100] - 2026-01-16
 
 ### 🐛 Bug Fix

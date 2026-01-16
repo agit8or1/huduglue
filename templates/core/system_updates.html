@@ -625,12 +625,33 @@ function startUpdate() {
 }
 
 function pollProgress() {
+    let lastKnownProgress = {steps_completed: [], total_steps: 5};
+
     const pollInterval = setInterval(function() {
         fetch('{% url "core:update_progress_api" %}')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    console.log('Service temporarily unavailable (restarting), keeping last progress');
+                    // During gunicorn restart, keep showing last known progress
+                    return lastKnownProgress;
+                }
+                return response.json();
+            })
             .then(data => {
                 console.log('Progress:', data);
-                updateProgressUI(data);
+
+                // Only update UI if we got real data (not idle state during restart)
+                if (data.status !== 'idle' || data.steps_completed.length > 0) {
+                    // Save progress so we can show it during restart
+                    if (data.steps_completed && data.steps_completed.length > 0) {
+                        lastKnownProgress = data;
+                    }
+                    updateProgressUI(data);
+                } else if (lastKnownProgress.steps_completed.length > 0) {
+                    // If we got idle state but we had progress before, keep showing last progress
+                    console.log('Got idle state, keeping last known progress');
+                    updateProgressUI(lastKnownProgress);
+                }
 
                 if (data.status === 'completed') {
                     clearInterval(pollInterval);
@@ -645,7 +666,12 @@ function pollProgress() {
                 }
             })
             .catch(error => {
-                console.error('Error polling progress:', error);
+                console.error('Error polling progress (service likely restarting):', error);
+                // During gunicorn restart, keep showing last known progress
+                if (lastKnownProgress.steps_completed.length > 0) {
+                    console.log('Keeping last known progress during restart');
+                    updateProgressUI(lastKnownProgress);
+                }
             });
     }, 1000); // Poll every second
 }
