@@ -123,10 +123,11 @@
                         <strong>Organization User (Client):</strong> Only sees organizations they are explicitly added to
                     </div>
 
-                    {% if form.is_active %}
+                    {% if form.is_active or form.is_superuser %}
                     <hr class="my-4">
                     <h5>System Permissions</h5>
 
+                    {% if form.is_active %}
                     <div class="mb-3">
                         <div class="form-check">
                             {{ form.is_active }}
@@ -138,7 +139,9 @@
                             {% endif %}
                         </div>
                     </div>
+                    {% endif %}
 
+                    {% if form.is_staff %}
                     <div class="mb-3">
                         <div class="form-check">
                             {{ form.is_staff }}
@@ -147,6 +150,20 @@
                             </label>
                             {% if form.is_staff.help_text %}
                             <br><small class="form-text text-muted">{{ form.is_staff.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if form.is_superuser %}
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_superuser }}
+                            <label class="form-check-label" for="{{ form.is_superuser.id_for_label }}">
+                                <strong class="text-danger">{{ form.is_superuser.label }}</strong>
+                            </label>
+                            {% if form.is_superuser.help_text %}
+                            <br><small class="form-text text-muted">{{ form.is_superuser.help_text }}</small>
                             {% endif %}
                         </div>
                     </div>

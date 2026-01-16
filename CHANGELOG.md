@@ -5,6 +5,21 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.86] - 2026-01-16
+
+### ✨ Enhancement
+
+**Superadmin Checkbox in User Management:**
+- **Added** explicit "Superadmin" checkbox to user create and edit forms
+- **Clarified** permission model - organization "admin" role ≠ system superadmin
+- **Admin menu access** - Only superadmins can see Settings and Admin menu
+- **Visual indicator** - Red text styling highlights the importance of this permission
+- **Help text** - Clear explanation: "User has full system access including Settings and Admin menu"
+
+**Changes:**
+- accounts/forms.py - Added is_superuser field to UserCreateForm and UserEditForm
+- templates/accounts/user_form.html - Added Superadmin checkbox in System Permissions section
+
 ## [2.24.85] - 2026-01-16
 
 ### 🐛 Hotfix
