@@ -11,13 +11,18 @@
         display: block;
     }
     .provider-info {
-        background-color: #f8f9fa;
-        border-left: 4px solid #0d6efd;
+        background-color: var(--surface-hover, #f8f9fa);
+        border-left: 4px solid var(--primary-color, #0d6efd);
         padding: 1rem;
         margin-bottom: 1rem;
+        border-radius: 0.25rem;
     }
     .provider-docs-link {
         font-size: 0.9rem;
+        color: var(--primary-color, #0d6efd);
+    }
+    .provider-docs-link:hover {
+        color: var(--primary-hover, #0b5ed7);
     }
 </style>
 {% endblock %}

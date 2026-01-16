@@ -5,6 +5,32 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.107] - 2026-01-16
+
+### 🎨 UI Improvements
+
+**Fixed RMM Integration Form Dark Mode Support:**
+- **Fixed** white background contrast issue on RMM integration creation form
+- **Updated** provider info boxes to use CSS variables for dark mode compatibility
+- **Added** proper theming for provider documentation links
+- **Result**: RMM integration forms now properly support dark mode with correct contrast
+
+**RMM Integration Verification:**
+- **Verified** all 5 RMM integrations have complete, production-ready credential fields:
+  - NinjaOne: OAuth2 credentials (Client ID, Client Secret, Refresh Token)
+  - Datto RMM: API authentication (API Key, API Secret)
+  - ConnectWise Automate: Server authentication (Server URL, Username, Password)
+  - Atera: X-API-KEY authentication
+  - Tactical RMM: API Key authentication
+- **Confirmed** proper validation logic for all credential fields
+- **Confirmed** proper credential storage and retrieval methods
+- **Result**: No placeholders - all RMM integrations are real and production-ready
+
+**Why This Matters:**
+- Dark mode users can now create RMM integrations without contrast issues
+- All RMM provider forms match the quality and functionality of PSA integration forms
+- Consistent theming across all integration forms
+
 ## [2.24.106] - 2026-01-16
 
 ### 🔧 Demo Data & Integration Improvements
