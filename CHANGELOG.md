@@ -5,6 +5,20 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.88] - 2026-01-16
+
+### 🐛 Bug Fix
+
+**Demo Data Import 500 Error:**
+- **Fixed** NameError in demo data import endpoint
+- **Issue:** `import_demo_data` function was missing `Organization` model import
+- **Error:** `NameError: name 'Organization' is not defined` at line 1653
+- **Solution:** Added Organization to imports in core/settings_views.py
+- **Result:** Demo data import now works correctly without 500 errors
+
+**Changes:**
+- core/settings_views.py - Added Organization to model imports
+
 ## [2.24.87] - 2026-01-16
 
 ### ✨ New Feature

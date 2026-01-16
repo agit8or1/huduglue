@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.db import connection
 from django.conf import settings as django_settings
 from django.utils import timezone
-from .models import SystemSetting, ScheduledTask
+from .models import SystemSetting, ScheduledTask, Organization
 import platform
 import sys
 import os
