@@ -23,6 +23,7 @@ class PSAConnection(BaseModel):
         ('freshservice', 'Freshservice'),
         ('zendesk', 'Zendesk'),
         ('itflow', 'ITFlow'),
+        ('rangermsp', 'RangerMSP (CommitCRM)'),
     ]
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='psa_connections')

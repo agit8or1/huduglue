@@ -5,6 +5,33 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.87] - 2026-01-16
+
+### ✨ New Feature
+
+**RangerMSP (CommitCRM) PSA Integration:**
+- **Added** full RangerMSP/CommitCRM PSA provider integration
+- **Supports** companies (accounts), contacts, tickets, and agreements sync
+- **API Authentication** via API key (Bearer token)
+- **Pagination** support for large datasets
+- **Cloud/Self-Hosted** works with both cloud API and self-hosted instances
+- **Automatic Normalization** converts RangerMSP data to standard HuduGlue format
+- **Status Mapping** translates RangerMSP ticket statuses to standard values
+- **Date Parsing** handles ISO 8601 datetime formats from RangerMSP API
+
+**Implementation Details:**
+- Provider class: `RangerMSPProvider`
+- Base URL: https://api.commitcrm.com/api/v1 (cloud) or custom for self-hosted
+- Required credentials: `api_key`, optional `account_id`
+- Supports filtering by `lastModifiedDate` for incremental syncs
+- Returns paginated results with total count tracking
+
+**Changes:**
+- integrations/providers/psa/rangermsp.py - New RangerMSP provider implementation
+- integrations/providers/__init__.py - Added RangerMSP to provider registry
+- integrations/models.py - Added 'rangermsp' to PSAConnection.PROVIDER_TYPES
+- integrations/migrations/0005_add_rangermsp_provider.py - Database migration
+
 ## [2.24.86] - 2026-01-16
 
 ### ✨ Enhancement

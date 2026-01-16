@@ -10,6 +10,7 @@ from .syncro import SyncroProvider
 from .freshservice import FreshserviceProvider
 from .zendesk import ZendeskProvider
 from .itflow import ITFlowProvider
+from .psa.rangermsp import RangerMSPProvider
 
 # Registry of available providers
 PROVIDER_REGISTRY = {
@@ -21,6 +22,7 @@ PROVIDER_REGISTRY = {
     'freshservice': FreshserviceProvider,
     'zendesk': ZendeskProvider,
     'itflow': ITFlowProvider,
+    'rangermsp': RangerMSPProvider,
 }
 
 def get_provider(connection):
