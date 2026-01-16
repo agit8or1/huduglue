@@ -5,6 +5,19 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.94] - 2026-01-16
+
+### 🧪 Testing Release
+
+**Version Bump for Testing:**
+- **Purpose**: Test update progress modal positioning at 250px margin-top
+- **User requested**: Bump version to verify modal visibility during update process
+- **No functional changes**: This is a version bump only for UI testing
+
+**Changes:**
+- config/version.py - Version bump to 2.24.94
+- CHANGELOG.md - Testing release notes
+
 ## [2.24.93] - 2026-01-16
 
 ### 🐛 Bug Fix
