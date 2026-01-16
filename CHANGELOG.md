@@ -5,6 +5,28 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.83] - 2026-01-16
+
+### ♻️ Reorganization
+
+**Demo Data Import Consolidation:**
+- **Renamed** "KB Article Import" to "Demo Data Import" throughout the application
+- **Consolidated** demo import features into single dedicated page
+- **Combined** Acme Corporation demo data + Global KB article import in one location
+- **Updated** all settings sidebar links to reflect new name and icon (database icon)
+- **Removed** duplicate demo import section from General Settings page
+
+**What's in Demo Data Import:**
+1. **Acme Corporation Demo** - Full company data (documents, diagrams, assets, passwords, KB articles, processes)
+2. **Global KB Articles** - 1,042 IT knowledge base articles across 20 categories
+
+**Location:** Settings → Demo Data Import
+
+**Changes:**
+- templates/core/settings_kb_import.html - Renamed and consolidated features
+- templates/core/settings_general.html - Removed duplicate import section
+- All settings pages - Updated sidebar link from "KB Article Import" to "Demo Data Import"
+
 ## [2.24.82] - 2026-01-16
 
 ### 🐛 Critical Bug Fix
