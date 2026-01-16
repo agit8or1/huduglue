@@ -30,8 +30,31 @@
     [data-theme="dracula"] #quill-editor,
     [data-theme="monokai"] #quill-editor,
     [data-theme="nord"] #quill-editor {
-        background-color: #ffffff !important;
-        color: #000000 !important;
+        background-color: #2b3035 !important;
+        color: #dee2e6 !important;
+    }
+
+    /* Quill container styling for dark themes */
+    [data-theme="dark"] .ql-container,
+    [data-theme="dracula"] .ql-container,
+    [data-theme="monokai"] .ql-container,
+    [data-theme="nord"] .ql-container {
+        background-color: #2b3035 !important;
+        border-color: #495057 !important;
+    }
+
+    [data-theme="dark"] .ql-editor,
+    [data-theme="dracula"] .ql-editor,
+    [data-theme="monokai"] .ql-editor,
+    [data-theme="nord"] .ql-editor {
+        color: #dee2e6 !important;
+    }
+
+    [data-theme="dark"] .ql-editor.ql-blank::before,
+    [data-theme="dracula"] .ql-editor.ql-blank::before,
+    [data-theme="monokai"] .ql-editor.ql-blank::before,
+    [data-theme="nord"] .ql-editor.ql-blank::before {
+        color: #6c757d !important;
     }
     /* Quill toolbar styling for dark themes */
     [data-theme="dark"] .ql-toolbar,

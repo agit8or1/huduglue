@@ -5,6 +5,19 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.82] - 2026-01-16
+
+### 🐛 Critical Bug Fix
+
+**Document Editor Dark Mode:**
+- **FIXED**: Document editor (Quill) now properly displays dark background in dark mode
+- Issue: Dark themes were incorrectly set to white background (#ffffff) instead of dark
+- Solution: Changed dark theme editor background to #2b3035 with light text (#dee2e6)
+- Also fixed: Quill container and editor placeholder text colors in dark mode
+
+**Changes:**
+- templates/docs/document_form.html - Fixed dark mode CSS for Quill editor
+
 ## [2.24.81] - 2026-01-16
 
 ### ✨ New Features
