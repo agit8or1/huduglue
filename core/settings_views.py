@@ -1645,7 +1645,8 @@ def import_demo_data(request):
     from django.http import JsonResponse
     from django.core.management import call_command
     from accounts.models import Membership
-    import threading
+    import io
+    from contextlib import redirect_stdout, redirect_stderr
 
     if request.method != 'POST':
         return JsonResponse({
@@ -1670,6 +1671,7 @@ def import_demo_data(request):
         logger.info(f"Using existing 'Acme Corporation' organization (ID: {organization.id})")
 
     # Add current user to the organization if not already a member
+    membership_created = False
     if not Membership.objects.filter(
         user=request.user,
         organization=organization
@@ -1679,34 +1681,50 @@ def import_demo_data(request):
             organization=organization,
             role='admin'
         )
+        membership_created = True
         logger.info(f"Added user {request.user.username} as admin to Acme Corporation")
     else:
         logger.info(f"User {request.user.username} already member of Acme Corporation")
 
-    # Run import in background thread
-    def run_import():
-        logger.info(f"Starting demo data import for organization ID {organization.id}")
-        try:
+    # Run import synchronously (it's fast enough) for better error handling and feedback
+    logger.info(f"Starting demo data import for organization ID {organization.id}")
+    try:
+        # Capture stdout and stderr from management command
+        stdout_buffer = io.StringIO()
+        stderr_buffer = io.StringIO()
+
+        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
             call_command(
                 'import_demo_data',
                 organization=str(organization.id),
                 user=request.user.username,
                 force=True  # Always force when importing from web UI
             )
-            logger.info(f"✓ Demo data import completed successfully for organization ID {organization.id}")
-        except Exception as e:
-            logger.error(f"✗ Demo data import FAILED for organization ID {organization.id}: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
 
-    thread = threading.Thread(target=run_import)
-    thread.daemon = True
-    thread.start()
+        logger.info(f"✓ Demo data import completed successfully for organization ID {organization.id}")
 
-    action = 'created' if created else 'using existing'
-    return JsonResponse({
-        'success': True,
-        'message': f'Demo data import started! {action.capitalize()} "Acme Corporation" organization. Wait 30 seconds, then: (1) Switch to "Acme Corporation" organization using the dropdown in the top-right navbar, (2) Refresh the page to see the imported data (5 docs, 3 diagrams, 10 assets, 5 passwords, 5 workflows).',
-        'organization_id': organization.id,
-        'organization_name': organization.name
-    })
+        # Update session to automatically switch to Acme Corporation
+        request.session['current_organization_id'] = organization.id
+        request.session.modified = True
+
+        action = 'created' if created else 'using existing'
+        membership_msg = ' Added you as admin to the organization.' if membership_created else ''
+
+        return JsonResponse({
+            'success': True,
+            'message': f'✓ Demo data imported successfully! {action.capitalize()} "Acme Corporation" organization.{membership_msg} Automatically switched to Acme Corporation - refresh the page to see: 5 documents, 3 diagrams, 10 assets, 5 passwords, and 5 workflows.',
+            'organization_id': organization.id,
+            'organization_name': organization.name,
+            'auto_switched': True
+        })
+
+    except Exception as e:
+        logger.error(f"✗ Demo data import FAILED for organization ID {organization.id}: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+
+        return JsonResponse({
+            'success': False,
+            'message': f'Demo data import failed: {str(e)}. Check logs for details.',
+            'error': str(e)
+        })
