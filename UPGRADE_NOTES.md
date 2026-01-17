@@ -1,5 +1,66 @@
 # HuduGlue Upgrade Notes
 
+## ⚠️ v2.24.116 - CRITICAL: Apply Environment Fix NOW!
+
+### If You're Seeing Encryption Errors - READ THIS!
+
+**Error you might see:**
+```
+Error: Demo data import failed: Encryption failed: Invalid APP_MASTER_KEY format: Incorrect padding
+```
+
+### Quick Fix (2 commands):
+
+```bash
+cd /home/administrator
+./scripts/fix_gunicorn_env.sh
+```
+
+**That's it!** This fixes:
+- ❌ Demo data import failures
+- ❌ Password encryption errors
+- ❌ Any feature requiring environment variables from .env file
+
+### What This Version Does:
+- 📢 **Emphasizes** the critical Gunicorn environment fix
+- 📚 Provides clear, simple instructions
+- ✅ Includes the fix script (from v2.24.113)
+
+### Already Applied the Fix?
+If you've already run `./scripts/fix_gunicorn_env.sh` after v2.24.113, you're good! This version just makes the instructions clearer for others.
+
+---
+
+## v2.24.115 - Bug Reporting Feature
+
+### New Feature: Report Bugs Directly to GitHub
+
+Users can now report bugs from HuduGlue! Click **username dropdown → Report Bug**.
+
+**Features:**
+- Submit title, description, steps to reproduce
+- Upload screenshots (max 5MB)
+- Auto-collect system information
+- Use system GitHub PAT or your own credentials
+
+### Upgrade:
+```bash
+cd /home/administrator
+git pull origin main
+python manage.py migrate
+sudo systemctl restart huduglue-gunicorn.service
+```
+
+---
+
+## v2.24.114 - UI Cleanup
+
+### Changes:
+- Removed duplicate "System Updates" link from settings sidebar
+- System Updates now only in Admin dropdown menu
+
+---
+
 ## v2.24.113 - Critical Fix for Demo Data Import & Password Encryption
 
 ### Issue
