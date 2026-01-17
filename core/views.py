@@ -218,3 +218,164 @@ def update_progress_api(request):
     from core.update_progress import UpdateProgress
     progress = UpdateProgress()
     return JsonResponse(progress.get_progress())
+
+
+@login_required
+def report_bug(request):
+    """
+    Bug reporting endpoint - creates GitHub issues with user-provided or system credentials.
+    """
+    from django.http import JsonResponse
+    from .github_api import GitHubIssueCreator, format_bug_report_body, GitHubAPIError
+    from .models import SystemSetting
+    import sys
+    import platform
+    from datetime import datetime
+    from config.version import VERSION
+    
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request method'
+        }, status=405)
+    
+    # Get form data
+    title = request.POST.get('title', '').strip()
+    description = request.POST.get('description', '').strip()
+    steps_to_reproduce = request.POST.get('steps_to_reproduce', '').strip()
+    use_own_github = request.POST.get('use_own_github') == 'true'
+    github_username = request.POST.get('github_username', '').strip()
+    github_token = request.POST.get('github_token', '').strip()
+    screenshot = request.FILES.get('screenshot')
+    
+    # Validate required fields
+    if not title or not description:
+        return JsonResponse({
+            'success': False,
+            'message': 'Title and description are required'
+        }, status=400)
+    
+    # Get GitHub token (user's or system's)
+    if use_own_github:
+        if not github_token:
+            return JsonResponse({
+                'success': False,
+                'message': 'GitHub token is required when using your own account'
+            }, status=400)
+        token = github_token
+    else:
+        # Get system GitHub PAT
+        system_settings = SystemSetting.get_settings()
+        token = system_settings.github_pat
+        if not token:
+            return JsonResponse({
+                'success': False,
+                'message': 'System GitHub PAT is not configured. Please configure it in Settings or use your own GitHub account.'
+            }, status=400)
+
+
+
+
+    
+    # Collect system information
+    system_info = {
+        'version': VERSION,
+        'django_version': f"{'.'.join(map(str, __import__('django').VERSION[:3]))}",
+        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        'browser': request.META.get('HTTP_USER_AGENT', 'Unknown'),
+        'os': platform.platform(),
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')
+    }
+    
+    # Collect reporter information
+    reporter_info = {
+        'username': request.user.username,
+        'email': request.user.email if request.user.email else None,
+        'organization': request.current_organization.name if hasattr(request, 'current_organization') and request.current_organization else None
+    }
+    
+    # Format issue body
+    issue_body = format_bug_report_body(
+        description=description,
+        steps_to_reproduce=steps_to_reproduce,
+        system_info=system_info,
+        reporter_info=reporter_info
+    )
+    
+    # Create GitHub issue
+    try:
+        github_client = GitHubIssueCreator(token)
+        
+        # Validate token first
+        if not github_client.validate_token():
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid GitHub token or insufficient permissions. Please ensure your token has "public_repo" scope.'
+            }, status=400)
+        
+        # Create the issue
+        issue = github_client.create_issue(
+            title=title,
+            body=issue_body,
+            labels=['bug', 'user-reported']
+        )
+        
+        issue_number = issue['number']
+        issue_url = issue['html_url']
+        
+        # Upload screenshot if provided
+        if screenshot:
+            # Validate file size (max 5MB)
+            if screenshot.size > 5 * 1024 * 1024:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Screenshot file size must be less than 5MB'
+                }, status=400)
+            
+            # Validate file type
+            allowed_extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp']
+            file_extension = screenshot.name.lower().split('.')[-1]
+            if file_extension not in allowed_extensions:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Invalid file type. Allowed types: {", ".join(allowed_extensions)}'
+                }, status=400)
+            
+            try:
+                github_client.upload_image_to_issue(
+                    issue_number=issue_number,
+                    image_data=screenshot.read(),
+                    filename=screenshot.name
+                )
+            except GitHubAPIError as e:
+                # Issue was created but screenshot upload failed - still return success
+                pass
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Bug report submitted successfully! Issue #{issue_number} created.',
+            'issue_number': issue_number,
+            'issue_url': issue_url
+        })
+        
+    except GitHubAPIError as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to create GitHub issue: {str(e)}'
+        }, status=500)
+    except Exception as e:
+        logger.error(f"Unexpected error in report_bug: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'An unexpected error occurred: {str(e)}'
+        }, status=500)
+        # Get system GitHub PAT
+        system_settings = SystemSetting.get_settings()
+        token = system_settings.github_pat
+        if not token:
+            return JsonResponse({
+                'success': False,
+                'message': 'System GitHub PAT is not configured. Please configure it in Settings or use your own GitHub account.'
+            }, status=400)

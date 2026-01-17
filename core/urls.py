@@ -18,6 +18,7 @@ urlpatterns = [
     path('documentation/', views.documentation, name='documentation'),
     path('about/', views.about, name='about'),
     path('search/', search_views.global_search, name='search'),
+    path('report-bug/', views.report_bug, name='report_bug'),
 
     # Tags (admin only)
     path('tags/', tag_views.tag_list, name='tag_list'),

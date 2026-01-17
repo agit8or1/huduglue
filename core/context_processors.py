@@ -2,6 +2,8 @@
 Core context processors for templates
 """
 from config.version import get_version
+import django
+import sys
 
 
 def organization_context(request):
@@ -12,6 +14,8 @@ def organization_context(request):
         'current_organization': getattr(request, 'current_organization', None),
         'is_staff_user': getattr(request, 'is_staff_user', False),
         'app_version': get_version(),  # Add version to all templates
+        'DJANGO_VERSION': f"{'.'.join(map(str, django.VERSION[:3]))}",
+        'PYTHON_VERSION': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
     }
 
     # Add user's organizations for org switcher

@@ -148,6 +148,8 @@
                             <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="fas fa-user"></i> Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'core:about' %}"><i class="fas fa-info-circle"></i> About</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reportBugModal"><i class="fas fa-bug"></i> Report Bug</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="post" action="{% url 'logout' %}" style="margin: 0;">
                                     {% csrf_token %}
@@ -232,6 +234,177 @@
             });
         }
     </script>
+
+    <!-- Bug Report Modal -->
+    {% if user.is_authenticated %}
+    <div class="modal fade" id="reportBugModal" tabindex="-1" aria-labelledby="reportBugModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportBugModalLabel"><i class="fas fa-bug"></i> Report a Bug</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="bugReportForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Your bug report will be submitted as a GitHub issue to help improve HuduGlue.
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bugTitle" class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="bugTitle" name="title" maxlength="150" placeholder="Brief description of the bug" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bugDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="bugDescription" name="description" rows="5" placeholder="Detailed description of what went wrong" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bugSteps" class="form-label">Steps to Reproduce</label>
+                            <textarea class="form-control" id="bugSteps" name="steps_to_reproduce" rows="4" placeholder="1. Go to...&#10;2. Click on...&#10;3. See error..."></textarea>
+                            <small class="form-text text-muted">Optional: Help us reproduce the issue</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bugScreenshot" class="form-label">Screenshot</label>
+                            <input type="file" class="form-control" id="bugScreenshot" name="screenshot" accept="image/*">
+                            <small class="form-text text-muted">Optional: Attach a screenshot (max 5MB, formats: png, jpg, gif, webp)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">System Information (Auto-collected)</label>
+                            <div class="card bg-light">
+                                <div class="card-body small">
+                                    <strong>HuduGlue Version:</strong> {{ app_version }}<br>
+                                    <strong>Django Version:</strong> {{ DJANGO_VERSION }}<br>
+                                    <strong>Python Version:</strong> {{ PYTHON_VERSION }}<br>
+                                    <strong>Browser:</strong> <span id="browserInfo">Detecting...</span><br>
+                                    <strong>Reported By:</strong> {{ user.username }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useOwnGithub" name="use_own_github">
+                                <label class="form-check-label" for="useOwnGithub">
+                                    Use my own GitHub account
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">If unchecked, issue will be created using system account</small>
+                        </div>
+
+                        <div id="githubCredentials" style="display: none;">
+                            <div class="mb-3">
+                                <label for="githubUsername" class="form-label">GitHub Username</label>
+                                <input type="text" class="form-control" id="githubUsername" name="github_username" placeholder="your-github-username">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="githubToken" class="form-label">GitHub Personal Access Token</label>
+                                <input type="password" class="form-control" id="githubToken" name="github_token" placeholder="ghp_...">
+                                <small class="form-text text-muted">
+                                    <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=HuduGlue%20Bug%20Reporter" target="_blank">
+                                        <i class="fas fa-external-link-alt"></i> Create token with 'public_repo' scope
+                                    </a>
+                                </small>
+                            </div>
+                        </div>
+
+                        <div id="bugReportAlert" class="alert" style="display: none;" role="alert"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" id="submitBugButton">
+                            <i class="fas fa-paper-plane"></i> Submit Bug Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Detect browser info
+        document.addEventListener('DOMContentLoaded', function() {
+            const browserInfo = navigator.userAgent;
+            document.getElementById('browserInfo').textContent = browserInfo;
+        });
+
+        // Toggle GitHub credentials section
+        document.getElementById('useOwnGithub').addEventListener('change', function() {
+            document.getElementById('githubCredentials').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Bug report form submission
+        document.getElementById('bugReportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBugButton');
+            const alertDiv = document.getElementById('bugReportAlert');
+            const formData = new FormData(this);
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            // Hide previous alerts
+            alertDiv.style.display = 'none';
+
+            // Submit via AJAX
+            fetch('{% url "core:report_bug" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alertDiv.className = 'alert alert-success';
+                    alertDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}<br>` +
+                        `<a href="${data.issue_url}" target="_blank" class="alert-link">View Issue #${data.issue_number} on GitHub</a>`;
+                    alertDiv.style.display = 'block';
+
+                    // Reset form
+                    document.getElementById('bugReportForm').reset();
+                    document.getElementById('githubCredentials').style.display = 'none';
+
+                    // Auto-close modal after 5 seconds
+                    setTimeout(function() {
+                        bootstrap.Modal.getInstance(document.getElementById('reportBugModal')).hide();
+                    }, 5000);
+                } else {
+                    alertDiv.className = 'alert alert-danger';
+                    alertDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${data.message}`;
+                    alertDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alertDiv.className = 'alert alert-danger';
+                alertDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> An error occurred: ${error.message}`;
+                alertDiv.style.display = 'block';
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Bug Report';
+            });
+        });
+
+        // Reset form when modal is closed
+        document.getElementById('reportBugModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('bugReportForm').reset();
+            document.getElementById('githubCredentials').style.display = 'none';
+            document.getElementById('bugReportAlert').style.display = 'none';
+        });
+    </script>
+    {% endif %}
 
     {% block extra_js %}{% endblock %}
 </body>
