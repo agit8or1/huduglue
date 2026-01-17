@@ -3,31 +3,35 @@
 ## ✅ v2.24.117 - AUTOMATIC Gunicorn Fix During Migration!
 
 ### What's New:
-The critical Gunicorn environment fix from v2.24.113/116 now **applies automatically** when you run migrations!
+The critical Gunicorn environment fix from v2.24.113/116 now **applies automatically** when you run the update script!
 
-### Update Process (Simplified):
+### Update Process (ONE COMMAND):
 
 ```bash
-cd /home/administrator
-git pull origin main
-python manage.py migrate
-sudo systemctl restart huduglue-gunicorn.service
+cd /home/administrator && ./update.sh
 ```
 
-**That's it!** The `python manage.py migrate` command will automatically:
-- ✅ Run the Gunicorn environment fix script
-- ✅ Add `EnvironmentFile=/home/administrator/.env` to your service
-- ✅ Reload systemd daemon
-- ✅ Restart Gunicorn service
-- ✅ Display success/error messages
+**That's it!** The update script automatically:
+- ✅ Pulls latest code from GitHub
+- ✅ Runs database migrations (which applies the Gunicorn fix)
+- ✅ Installs/updates dependencies
+- ✅ Collects static files
+- ✅ Restarts Gunicorn service
+- ✅ Verifies service is running
 
-### What This Fixes (Automatically):
+### What the Migration Fixes (Automatically):
 - ❌ Demo data import failures
 - ❌ Password encryption errors
 - ❌ Any feature requiring environment variables from .env file
 
+The migration automatically:
+- Runs the fix_gunicorn_env.sh script
+- Adds `EnvironmentFile=/home/administrator/.env` to Gunicorn service
+- Reloads systemd daemon
+- Restarts Gunicorn
+
 ### Perfect for Multiple Servers:
-This update is designed for administrators managing multiple HuduGlue servers. No need to manually run fix scripts on each server - just pull and migrate!
+This update is designed for administrators managing multiple HuduGlue servers. Run the same single command on all servers - everything happens automatically!
 
 ### Already Applied the Fix Manually?
 No problem! The migration detects if the fix is already applied and won't duplicate the configuration.
