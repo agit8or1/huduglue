@@ -1,5 +1,55 @@
 # HuduGlue Upgrade Notes
 
+## 🚀 v2.24.118 - ONE-CLICK UPDATE with Automatic Fix!
+
+### What's New:
+Click the **Update** button in the web UI and EVERYTHING happens automatically - including the critical Gunicorn fix!
+
+### Update Process (Web UI - EASIEST):
+
+1. **Admin dropdown → System Updates**
+2. **Click "Check for Updates"**
+3. **Click "Update Now"**
+4. **Done!** The update automatically:
+   - ✅ Pulls latest code
+   - ✅ Runs migrations
+   - ✅ **Applies Gunicorn environment fix**
+   - ✅ Installs dependencies
+   - ✅ Collects static files
+   - ✅ Restarts Gunicorn service
+
+### One-Time Sudo Configuration Required:
+
+For web-based updates to work, configure passwordless sudo ONCE:
+
+```bash
+sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'
+administrator ALL=(ALL) NOPASSWD: /bin/systemctl restart huduglue-gunicorn.service, /bin/systemctl status huduglue-gunicorn.service, /bin/systemctl daemon-reload, /usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service
+SUDOERS
+
+sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update
+```
+
+**After this one-time setup, all future updates are ONE CLICK!**
+
+### Alternative: Command Line Update
+
+```bash
+cd /home/administrator && ./update.sh
+```
+
+### What Gets Fixed Automatically:
+- ❌ Demo data import failures
+- ❌ Password encryption errors
+- ❌ Any environment variable issues
+
+The update process now includes an explicit step to run the Gunicorn environment fix script, ensuring the fix is applied even if the migration doesn't have sudo permissions.
+
+### Perfect for Multiple Servers:
+Set up passwordless sudo once on each server, then all future updates are just clicking a button in the web UI!
+
+---
+
 ## ✅ v2.24.117 - AUTOMATIC Gunicorn Fix During Migration!
 
 ### What's New:

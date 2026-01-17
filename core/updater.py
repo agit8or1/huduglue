@@ -165,7 +165,8 @@ class UpdateService:
                         "Please configure it by running these commands:\n\n"
                         "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
                         f"$(whoami) ALL=(ALL) NOPASSWD: /bin/systemctl restart huduglue-gunicorn.service, "
-                        "/bin/systemctl status huduglue-gunicorn.service, /usr/bin/systemd-run\n"
+                        "/bin/systemctl status huduglue-gunicorn.service, /bin/systemctl daemon-reload, "
+                        "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service\n"
                         "SUDOERS\n\n"
                         "sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update\n\n"
                         "After configuring, refresh this page and try again. "
@@ -243,6 +244,30 @@ class UpdateService:
             if progress_tracker:
                 progress_tracker.step_complete('Run Migrations')
 
+            # Step 3.5: Apply Gunicorn environment fix (if script exists)
+            fix_script_path = os.path.join(self.base_dir, 'scripts', 'fix_gunicorn_env.sh')
+            if os.path.exists(fix_script_path):
+                if progress_tracker:
+                    progress_tracker.step_start('Apply Gunicorn Fix')
+                logger.info("Running Gunicorn environment fix script")
+                try:
+                    # Make script executable if it isn't already
+                    os.chmod(fix_script_path, 0o755)
+
+                    # Run the fix script (it has its own sudo commands inside)
+                    fix_output = self._run_command([fix_script_path])
+                    result['steps_completed'].append('gunicorn_fix')
+                    result['output'].append(f"Gunicorn fix: {fix_output}")
+                    logger.info("Gunicorn fix applied successfully")
+                except Exception as e:
+                    # Non-critical - log warning but continue
+                    logger.warning(f"Gunicorn fix script failed (non-critical): {e}")
+                    result['output'].append(f"⚠️  Gunicorn fix skipped: {str(e)}")
+                if progress_tracker:
+                    progress_tracker.step_complete('Apply Gunicorn Fix')
+            else:
+                logger.info("Gunicorn fix script not found - skipping")
+
             # Step 4: Collect static files
             if progress_tracker:
                 progress_tracker.step_start('Collect Static Files')
@@ -286,7 +311,8 @@ class UpdateService:
                             "to restart the service. Please configure it by running:\n\n"
                             "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
                             f"$(whoami) ALL=(ALL) NOPASSWD: /bin/systemctl restart huduglue-gunicorn.service, "
-                            "/bin/systemctl status huduglue-gunicorn.service, /usr/bin/systemd-run\n"
+                            "/bin/systemctl status huduglue-gunicorn.service, /bin/systemctl daemon-reload, "
+                            "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service\n"
                             "SUDOERS\n\n"
                             "sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update\n\n"
                             "Or update manually via command line. See the system updates page for instructions."
