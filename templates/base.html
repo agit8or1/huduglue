@@ -65,7 +65,10 @@
                             <li><a class="dropdown-item" href="{% url 'locations:floor_plan_import' %}"><i class="fas fa-file-upload"></i> Import Floor Plans</a></li>
                         </ul>
                     </li>
+                    {% if workflows_enabled %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'processes:process_list' %}"><i class="fas fa-tasks"></i> Workflows</a></li>
+                    {% endif %}
+                    {% if monitoring_enabled %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="monitoringDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-heartbeat"></i> Monitoring
@@ -75,6 +78,7 @@
                             <li><a class="dropdown-item" href="{% url 'monitoring:expiration_list' %}"><i class="fas fa-calendar-times"></i> Expirations</a></li>
                         </ul>
                     </li>
+                    {% endif %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'core:favorite_list' %}"><i class="fas fa-star text-warning"></i> Favorites</a></li>
                     {% if user.is_superuser %}
                     <li class="nav-item dropdown">
@@ -101,7 +105,9 @@
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Global Views</h6></li>
                             <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}"><i class="fas fa-globe"></i> Global Dashboard</a></li>
+                            {% if workflows_enabled %}
                             <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-tasks"></i> Global Workflows</a></li>
+                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}
@@ -109,7 +115,7 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                     <!-- Global KB Link -->
-                    {% if is_staff_user or user.is_superuser %}
+                    {% if global_kb_enabled and (is_staff_user or user.is_superuser) %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'docs:global_kb_list' %}"><i class="fas fa-book"></i> Global KB</a></li>
                     {% endif %}
                     <!-- Search Form -->
@@ -306,7 +312,7 @@
 
                             <div class="mb-3">
                                 <label for="githubToken" class="form-label">GitHub Personal Access Token</label>
-                                <input type="password" class="form-control" id="githubToken" name="github_token" placeholder="ghp_...">
+                                <input type="password" class="form-control" id="githubToken" name="github_token" placeholder="ghp_..." autocomplete="off">
                                 <small class="form-text text-muted">
                                     <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=HuduGlue%20Bug%20Reporter" target="_blank">
                                         <i class="fas fa-external-link-alt"></i> Create token with 'public_repo' scope

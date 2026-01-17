@@ -379,6 +379,11 @@ class SystemSetting(models.Model):
     # Bug Reporting
     github_pat = models.CharField(max_length=500, blank=True, help_text='GitHub Personal Access Token for bug reporting (encrypted)')
 
+    # Feature Toggles
+    monitoring_enabled = models.BooleanField(default=True, help_text='Enable Monitoring feature (Website & Service Monitoring)')
+    global_kb_enabled = models.BooleanField(default=True, help_text='Enable Global Knowledge Base (Staff-only shared KB)')
+    workflows_enabled = models.BooleanField(default=True, help_text='Enable Workflows & Automation feature')
+
     # Metadata
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='system_settings_updates')

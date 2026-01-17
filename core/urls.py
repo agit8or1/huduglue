@@ -44,6 +44,7 @@ urlpatterns = [
     # Admin Settings (superuser only)
     path('settings/general/', settings_views.settings_general, name='settings_general'),
     path('settings/security/', settings_views.settings_security, name='settings_security'),
+    path('settings/features/', settings_views.settings_features, name='settings_features'),
     path('settings/smtp/', settings_views.settings_smtp, name='settings_smtp'),
     path('settings/scheduler/', settings_views.settings_scheduler, name='settings_scheduler'),
     path('settings/directory/', settings_views.settings_directory, name='settings_directory'),

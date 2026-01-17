@@ -158,6 +158,30 @@ def settings_security(request):
 
 @login_required
 @user_passes_test(is_superuser)
+def settings_features(request):
+    """Feature toggles - enable/disable major system features."""
+    settings = SystemSetting.get_settings()
+
+    if request.method == 'POST':
+        # Update feature toggles
+        settings.monitoring_enabled = request.POST.get('monitoring_enabled') == 'on'
+        settings.global_kb_enabled = request.POST.get('global_kb_enabled') == 'on'
+        settings.workflows_enabled = request.POST.get('workflows_enabled') == 'on'
+
+        settings.updated_by = request.user
+        settings.save()
+
+        messages.success(request, 'Feature toggles updated successfully.')
+        return redirect('core:settings_features')
+
+    return render(request, 'core/settings_features.html', {
+        'settings': settings,
+        'current_tab': 'features',
+    })
+
+
+@login_required
+@user_passes_test(is_superuser)
 def settings_smtp(request):
     """SMTP and email notification settings."""
     settings = SystemSetting.get_settings()

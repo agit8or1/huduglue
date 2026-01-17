@@ -52,19 +52,21 @@ def integration_create(request):
                 messages.success(request, f"Connection '{connection.name}' created successfully.")
                 return redirect('integrations:integration_detail', pk=connection.pk)
             except EncryptionError as e:
-                # Handle malformed APP_MASTER_KEY error
+                # Handle APP_MASTER_KEY errors - usually means Gunicorn isn't loading .env
                 error_msg = str(e)
-                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower() or 'padding' in error_msg.lower():
                     messages.error(
                         request,
-                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
-                        "Please regenerate it using the following commands:<br><br>"
-                        "<code>cd ~/huduglue<br>"
-                        "source venv/bin/activate<br>"
-                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
-                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
-                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
-                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        "🔐 <strong>Encryption Configuration Error</strong><br><br>"
+                        "The Gunicorn service is not loading your .env file with the APP_MASTER_KEY. "
+                        "This is a common setup issue that's easy to fix!<br><br>"
+                        "<strong>Quick Fix:</strong><br>"
+                        "<code>cd /home/administrator<br>"
+                        "./scripts/fix_gunicorn_env.sh</code><br><br>"
+                        "<strong>Or run diagnostic to see what's wrong:</strong><br>"
+                        "<code>./diagnose_gunicorn_fix.sh</code><br><br>"
+                        "This will configure Gunicorn to load environment variables from your .env file. "
+                        "See <a href='https://github.com/agit8or1/huduglue/issues/4' target='_blank'>Issue #4</a> for details.",
                         extra_tags='safe'
                     )
                 else:
@@ -109,19 +111,21 @@ def integration_edit(request, pk):
                 messages.success(request, f"Connection '{connection.name}' updated successfully.")
                 return redirect('integrations:integration_detail', pk=connection.pk)
             except EncryptionError as e:
-                # Handle malformed APP_MASTER_KEY error
+                # Handle APP_MASTER_KEY errors - usually means Gunicorn isn't loading .env
                 error_msg = str(e)
-                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower() or 'padding' in error_msg.lower():
                     messages.error(
                         request,
-                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
-                        "Please regenerate it using the following commands:<br><br>"
-                        "<code>cd ~/huduglue<br>"
-                        "source venv/bin/activate<br>"
-                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
-                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
-                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
-                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        "🔐 <strong>Encryption Configuration Error</strong><br><br>"
+                        "The Gunicorn service is not loading your .env file with the APP_MASTER_KEY. "
+                        "This is a common setup issue that's easy to fix!<br><br>"
+                        "<strong>Quick Fix:</strong><br>"
+                        "<code>cd /home/administrator<br>"
+                        "./scripts/fix_gunicorn_env.sh</code><br><br>"
+                        "<strong>Or run diagnostic to see what's wrong:</strong><br>"
+                        "<code>./diagnose_gunicorn_fix.sh</code><br><br>"
+                        "This will configure Gunicorn to load environment variables from your .env file. "
+                        "See <a href='https://github.com/agit8or1/huduglue/issues/4' target='_blank'>Issue #4</a> for details.",
                         extra_tags='safe'
                     )
                 else:
@@ -299,19 +303,21 @@ def rmm_create(request):
                 messages.success(request, f"RMM connection '{connection.name}' created successfully.")
                 return redirect('integrations:rmm_detail', pk=connection.pk)
             except EncryptionError as e:
-                # Handle malformed APP_MASTER_KEY error
+                # Handle APP_MASTER_KEY errors - usually means Gunicorn isn't loading .env
                 error_msg = str(e)
-                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower() or 'padding' in error_msg.lower():
                     messages.error(
                         request,
-                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
-                        "Please regenerate it using the following commands:<br><br>"
-                        "<code>cd ~/huduglue<br>"
-                        "source venv/bin/activate<br>"
-                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
-                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
-                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
-                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        "🔐 <strong>Encryption Configuration Error</strong><br><br>"
+                        "The Gunicorn service is not loading your .env file with the APP_MASTER_KEY. "
+                        "This is a common setup issue that's easy to fix!<br><br>"
+                        "<strong>Quick Fix:</strong><br>"
+                        "<code>cd /home/administrator<br>"
+                        "./scripts/fix_gunicorn_env.sh</code><br><br>"
+                        "<strong>Or run diagnostic to see what's wrong:</strong><br>"
+                        "<code>./diagnose_gunicorn_fix.sh</code><br><br>"
+                        "This will configure Gunicorn to load environment variables from your .env file. "
+                        "See <a href='https://github.com/agit8or1/huduglue/issues/4' target='_blank'>Issue #4</a> for details.",
                         extra_tags='safe'
                     )
                 else:
@@ -358,19 +364,21 @@ def rmm_edit(request, pk):
                 messages.success(request, f"RMM connection '{connection.name}' updated successfully.")
                 return redirect('integrations:rmm_detail', pk=connection.pk)
             except EncryptionError as e:
-                # Handle malformed APP_MASTER_KEY error
+                # Handle APP_MASTER_KEY errors - usually means Gunicorn isn't loading .env
                 error_msg = str(e)
-                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower():
+                if 'Invalid APP_MASTER_KEY format' in error_msg or 'base64' in error_msg.lower() or 'padding' in error_msg.lower():
                     messages.error(
                         request,
-                        "🔐 Encryption Key Error: Your APP_MASTER_KEY is malformed. "
-                        "Please regenerate it using the following commands:<br><br>"
-                        "<code>cd ~/huduglue<br>"
-                        "source venv/bin/activate<br>"
-                        "NEW_KEY=$(python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\")<br>"
-                        "sed -i \"s|^APP_MASTER_KEY=.*|APP_MASTER_KEY=${NEW_KEY}|\" .env<br>"
-                        "sudo systemctl restart huduglue-gunicorn.service</code><br><br>"
-                        "The key must be exactly 44 characters (base64-encoded 32 bytes).",
+                        "🔐 <strong>Encryption Configuration Error</strong><br><br>"
+                        "The Gunicorn service is not loading your .env file with the APP_MASTER_KEY. "
+                        "This is a common setup issue that's easy to fix!<br><br>"
+                        "<strong>Quick Fix:</strong><br>"
+                        "<code>cd /home/administrator<br>"
+                        "./scripts/fix_gunicorn_env.sh</code><br><br>"
+                        "<strong>Or run diagnostic to see what's wrong:</strong><br>"
+                        "<code>./diagnose_gunicorn_fix.sh</code><br><br>"
+                        "This will configure Gunicorn to load environment variables from your .env file. "
+                        "See <a href='https://github.com/agit8or1/huduglue/issues/4' target='_blank'>Issue #4</a> for details.",
                         extra_tags='safe'
                     )
                 else:

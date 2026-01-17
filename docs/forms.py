@@ -11,7 +11,7 @@ class DocumentForm(forms.ModelForm):
         fields = ['title', 'body', 'content_type', 'category', 'is_published', 'is_template', 'is_archived', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Document Title'}),
-            'body': forms.Textarea(attrs={'class': 'form-control', 'rows': 20, 'id': 'document-body'}),
+            'body': forms.Textarea(attrs={'class': 'form-control', 'rows': 20, 'id': 'document-body', 'data-required': 'true'}),
             'content_type': forms.Select(attrs={'class': 'form-select', 'id': 'content-type-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

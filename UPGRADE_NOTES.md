@@ -1,5 +1,110 @@
 # HuduGlue Upgrade Notes
 
+## 🐛 v2.24.125 - Fixed Document Form Validation Errors
+
+### What's Fixed:
+Fixed browser console errors and form validation issues on document creation/editing pages.
+
+### Problems Resolved:
+1. **"An invalid form control is not focusable" error** - The body textarea was marked as required but hidden by the WYSIWYG editor, preventing form submission
+2. **Autocomplete warning** - GitHub token field in bug report modal was missing autocomplete attribute
+3. **Form submission failures** - Users couldn't submit document forms due to hidden field validation
+
+### Changes Made:
+- **Document Forms**: Removed HTML5 `required` attribute from hidden textarea when WYSIWYG editor is active
+- **Validation**: Added JavaScript validation before form submission to ensure content exists
+- **Autocomplete**: Added `autocomplete="off"` to GitHub token password field
+- **Consistency**: Applied fixes to all document form templates (documents, global KB, templates)
+
+### Files Updated:
+- `docs/forms.py` - Added data-required attribute
+- `templates/docs/document_form.html` - Fixed validation
+- `templates/docs/global_kb_form.html` - Fixed validation
+- `templates/docs/template_form.html` - Fixed validation
+- `templates/base.html` - Added autocomplete attribute
+
+### User Experience:
+- Forms now submit correctly without browser validation errors
+- Clear alert message if content is empty on submission
+- No more console warnings about form controls
+
+### Upgrade:
+```bash
+cd /home/administrator
+git pull origin main
+sudo systemctl restart huduglue-gunicorn.service
+```
+
+---
+
+## 🔧 v2.24.124 - Fixed Error Messages for Encryption Issues (Issue #4)
+
+### What's Fixed:
+Updated error handling in RMM and PSA integrations to provide correct guidance when encryption errors occur.
+
+### The Problem:
+When users encountered encryption errors (typically during Tactical RMM setup or password operations), the error message incorrectly suggested regenerating the APP_MASTER_KEY. This wasn't the right solution!
+
+### The Real Issue:
+Encryption errors usually mean the Gunicorn service isn't loading the `.env` file containing the APP_MASTER_KEY environment variable.
+
+### New Error Message:
+Now when encryption errors occur, users see clear instructions:
+- Run the fix script: `./scripts/fix_gunicorn_env.sh`
+- Or run diagnostic: `./diagnose_gunicorn_fix.sh`
+- Link to GitHub Issue #4 for full details
+
+### What Was Updated:
+- All RMM integration views (create, edit, sync, test)
+- All PSA integration views (create, edit, sync, test)
+- Error messages now link to the correct fix scripts
+- Added reference to Issue #4 for documentation
+
+### Upgrade:
+```bash
+cd /home/administrator
+git pull origin main
+sudo systemctl restart huduglue-gunicorn.service
+```
+
+---
+
+## 🎛️ v2.24.123 - Feature Toggles: Enable/Disable Services!
+
+### What's New:
+Added Feature Toggles in Admin Settings to enable or disable major system features. When disabled, features won't appear in the navigation menu and will be inaccessible.
+
+### Configurable Features:
+- **Monitoring** - Website & Service Monitoring, SSL tracking, expiration tracking
+- **Global Knowledge Base** - Staff-only shared knowledge base across organizations
+- **Workflows & Automation** - Process definitions and automated execution
+
+### How to Use:
+1. **Admin dropdown → System Settings → Feature Toggles**
+2. Toggle features on/off with simple switches
+3. Changes apply immediately after saving
+
+### Benefits:
+- **Simplified UI** - Hide features you don't use to reduce menu clutter
+- **Focus on What Matters** - Keep only the tools your team needs visible
+- **Flexible Configuration** - Enable/disable features as your needs change
+
+### Technical Details:
+- Feature toggles stored in SystemSetting model
+- Context processor makes toggles available to all templates
+- Navigation menu conditionally hides disabled features
+- Backward compatible - all features enabled by default
+
+### Upgrade:
+```bash
+cd /home/administrator
+git pull origin main
+python manage.py migrate
+sudo systemctl restart huduglue-gunicorn.service
+```
+
+---
+
 ## 🔍 v2.24.122 - Diagnostic Script to Find the Problem!
 
 ### What's New:

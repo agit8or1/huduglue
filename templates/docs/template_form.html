@@ -122,6 +122,7 @@
 
         bodyTextarea.parentNode.insertBefore(editorDiv, bodyTextarea);
         bodyTextarea.style.display = 'none';
+        bodyTextarea.removeAttribute('required');  // Remove required to prevent validation on hidden field
 
         quillEditor = new Quill('#quill-editor', {
             theme: 'snow',
@@ -182,10 +183,19 @@
     contentTypeSelect.addEventListener('change', toggleEditor);
 
     form.addEventListener('submit', function(e) {
+        // Sync content from visible editor to hidden textarea
         if (contentTypeSelect.value === 'html' && quillEditor) {
             bodyTextarea.value = quillEditor.root.innerHTML;
         } else if (contentTypeSelect.value === 'markdown') {
             bodyTextarea.value = markdownTextarea.value;
+        }
+
+        // Validate that content is not empty
+        const content = bodyTextarea.value.trim();
+        if (!content || content === '<p><br></p>') {
+            e.preventDefault();
+            alert('Please enter template content before submitting.');
+            return false;
         }
     });
 

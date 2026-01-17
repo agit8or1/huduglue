@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}General Settings - HuduGlue{% endblock %}
+{% block title %}Feature Toggles - HuduGlue{% endblock %}
 
 {% block content %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
-        <li class="breadcrumb-item active">General Settings</li>
+        <li class="breadcrumb-item active">Feature Toggles</li>
     </ol>
 </nav>
 
@@ -17,13 +17,13 @@
                 <h5 class="mb-0"><i class="fas fa-cog"></i> Settings</h5>
             </div>
             <div class="list-group list-group-flush">
-                <a href="{% url 'core:settings_general' %}" class="list-group-item list-group-item-action active">
+                <a href="{% url 'core:settings_general' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-sliders-h"></i> General
                 </a>
                 <a href="{% url 'core:settings_security' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-shield-alt"></i> Security
                 </a>
-                <a href="{% url 'core:settings_features' %}" class="list-group-item list-group-item-action">
+                <a href="{% url 'core:settings_features' %}" class="list-group-item list-group-item-action active">
                     <i class="fas fa-toggle-on"></i> Feature Toggles
                 </a>
                 <a href="{% url 'core:settings_smtp' %}" class="list-group-item list-group-item-action">
@@ -60,32 +60,57 @@
     <div class="col-md-9">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-sliders-h"></i> General Settings</h5>
+                <h5 class="mb-0"><i class="fas fa-toggle-on"></i> Feature Toggles</h5>
             </div>
             <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Feature Toggles</strong> - Enable or disable major system features. When disabled, features will not appear in the navigation menu and will be inaccessible.
+                </div>
+
                 <form method="post">
                     {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label for="site_name" class="form-label">Site Name</label>
-                        <input type="text" class="form-control" id="site_name" name="site_name" value="{{ settings.site_name }}" required>
-                        <div class="form-text">The name of your installation (shown in header and emails)</div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="monitoring_enabled" name="monitoring_enabled" {% if settings.monitoring_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="monitoring_enabled">
+                                    <strong><i class="fas fa-heartbeat text-danger"></i> Monitoring</strong>
+                                </label>
+                            </div>
+                            <div class="form-text ms-5">
+                                Enable Website & Service Monitoring features. Includes uptime monitoring, SSL certificate tracking, and service health checks.
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="site_url" class="form-label">Site URL</label>
-                        <input type="url" class="form-control" id="site_url" name="site_url" value="{{ settings.site_url }}" placeholder="https://yourdomain.com">
-                        <div class="form-text">Base URL for email links and API callbacks</div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="global_kb_enabled" name="global_kb_enabled" {% if settings.global_kb_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="global_kb_enabled">
+                                    <strong><i class="fas fa-globe text-primary"></i> Global Knowledge Base</strong>
+                                </label>
+                            </div>
+                            <div class="form-text ms-5">
+                                Enable Global Knowledge Base for staff users. This is a shared knowledge base accessible across all organizations (staff-only).
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="default_timezone" class="form-label">Default Timezone</label>
-                        <select class="form-select" id="default_timezone" name="default_timezone" required>
-                            {% for tz_value, tz_label in timezone_choices %}
-                            <option value="{{ tz_value }}" {% if settings.default_timezone == tz_value %}selected{% endif %}>{{ tz_label }}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="form-text">Default timezone for new users</div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="workflows_enabled" name="workflows_enabled" {% if settings.workflows_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="workflows_enabled">
+                                    <strong><i class="fas fa-project-diagram text-success"></i> Workflows & Automation</strong>
+                                </label>
+                            </div>
+                            <div class="form-text ms-5">
+                                Enable Workflows and Process Automation features. Includes process definitions, automated execution, and workflow tracking.
+                            </div>
+                        </div>
                     </div>
 
                     <hr>
