@@ -7,6 +7,7 @@ set -e
 
 SERVICE_FILE="/etc/systemd/system/huduglue-gunicorn.service"
 ENV_FILE="/home/administrator/.env"
+TEMP_FILE="/tmp/huduglue-service-$$.tmp"
 
 echo "🔧 Checking Gunicorn service configuration..."
 
@@ -24,19 +25,31 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Check if EnvironmentFile is already configured
-if grep -q "EnvironmentFile=$ENV_FILE" "$SERVICE_FILE"; then
+if sudo grep -q "EnvironmentFile=$ENV_FILE" "$SERVICE_FILE" 2>/dev/null || grep -q "EnvironmentFile=$ENV_FILE" "$SERVICE_FILE" 2>/dev/null; then
     echo "✅ Gunicorn service already configured to load .env file"
     exit 0
 fi
 
 echo "📝 Adding EnvironmentFile to Gunicorn service..."
 
-# Backup the service file
-sudo cp "$SERVICE_FILE" "${SERVICE_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
-echo "✅ Backed up service file"
+# Read the service file and add EnvironmentFile line
+# Use awk to insert the line after Environment="PATH=..."
+awk '/Environment="PATH=/ { print; print "EnvironmentFile=/home/administrator/.env"; next }1' "$SERVICE_FILE" > "$TEMP_FILE"
 
-# Add EnvironmentFile after the PATH environment variable
-sudo sed -i '/Environment="PATH=/a EnvironmentFile=/home/administrator/.env' "$SERVICE_FILE"
+# Check if the modification was successful
+if ! grep -q "EnvironmentFile=$ENV_FILE" "$TEMP_FILE"; then
+    echo "❌ Error: Failed to modify service file"
+    rm -f "$TEMP_FILE"
+    exit 1
+fi
+
+# Write the modified content back using sudo tee (which IS in sudoers)
+echo "✅ Writing updated service configuration..."
+sudo tee "$SERVICE_FILE" < "$TEMP_FILE" > /dev/null
+
+# Clean up temp file
+rm -f "$TEMP_FILE"
+
 echo "✅ Added EnvironmentFile to service configuration"
 
 # Reload systemd and restart Gunicorn

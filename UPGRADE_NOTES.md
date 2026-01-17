@@ -1,5 +1,38 @@
 # HuduGlue Upgrade Notes
 
+## 🔧 v2.24.121 - FIXED: Gunicorn Fix Script Now Works with Sudo Permissions!
+
+### What Was Fixed:
+The Gunicorn fix script was using `sudo sed` and `sudo cp` commands that weren't in the sudoers permissions, causing it to fail silently during web-based updates.
+
+**The fix:** Changed the script to use only `sudo tee`, `sudo systemctl`, and `sudo grep` - commands that ARE in the sudoers permissions!
+
+### How It Works Now:
+1. Script reads the service file with `awk` (no sudo needed)
+2. Modifies the content in memory
+3. **Uses `sudo tee` to write** (which IS allowed in sudoers)
+4. Reloads and restarts service
+
+### Update Now:
+```bash
+# From web UI:
+Admin → System Updates → Click "Apply Update"
+
+# The fix script will NOW work correctly!
+```
+
+### What Gets Fixed:
+- ✅ Demo data import encryption errors
+- ✅ Password creation/editing from web UI
+- ✅ All environment variable operations
+
+### Technical Details:
+- **Old script:** Used `sudo sed -i` and `sudo cp` (not in sudoers)
+- **New script:** Uses `sudo tee` (IS in sudoers)
+- **Result:** Fix actually applies during web-based updates!
+
+---
+
 ## 🧪 v2.24.120 - Test Release for Complete Update Flow
 
 ### What's New:
