@@ -294,33 +294,8 @@
                             </div>
                         </div>
 
-                        <hr>
-
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="useOwnGithub" name="use_own_github">
-                                <label class="form-check-label" for="useOwnGithub">
-                                    Use my own GitHub account
-                                </label>
-                            </div>
-                            <small class="form-text text-muted">If unchecked, issue will be created using system account</small>
-                        </div>
-
-                        <div id="githubCredentials" style="display: none;">
-                            <div class="mb-3">
-                                <label for="githubUsername" class="form-label">GitHub Username</label>
-                                <input type="text" class="form-control" id="githubUsername" name="github_username" placeholder="your-github-username">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="githubToken" class="form-label">GitHub Personal Access Token</label>
-                                <input type="password" class="form-control" id="githubToken" name="github_token" placeholder="ghp_..." autocomplete="off">
-                                <small class="form-text text-muted">
-                                    <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=HuduGlue%20Bug%20Reporter" target="_blank">
-                                        <i class="fas fa-external-link-alt"></i> Create token with 'public_repo' scope
-                                    </a>
-                                </small>
-                            </div>
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i> Bug reports are submitted to GitHub using the system account. Your HuduGlue username will be included in the report.
                         </div>
 
                         <div id="bugReportAlert" class="alert" style="display: none;" role="alert"></div>
@@ -341,11 +316,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const browserInfo = navigator.userAgent;
             document.getElementById('browserInfo').textContent = browserInfo;
-        });
-
-        // Toggle GitHub credentials section
-        document.getElementById('useOwnGithub').addEventListener('change', function() {
-            document.getElementById('githubCredentials').style.display = this.checked ? 'block' : 'none';
         });
 
         // Bug report form submission
@@ -381,8 +351,7 @@
 
                     // Reset form
                     document.getElementById('bugReportForm').reset();
-                    document.getElementById('githubCredentials').style.display = 'none';
-
+        
                     // Auto-close modal after 5 seconds
                     setTimeout(function() {
                         bootstrap.Modal.getInstance(document.getElementById('reportBugModal')).hide();
@@ -408,7 +377,6 @@
         // Reset form when modal is closed
         document.getElementById('reportBugModal').addEventListener('hidden.bs.modal', function () {
             document.getElementById('bugReportForm').reset();
-            document.getElementById('githubCredentials').style.display = 'none';
             document.getElementById('bugReportAlert').style.display = 'none';
         });
     </script>

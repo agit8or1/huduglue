@@ -250,35 +250,23 @@ def report_bug(request):
     title = request.POST.get('title', '').strip()
     description = request.POST.get('description', '').strip()
     steps_to_reproduce = request.POST.get('steps_to_reproduce', '').strip()
-    use_own_github = request.POST.get('use_own_github') == 'true'
-    github_username = request.POST.get('github_username', '').strip()
-    github_token = request.POST.get('github_token', '').strip()
     screenshot = request.FILES.get('screenshot')
-    
+
     # Validate required fields
     if not title or not description:
         return JsonResponse({
             'success': False,
             'message': 'Title and description are required'
         }, status=400)
-    
-    # Get GitHub token (user's or system's)
-    if use_own_github:
-        if not github_token:
-            return JsonResponse({
-                'success': False,
-                'message': 'GitHub token is required when using your own account'
-            }, status=400)
-        token = github_token
-    else:
-        # Get system GitHub PAT
-        system_settings = SystemSetting.get_settings()
-        token = system_settings.github_pat
-        if not token:
-            return JsonResponse({
-                'success': False,
-                'message': 'System GitHub PAT is not configured. Please configure it in Settings or use your own GitHub account.'
-            }, status=400)
+
+    # Get system GitHub PAT (only option for security)
+    system_settings = SystemSetting.get_settings()
+    token = system_settings.github_pat
+    if not token:
+        return JsonResponse({
+            'success': False,
+            'message': 'System GitHub PAT is not configured. Please contact your administrator to configure bug reporting.'
+        }, status=400)
 
 
 
