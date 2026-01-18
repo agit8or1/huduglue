@@ -6,6 +6,7 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.http import url_has_allowed_host_and_scheme
 from .azure_auth import AzureOAuthClient, AzureADBackend
 import logging
 
@@ -78,9 +79,21 @@ def azure_callback(request):
 
     messages.success(request, f"Welcome back, {user.get_full_name() or user.username}!")
 
-    # Redirect to dashboard or next URL
+    # Redirect to dashboard or next URL (with security validation to prevent open redirect)
     next_url = request.GET.get('next', '/core/dashboard/')
-    return redirect(next_url)
+
+    # Validate redirect URL to prevent open redirect attacks
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure()
+    ):
+        return redirect(next_url)
+    else:
+        # If next_url is invalid or points to external site, redirect to dashboard
+        if next_url and next_url != '/core/dashboard/':
+            logger.warning(f"Blocked potentially malicious redirect to: {next_url}")
+        return redirect('/core/dashboard/')
 
 
 @require_http_methods(["GET"])

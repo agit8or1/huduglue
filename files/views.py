@@ -134,6 +134,41 @@ def upload_attachment(request):
         if pattern in filename:
             return HttpResponse(f"Dangerous file type detected: {pattern}", status=400)
 
+    # Security: Validate file content matches extension (magic bytes verification)
+    uploaded_file.seek(0)  # Reset file pointer
+    file_header = uploaded_file.read(512)  # Read first 512 bytes for magic byte checking
+    uploaded_file.seek(0)  # Reset again for later processing
+
+    # Magic bytes signatures for common file types
+    MAGIC_BYTES = {
+        'pdf': [b'%PDF'],
+        'png': [b'\x89PNG\r\n\x1a\n'],
+        'jpg': [b'\xff\xd8\xff'],
+        'jpeg': [b'\xff\xd8\xff'],
+        'gif': [b'GIF87a', b'GIF89a'],
+        'zip': [b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08'],
+        'docx': [b'PK\x03\x04'],  # DOCX is a ZIP archive
+        'xlsx': [b'PK\x03\x04'],  # XLSX is a ZIP archive
+        'pptx': [b'PK\x03\x04'],  # PPTX is a ZIP archive
+        '7z': [b'7z\xbc\xaf\x27\x1c'],
+        'gz': [b'\x1f\x8b'],
+        'bmp': [b'BM'],
+    }
+
+    # Verify magic bytes if we have a signature for this file type
+    if file_ext in MAGIC_BYTES:
+        valid_magic = False
+        for magic in MAGIC_BYTES[file_ext]:
+            if file_header.startswith(magic):
+                valid_magic = True
+                break
+
+        if not valid_magic:
+            return HttpResponse(
+                f"File content does not match extension .{file_ext}. Possible file type mismatch or malicious upload attempt.",
+                status=400
+            )
+
     # Optimize images
     IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
     if file_ext in IMAGE_EXTENSIONS and file_ext != 'svg':  # Don't optimize SVG (vector format)

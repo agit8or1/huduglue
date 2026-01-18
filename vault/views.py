@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django_ratelimit.decorators import ratelimit
 from core.middleware import get_request_organization
 from core.decorators import require_write
 from audit.models import AuditLog
@@ -41,11 +42,29 @@ def password_detail(request, pk):
 
 
 @login_required
+@ratelimit(key='user', rate='30/h', method='POST', block=True)
 def password_reveal(request, pk):
     """
     AJAX endpoint to reveal decrypted password.
     Logs the reveal action for security audit.
+    Rate limited to 30 reveals per hour per user to prevent abuse.
     """
+    # Check if rate limited
+    if getattr(request, 'limited', False):
+        # Log rate limit attempt
+        AuditLog.objects.create(
+            organization=get_request_organization(request),
+            user=request.user,
+            username=request.user.username,
+            action='password_reveal_rate_limited',
+            description=f'Password reveal rate limit exceeded (30/hour)',
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+        )
+        return JsonResponse({
+            'error': 'Rate limit exceeded. You can only reveal 30 passwords per hour.'
+        }, status=429)
+
     org = get_request_organization(request)
     password = get_object_or_404(Password, pk=pk, organization=org)
 
