@@ -273,6 +273,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if not DEBUG else 
 # Referrer Policy - Don't leak URLs to external sites
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
+# Cross-Origin-Opener-Policy (COOP) - Only enable for HTTPS
+# Browsers reject this header on HTTP (non-localhost), so only set it when using HTTPS
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin' if SECURE_SSL_REDIRECT else None
+
 # Content Security Policy - Stricter (use django-csp for full control)
 # NOTE: unsafe-inline is required for some Django admin and DRF browsable API features
 # In production with JSON-only API, you can remove unsafe-inline
