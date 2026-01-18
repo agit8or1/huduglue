@@ -1689,13 +1689,32 @@ def import_demo_data(request):
         from django.conf import settings
 
         master_key = os.getenv('APP_MASTER_KEY', '').strip()
-
-        # Also check what Django settings has (might be different from os.environ)
         settings_key = getattr(settings, 'APP_MASTER_KEY', '').strip() if hasattr(settings, 'APP_MASTER_KEY') else ''
 
-        # Use whichever is set and valid
-        if settings_key and len(settings_key) >= 40:
-            master_key = settings_key
+        # Log what we found for debugging
+        logger.info(f"APP_MASTER_KEY from os.environ: {'SET' if master_key else 'NOT SET'} (len={len(master_key)})")
+        logger.info(f"APP_MASTER_KEY from settings: {'SET' if settings_key else 'NOT SET'} (len={len(settings_key)})")
+
+        # Use whichever is set and valid, and try to validate it
+        candidate_key = settings_key if settings_key and len(settings_key) >= 40 else master_key
+
+        # If we have a candidate key, validate it before using
+        if candidate_key and len(candidate_key) >= 40:
+            logger.info("Found candidate APP_MASTER_KEY, validating...")
+            try:
+                # Try to decode it to check if it's valid base64
+                decoded = base64.b64decode(candidate_key)
+                if len(decoded) == 32:
+                    logger.info("✓ APP_MASTER_KEY is valid, using it")
+                    master_key = candidate_key
+                else:
+                    logger.error(f"✗ APP_MASTER_KEY decoded to {len(decoded)} bytes, expected 32. Will regenerate.")
+                    master_key = ''  # Force regeneration
+            except Exception as e:
+                logger.error(f"✗ APP_MASTER_KEY validation failed: {e}. Will regenerate.")
+                master_key = ''  # Force regeneration
+        else:
+            master_key = candidate_key
 
         if not master_key or len(master_key) < 40:
             logger.warning("APP_MASTER_KEY not configured, auto-generating...")
@@ -1720,14 +1739,24 @@ def import_demo_data(request):
             # Try to write to .env file
             env_path = Path(settings.BASE_DIR) / '.env'
             try:
+                import re
+
                 # Read existing .env content
                 env_content = ''
                 if env_path.exists():
                     with open(env_path, 'r') as f:
                         env_content = f.read()
 
-                # Remove any existing APP_MASTER_KEY lines (including comments)
-                import re
+                    # Debug: Check if there's an existing APP_MASTER_KEY line
+                    existing_keys = re.findall(r'^#?\s*APP_MASTER_KEY=(.*)$', env_content, re.MULTILINE)
+                    if existing_keys:
+                        logger.info(f"Found {len(existing_keys)} existing APP_MASTER_KEY line(s) in .env")
+                        for idx, key in enumerate(existing_keys):
+                            key_value = key.strip()
+                            key_preview = key_value[:10] + '...' if len(key_value) > 10 else key_value if key_value else '(empty)'
+                            logger.info(f"  Line {idx+1}: APP_MASTER_KEY='{key_preview}' (len={len(key_value)})")
+
+                # Remove any existing APP_MASTER_KEY lines (including comments and empty values)
                 env_content = re.sub(
                     r'^#?\s*APP_MASTER_KEY=.*$\n?',
                     '',
