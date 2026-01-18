@@ -1686,6 +1686,7 @@ def import_demo_data(request):
         import os
         import base64
         from pathlib import Path
+        from django.conf import settings
 
         master_key = os.getenv('APP_MASTER_KEY', '').strip()
 
