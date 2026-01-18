@@ -1773,6 +1773,26 @@ def import_demo_data(request):
                     'message': f'✗ Failed to auto-generate APP_MASTER_KEY: {str(e)}\n\nPlease check file permissions on .env file.'
                 })
 
+        # Validate that encryption actually works before proceeding
+        logger.info("Validating encryption functionality...")
+        try:
+            from vault.encryption_v2 import encrypt_password, decrypt_password
+            test_password = "test-encryption-validation"
+            encrypted = encrypt_password(test_password)
+            decrypted = decrypt_password(encrypted)
+            if decrypted != test_password:
+                raise ValueError("Decrypted password doesn't match original")
+            logger.info("✓ Encryption validation passed")
+        except Exception as e:
+            logger.error(f"Encryption validation failed: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return JsonResponse({
+                'success': False,
+                'message': f'✗ Encryption validation failed: {str(e)}\n\nThe APP_MASTER_KEY may be invalid. Please check server logs.',
+                'error': str(e)
+            })
+
         # Get or create Acme Corporation organization
         organization, created = Organization.objects.get_or_create(
             name='Acme Corporation',

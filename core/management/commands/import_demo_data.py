@@ -86,92 +86,38 @@ class Command(BaseCommand):
         self.stdout.write(f'Importing into organization: {organization.name}')
         self.stdout.write(f'Created by user: {user.username}')
 
-        # Auto-generate APP_MASTER_KEY if not configured
+        # Verify APP_MASTER_KEY is configured (caller should have set this up)
         from django.conf import settings
-        import base64
-        from pathlib import Path
-        import re
 
-        master_key = os.getenv('APP_MASTER_KEY', '').strip()
-
-        # Also check what Django settings has (might be different from os.environ)
-        settings_key = getattr(settings, 'APP_MASTER_KEY', '').strip() if hasattr(settings, 'APP_MASTER_KEY') else ''
-
-        # Use whichever is set and valid
-        if settings_key and len(settings_key) >= 40:
-            master_key = settings_key
-
+        master_key = getattr(settings, 'APP_MASTER_KEY', '').strip()
         if not master_key or len(master_key) < 40:
-            self.stdout.write(self.style.WARNING('⚠ APP_MASTER_KEY not configured, auto-generating...'))
-
-            # Generate a secure 32-byte key
-            new_key = base64.b64encode(os.urandom(32)).decode()
-
-            # Validate the key we just generated (sanity check)
-            try:
-                test_decode = base64.b64decode(new_key)
-                if len(test_decode) != 32:
-                    raise ValueError(f"Generated key decoded to {len(test_decode)} bytes, expected 32")
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f'✗ Failed to generate valid encryption key: {e}'))
-                return
-
-            self.stdout.write(f'Generated new APP_MASTER_KEY: {new_key[:10]}... ({len(new_key)} chars)')
-
-            # Try to write to .env file
-            env_path = Path(settings.BASE_DIR) / '.env'
-            try:
-                # Read existing .env content
-                env_content = ''
-                if env_path.exists():
-                    with open(env_path, 'r') as f:
-                        env_content = f.read()
-
-                # Remove any existing APP_MASTER_KEY lines (including comments)
-                env_content = re.sub(
-                    r'^#?\s*APP_MASTER_KEY=.*$\n?',
-                    '',
-                    env_content,
-                    flags=re.MULTILINE
+            self.stdout.write(
+                self.style.ERROR(
+                    '\n✗ ERROR: APP_MASTER_KEY is not configured!\n'
+                    'The encryption key must be set before importing demo data.\n'
+                    'Please ensure APP_MASTER_KEY is set in your .env file or Django settings.\n'
                 )
+            )
+            return
 
-                # Remove any trailing whitespace and ensure single newline at end
-                env_content = env_content.rstrip()
-                if env_content:
-                    env_content += '\n'
-
-                # Add new APP_MASTER_KEY at the end
-                env_content += f'\n# Auto-generated encryption key for passwords and sensitive data\n'
-                env_content += f'# WARNING: Never change this key after data is encrypted!\n'
-                env_content += f'APP_MASTER_KEY={new_key}\n'
-
-                # Write back to .env
-                with open(env_path, 'w') as f:
-                    f.write(env_content)
-
-                # Set in current process environment AND Django settings
-                os.environ['APP_MASTER_KEY'] = new_key
-                settings.APP_MASTER_KEY = new_key  # Update Django settings for current process
-
-                # Verify it was set correctly
-                verify_key = getattr(settings, 'APP_MASTER_KEY', None)
-                if verify_key != new_key:
-                    self.stdout.write(self.style.ERROR(f'✗ Failed to update settings.APP_MASTER_KEY! Got: {verify_key[:10] if verify_key else "None"}...'))
-                    return
-
-                self.stdout.write(self.style.SUCCESS(f'✓ Auto-generated and saved APP_MASTER_KEY to {env_path}'))
-                self.stdout.write(self.style.SUCCESS(f'✓ Verified settings.APP_MASTER_KEY = {verify_key[:10]}... ({len(verify_key)} chars)'))
-                self.stdout.write(self.style.WARNING('  NOTE: Restart the application to ensure the key is loaded on next startup'))
-
-            except Exception as e:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f'\n✗ ERROR: Failed to auto-generate APP_MASTER_KEY: {e}\n'
-                        '\n'
-                        'Please check file permissions on .env file and try again.\n'
-                    )
+        # Validate that encryption actually works
+        try:
+            from vault.encryption_v2 import encrypt_password, decrypt_password
+            test_password = "test-encryption-validation"
+            encrypted = encrypt_password(test_password)
+            decrypted = decrypt_password(encrypted)
+            if decrypted != test_password:
+                raise ValueError("Decrypted password doesn't match original")
+            self.stdout.write(self.style.SUCCESS('✓ Encryption validation passed'))
+        except Exception as e:
+            self.stdout.write(
+                self.style.ERROR(
+                    f'\n✗ ERROR: Encryption validation failed: {e}\n'
+                    'The APP_MASTER_KEY may be invalid or malformed.\n'
+                    'Please check your .env file and ensure APP_MASTER_KEY is a valid base64-encoded 32-byte key.\n'
                 )
-                return
+            )
+            return
 
         # Check if data already exists
         existing_docs = organization.documents.filter(
