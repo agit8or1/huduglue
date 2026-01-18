@@ -128,8 +128,9 @@ class Command(BaseCommand):
                 with open(env_path, 'w') as f:
                     f.write(env_content)
 
-                # Set in current process environment
+                # Set in current process environment AND Django settings
                 os.environ['APP_MASTER_KEY'] = new_key
+                settings.APP_MASTER_KEY = new_key  # Update Django settings for current process
 
                 self.stdout.write(self.style.SUCCESS(f'✓ Auto-generated and saved APP_MASTER_KEY to {env_path}'))
                 self.stdout.write(self.style.WARNING('  NOTE: Restart the application to ensure the key is loaded on next startup'))

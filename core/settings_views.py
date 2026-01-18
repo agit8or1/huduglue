@@ -1722,8 +1722,9 @@ def import_demo_data(request):
             with open(env_path, 'w') as f:
                 f.write(env_content)
 
-            # Set in current process environment
+            # Set in current process environment AND Django settings
             os.environ['APP_MASTER_KEY'] = new_key
+            settings.APP_MASTER_KEY = new_key  # Update Django settings for current process
 
             logger.info(f"✓ Auto-generated and saved APP_MASTER_KEY to {env_path}")
             logger.warning("IMPORTANT: Restart the application to ensure the key is loaded on next startup")
