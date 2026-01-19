@@ -7,8 +7,7 @@ API documentation: https://github.com/Nine-Minds/alga-psa/tree/release/0.16.0/sd
 Repository: https://github.com/Nine-Minds/alga-psa
 Default hosted: https://algapsa.com
 """
-from ..psa_base import BasePSAProvider
-from ..base import ProviderError, AuthenticationError
+from ..base import BaseProvider, ProviderError, AuthenticationError
 import requests
 import logging
 from typing import List, Dict, Any, Optional
@@ -16,7 +15,7 @@ from typing import List, Dict, Any, Optional
 logger = logging.getLogger('integrations')
 
 
-class AlgaPSAProvider(BasePSAProvider):
+class AlgaPSAProvider(BaseProvider):
     """
     Alga PSA integration provider.
 
@@ -381,3 +380,25 @@ class AlgaPSAProvider(BasePSAProvider):
             'updated_at': self._parse_datetime(raw_data.get('updated_at')),
             'raw_data': raw_data,
         }
+
+    def _parse_datetime(self, date_string: Optional[str]) -> Optional[Any]:
+        """
+        Parse Alga PSA datetime string to Python datetime.
+
+        Alga PSA uses ISO 8601 format (e.g., "2026-01-19T14:30:00Z" or "2026-01-19T14:30:00.123Z")
+
+        Args:
+            date_string: ISO 8601 datetime string or None
+
+        Returns:
+            datetime object or None
+        """
+        if not date_string:
+            return None
+        try:
+            from datetime import datetime
+            # Try ISO 8601 format with Z timezone
+            return datetime.fromisoformat(date_string.replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            logger.warning(f"Failed to parse Alga PSA datetime: {date_string}")
+            return None
