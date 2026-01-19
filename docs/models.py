@@ -192,11 +192,11 @@ class DocumentFlag(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='document_flags')
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='flags')
     color = models.CharField(max_length=20, default='yellow', choices=[
-        ('yellow', 'Yellow'),
-        ('red', 'Red'),
         ('blue', 'Blue'),
         ('green', 'Green'),
         ('purple', 'Purple'),
+        ('red', 'Red'),
+        ('yellow', 'Yellow'),
     ])
     notes = models.TextField(blank=True)
 
@@ -213,15 +213,15 @@ class Diagram(BaseModel):
     Draw.io diagram with versioning support.
     """
     DIAGRAM_TYPES = [
-        ('network', 'Network Diagram'),
-        ('process', 'Process Flow'),
-        ('architecture', 'System Architecture'),
-        ('rack', 'Rack Layout'),
-        ('floorplan', 'Floor Plan'),
-        ('org', 'Organizational Chart'),
         ('erd', 'Entity Relationship Diagram'),
+        ('floorplan', 'Floor Plan'),
         ('flowchart', 'Flowchart'),
+        ('network', 'Network Diagram'),
+        ('org', 'Organizational Chart'),
         ('other', 'Other'),
+        ('process', 'Process Flow'),
+        ('rack', 'Rack Layout'),
+        ('architecture', 'System Architecture'),
     ]
 
     organization = models.ForeignKey(
@@ -379,9 +379,9 @@ class DiagramAnnotation(BaseModel):
     annotation_type = models.CharField(
         max_length=20,
         choices=[
-            ('note', 'Note'),
             ('comment', 'Comment'),
             ('issue', 'Issue'),
+            ('note', 'Note'),
             ('suggestion', 'Suggestion'),
         ],
         default='note'

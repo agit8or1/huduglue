@@ -62,21 +62,21 @@ class Password(BaseModel):
     Never stores plaintext passwords.
     """
     PASSWORD_TYPES = [
-        ('website', 'Website Login'),
-        ('email', 'Email Account'),
-        ('windows_ad', 'Windows/Active Directory'),
-        ('database', 'Database'),
-        ('ssh_key', 'SSH Key'),
         ('api_key', 'API Key'),
-        ('otp', 'OTP/TOTP (2FA)'),
         ('credit_card', 'Credit Card'),
-        ('network_device', 'Network Device'),
-        ('server', 'Server/VPS'),
+        ('database', 'Database'),
+        ('email', 'Email Account'),
         ('ftp', 'FTP/SFTP'),
-        ('vpn', 'VPN'),
-        ('wifi', 'WiFi Network'),
-        ('software_license', 'Software License'),
+        ('network_device', 'Network Device'),
+        ('otp', 'OTP/TOTP (2FA)'),
         ('other', 'Other'),
+        ('server', 'Server/VPS'),
+        ('software_license', 'Software License'),
+        ('ssh_key', 'SSH Key'),
+        ('vpn', 'VPN'),
+        ('website', 'Website Login'),
+        ('wifi', 'WiFi Network'),
+        ('windows_ad', 'Windows/Active Directory'),
     ]
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='passwords')

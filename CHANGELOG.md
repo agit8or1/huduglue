@@ -5,6 +5,26 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.186] - 2026-01-19
+
+### ✨ Improvements
+
+**Alphabetized Dropdown Choices (Part 2 - User-Facing):**
+- **Sorted** user roles (Admin → Read-Only)
+- **Sorted** user types (Organization User → Staff User)
+- **Sorted** locale choices (English → Spanish)
+- **Sorted** theme choices (Dark Mode → Sunset Orange)
+- **Sorted** background modes (Custom Upload → Random from Internet)
+- **Sorted** 2FA methods (Authenticator App → SMS)
+- **Sorted** notification frequency (Daily Digest → Weekly Digest)
+- **Sorted** authentication sources (Azure AD → Local)
+- **Sorted** password types (API Key → Windows/Active Directory)
+- **Sorted** document flag colors (Blue → Yellow)
+- **Sorted** diagram types (Entity Relationship Diagram → System Architecture)
+- **Sorted** annotation types (Comment → Suggestion)
+- **Improved** UX consistency for frequently-used user settings
+- **Note**: Assets and other modules will be alphabetized in subsequent updates
+
 ## [2.24.185] - 2026-01-19
 
 ### ✨ Improvements

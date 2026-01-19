@@ -12,9 +12,9 @@ class Role(models.TextChoices):
     """
     Role definitions for RBAC.
     """
-    OWNER = 'owner', 'Owner'
     ADMIN = 'admin', 'Admin'
     EDITOR = 'editor', 'Editor'
+    OWNER = 'owner', 'Owner'
     READONLY = 'readonly', 'Read-Only'
 
 
@@ -153,8 +153,8 @@ class UserType(models.TextChoices):
     """
     User type definitions for MSP model.
     """
-    STAFF = 'staff', 'Staff User (MSP Tech)'
     ORG_USER = 'org_user', 'Organization User (Client)'
+    STAFF = 'staff', 'Staff User (MSP Tech)'
 
 
 class UserProfile(BaseModel):
@@ -193,28 +193,28 @@ class UserProfile(BaseModel):
     timezone = models.CharField(max_length=50, default='UTC')
     locale = models.CharField(max_length=10, default='en', choices=[
         ('en', 'English'),
-        ('es', 'Spanish'),
         ('fr', 'French'),
         ('de', 'German'),
+        ('es', 'Spanish'),
     ])
     theme = models.CharField(max_length=30, default='default', choices=[
-        ('default', 'Default Blue'),
         ('dark', 'Dark Mode'),
-        ('purple', 'Purple Haze'),
-        ('green', 'Forest Green'),
-        ('ocean', 'Ocean Blue'),
-        ('sunset', 'Sunset Orange'),
-        ('nord', 'Nord (Arctic)'),
+        ('default', 'Default Blue'),
         ('dracula', 'Dracula'),
-        ('solarized', 'Solarized Light'),
-        ('monokai', 'Monokai'),
+        ('green', 'Forest Green'),
         ('gruvbox', 'Gruvbox'),
+        ('monokai', 'Monokai'),
+        ('nord', 'Nord (Arctic)'),
+        ('ocean', 'Ocean Blue'),
+        ('purple', 'Purple Haze'),
+        ('solarized', 'Solarized Light'),
+        ('sunset', 'Sunset Orange'),
     ])
 
     # Background Settings
     background_mode = models.CharField(max_length=20, default='none', choices=[
-        ('none', 'No Background Image'),
         ('custom', 'Custom Upload'),
+        ('none', 'No Background Image'),
         ('random', 'Random from Internet'),
     ])
     background_image = models.ImageField(
@@ -228,8 +228,8 @@ class UserProfile(BaseModel):
     two_factor_enabled = models.BooleanField(default=False)
     two_factor_method = models.CharField(max_length=20, choices=[
         ('totp', 'Authenticator App'),
-        ('sms', 'SMS'),
         ('email', 'Email'),
+        ('sms', 'SMS'),
     ], default='totp', blank=True)
     
     # Security
@@ -240,9 +240,9 @@ class UserProfile(BaseModel):
     # Notifications
     email_notifications = models.BooleanField(default=True)
     notification_frequency = models.CharField(max_length=20, choices=[
-        ('realtime', 'Real-time'),
-        ('hourly', 'Hourly Digest'),
         ('daily', 'Daily Digest'),
+        ('hourly', 'Hourly Digest'),
+        ('realtime', 'Real-time'),
         ('weekly', 'Weekly Digest'),
     ], default='realtime')
 
@@ -250,9 +250,9 @@ class UserProfile(BaseModel):
     auth_source = models.CharField(
         max_length=20,
         choices=[
-            ('local', 'Local'),
-            ('ldap', 'LDAP/Active Directory'),
             ('azure_ad', 'Azure AD / Microsoft Entra ID'),
+            ('ldap', 'LDAP/Active Directory'),
+            ('local', 'Local'),
         ],
         default='local',
         help_text='Authentication source for this user'
