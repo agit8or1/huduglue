@@ -5,10 +5,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.text import slugify
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from core.middleware import get_request_organization
 from core.decorators import require_write, require_admin
 from .models import Document, DocumentVersion, DocumentCategory
 from .forms import DocumentForm
+import os
 
 
 @login_required
@@ -206,6 +209,73 @@ def document_delete(request, slug):
     return render(request, 'docs/document_confirm_delete.html', {
         'document': document,
     })
+
+
+@login_required
+@require_write
+@require_http_methods(["POST"])
+def document_upload(request):
+    """
+    Bulk upload multiple files as documents.
+    """
+    org = get_request_organization(request)
+    files = request.FILES.getlist('files')
+    category_id = request.POST.get('category')
+
+    category = None
+    if category_id:
+        try:
+            category = DocumentCategory.objects.get(id=category_id, organization=org)
+        except DocumentCategory.DoesNotExist:
+            pass
+
+    uploaded_count = 0
+    failed = []
+
+    for file in files:
+        try:
+            # Generate title from filename
+            title = os.path.splitext(file.name)[0]
+            slug = slugify(title)
+
+            # Make slug unique
+            base_slug = slug
+            counter = 1
+            while Document.objects.filter(organization=org, slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+
+            # Create document
+            document = Document.objects.create(
+                organization=org,
+                title=title,
+                slug=slug,
+                content_type='file',
+                file=file,
+                file_size=file.size,
+                file_type=file.content_type,
+                category=category,
+                created_by=request.user,
+                last_modified_by=request.user,
+                is_published=True
+            )
+            uploaded_count += 1
+
+        except Exception as e:
+            failed.append(f"{file.name}: {str(e)}")
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'uploaded': uploaded_count,
+            'failed': failed
+        })
+    else:
+        if uploaded_count > 0:
+            messages.success(request, f"Successfully uploaded {uploaded_count} file(s).")
+        if failed:
+            messages.warning(request, f"Failed to upload: {', '.join(failed)}")
+        return redirect('docs:document_list')
 
 
 # ============================================================================

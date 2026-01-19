@@ -5,6 +5,28 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.172] - 2026-01-19
+
+### ✨ Features
+
+**Direct File Upload on Documents Page:**
+- **Added** "Upload Files" button directly on document list page
+- **Added** drag & drop upload modal with multi-file support
+- **Removed** need to go through "New Document" form for file uploads
+- **Supports** bulk uploads - select multiple files at once
+- **Shows** file preview list with sizes before uploading
+- **Includes** optional category selection for uploads
+- **Displays** upload progress with animated progress bar
+- **Auto-generates** document titles from filenames
+
+**User Experience:**
+1. Click "Upload Files" green button on Documents page
+2. Drag & drop files or click to browse
+3. Select multiple files (PDFs, images, docs, etc.)
+4. Optional: choose a category
+5. Click "Upload Files" button
+6. Page auto-refreshes showing uploaded documents
+
 ## [2.24.171] - 2026-01-19
 
 ### 🎨 UI/UX Improvements
