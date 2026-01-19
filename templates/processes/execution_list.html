@@ -79,7 +79,7 @@
                 </thead>
                 <tbody>
                     {% for execution in executions %}
-                    <tr class="{% if execution.status == 'completed' %}table-success{% elif execution.status == 'failed' %}table-danger{% elif execution.status == 'in_progress' %}table-warning{% endif %}">
+                    <tr>
                         <td>
                             <strong>{{ execution.process.title }}</strong>
                             {% if execution.psa_ticket %}
