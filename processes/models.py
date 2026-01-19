@@ -268,6 +268,10 @@ class ProcessExecution(BaseModel):
         related_name='process_executions',
         help_text='Related PSA ticket for this execution'
     )
+    psa_note_internal = models.BooleanField(
+        default=False,
+        help_text='Make PSA ticket note internal/private (not visible to customer)'
+    )
 
     objects = OrganizationManager()
 

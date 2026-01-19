@@ -558,7 +558,7 @@ def stage_complete(request, pk):
                 psa_manager.add_ticket_note(
                     ticket=completion.execution.psa_ticket,
                     note=summary,
-                    internal=False
+                    internal=completion.execution.psa_note_internal
                 )
 
                 # Log the PSA update in audit

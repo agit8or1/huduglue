@@ -5,6 +5,28 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.156] - 2026-01-19
+
+### ✨ Features
+
+**PSA Ticket Note Visibility Control:**
+- **Added** psa_note_internal field to ProcessExecution model
+- **Added** checkbox in ProcessExecutionForm to control note visibility
+- **Enhanced** PSA integration to respect internal/public note setting
+- **Flexibility** - Users can now choose whether workflow completion notes are internal (private) or public (visible to customers)
+- **Default** - Notes are public by default, matching common workflow scenarios
+
+### 🔧 Improvements
+
+**Workflow Execution:**
+- **Updated** stage_complete view to use psa_note_internal setting when posting to PSA tickets
+- **Improved** form UI with clear help text for note visibility option
+
+### 🗄️ Database
+
+**Migrations:**
+- **Added** migration 0004_processexecution_psa_note_internal.py
+
 ## [2.24.155] - 2026-01-19
 
 ### ✨ Major New Features

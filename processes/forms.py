@@ -130,7 +130,7 @@ ProcessStageFormSet = inlineformset_factory(
 class ProcessExecutionForm(forms.ModelForm):
     class Meta:
         model = ProcessExecution
-        fields = ['process', 'assigned_to', 'status', 'due_date', 'notes', 'psa_ticket']
+        fields = ['process', 'assigned_to', 'status', 'due_date', 'notes', 'psa_ticket', 'psa_note_internal']
         widgets = {
             'process': forms.Select(attrs={'class': 'form-select'}),
             'assigned_to': forms.Select(attrs={'class': 'form-select'}),
@@ -138,12 +138,14 @@ class ProcessExecutionForm(forms.ModelForm):
             'due_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Execution notes...'}),
             'psa_ticket': forms.Select(attrs={'class': 'form-select'}),
+            'psa_note_internal': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         help_texts = {
             'process': 'Select the process to execute',
             'assigned_to': 'User responsible for executing this process',
             'due_date': 'Optional deadline for completion',
             'psa_ticket': 'Optional: Link to PSA ticket (updates ticket when workflow completes)',
+            'psa_note_internal': 'Make PSA ticket note internal/private (not visible to customer)',
         }
 
     def __init__(self, *args, **kwargs):
