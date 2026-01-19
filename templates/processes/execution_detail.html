@@ -71,12 +71,20 @@
 <!-- Stage Completions -->
 <div class="card">
     <div class="card-header py-2">
-        <h6 class="mb-0"><i class="fas fa-list-check"></i> Stage Completions</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="fas fa-list-check"></i> Stage Completions</h6>
+            <div>
+                <span class="badge bg-success">{{ completed_count }} Completed</span>
+                {% if incomplete_count > 0 %}
+                <span class="badge bg-warning text-dark">{{ incomplete_count }} Remaining</span>
+                {% endif %}
+            </div>
+        </div>
     </div>
     <div class="card-body">
         <ol class="list-group list-group-numbered">
             {% for completion in completions %}
-            <li class="list-group-item {% if completion.is_completed %}list-group-item-success{% endif %}">
+            <li class="list-group-item {% if completion.is_completed %}list-group-item-success{% else %}list-group-item-warning{% endif %}">
                 <div class="d-flex w-100 justify-content-between align-items-start">
                     <div class="flex-grow-1">
                         <h5 class="mb-1">

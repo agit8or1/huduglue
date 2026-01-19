@@ -510,9 +510,15 @@ def execution_detail(request, pk):
     # Get stage completions
     completions = execution.stage_completions.all().select_related('stage')
 
+    # Calculate counts
+    completed_count = completions.filter(is_completed=True).count()
+    incomplete_count = completions.filter(is_completed=False).count()
+
     return render(request, 'processes/execution_detail.html', {
         'execution': execution,
         'completions': completions,
+        'completed_count': completed_count,
+        'incomplete_count': incomplete_count,
         'current_organization': org,
     })
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load process_filters %}
 
 {% block title %}Audit Log - {{ execution.process.title }}{% endblock %}
 
@@ -136,10 +137,12 @@
                                     <div class="mt-2 p-2 bg-light rounded">
                                         <small>
                                             {% if log.old_value %}
-                                            <strong>Before:</strong> <code>{{ log.old_value|safe }}</code><br>
+                                            <div class="mb-1"><strong>Before:</strong></div>
+                                            <div class="ms-2">{{ log.old_value|format_audit_value }}</div>
                                             {% endif %}
                                             {% if log.new_value %}
-                                            <strong>After:</strong> <code>{{ log.new_value|safe }}</code>
+                                            <div class="mb-1 mt-2"><strong>After:</strong></div>
+                                            <div class="ms-2">{{ log.new_value|format_audit_value }}</div>
                                             {% endif %}
                                         </small>
                                     </div>
