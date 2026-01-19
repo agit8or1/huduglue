@@ -12,6 +12,14 @@
         <a href="{% url 'processes:execution_audit_log' execution.pk %}" class="btn btn-outline-info">
             <i class="fas fa-history"></i> Audit Log
         </a>
+        {% if user.is_superuser %}
+        <form method="post" action="{% url 'processes:execution_delete' execution.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this workflow execution?\n\nThis will permanently delete:\n- Execution record\n- All stage completions\n- Complete audit log\n\nThis action cannot be undone.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </form>
+        {% endif %}
         <a href="{% url 'processes:process_detail' execution.process.slug %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back to Process
         </a>

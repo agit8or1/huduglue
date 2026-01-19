@@ -56,6 +56,7 @@ urlpatterns = [
 
     # Fail2ban (superuser only)
     path('settings/fail2ban/', fail2ban_views.fail2ban_status, name='fail2ban_status'),
+    path('settings/fail2ban/install/', fail2ban_views.fail2ban_install, name='fail2ban_install'),
     path('settings/fail2ban/unban/', fail2ban_views.fail2ban_unban_ip, name='fail2ban_unban_ip'),
     path('settings/fail2ban/unban-all/', fail2ban_views.fail2ban_unban_all, name='fail2ban_unban_all'),
     path('settings/fail2ban/check-ip/', fail2ban_views.fail2ban_check_ip, name='fail2ban_check_ip'),

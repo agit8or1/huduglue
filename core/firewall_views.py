@@ -45,12 +45,12 @@ def firewall_settings(request):
     recent_blocks = FirewallLog.objects.all()[:20]
 
     # Get statistics
+    from django.utils import timezone
+    from datetime import timedelta
+
     total_blocks_today = FirewallLog.objects.filter(
         timestamp__gte=timezone.now() - timedelta(days=1)
     ).count()
-
-    from django.utils import timezone
-    from datetime import timedelta
 
     context = {
         'settings': settings,

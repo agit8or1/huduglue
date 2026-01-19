@@ -145,6 +145,14 @@
                                 <a href="{% url 'processes:execution_audit_log' execution.pk %}" class="btn btn-outline-info" title="View Audit Log">
                                     <i class="fas fa-history"></i>
                                 </a>
+                                {% if user.is_superuser %}
+                                <form method="post" action="{% url 'processes:execution_delete' execution.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this workflow execution? This action cannot be undone.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete Execution (Admin Only)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

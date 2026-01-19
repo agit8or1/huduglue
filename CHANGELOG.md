@@ -5,6 +5,56 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.166] - 2026-01-19
+
+### ✨ Features
+
+**Workflow Execution Management:**
+- **Added** delete functionality for workflow executions (admin only)
+- **Added** delete button to execution list page (superuser only)
+- **Added** delete button to execution detail page (superuser only)
+- **Added** confirmation dialog with details about what will be deleted
+- **Cascading** deletion removes execution, stage completions, and audit logs
+
+**Automatic Fail2ban Installation:**
+- **Added** one-click fail2ban installation for administrators
+- **Added** "Install Fail2ban Now" button in fail2ban status page
+- **Created** sudoers configuration for automatic installation
+- **Automated** package installation, service configuration, and access setup
+- **Added** detailed installation guidance and documentation
+
+### 🎨 UI/UX Improvements
+
+**Settings Menu:**
+- **Condensed** settings menu from 14 scattered items into 4 organized groups:
+  - General Settings (4 items)
+  - SECURITY (4 items)
+  - INTEGRATIONS (2 items)
+  - SYSTEM (4 items)
+- **Created** reusable settings menu component
+- **Unified** all 16 settings pages to use shared menu
+- **Improved** visual organization with section headers
+- **Added** settings menu to firewall and fail2ban pages
+
+**Fail2ban Status Page:**
+- **Redesigned** not-installed message with clear installation button
+- **Added** prerequisite sudo setup instructions
+- **Improved** installation flow with loading spinner
+- **Added** informational cards about what will be installed
+
+### 🐛 Bug Fixes
+
+**Firewall:**
+- **Fixed** import order bug in firewall_views.py
+- **Resolved** NameError when accessing firewall settings page
+- **Moved** timezone and timedelta imports before usage
+
+### 📚 Documentation
+
+- **Created** FAIL2BAN_INSTALL.md with installation guide
+- **Created** CHANGES_SUMMARY.md for deployment tracking
+- **Added** inline documentation for new features
+
 ## [2.24.159] - 2026-01-19
 
 ### ✨ Features

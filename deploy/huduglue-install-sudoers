@@ -1,0 +1,12 @@
+# Sudoers configuration for HuduGlue automatic fail2ban installation
+# Install: sudo cp deploy/huduglue-install-sudoers /etc/sudoers.d/huduglue-install
+# Permissions: sudo chmod 0440 /etc/sudoers.d/huduglue-install
+
+# Allow administrator user to install and configure fail2ban without password
+administrator ALL=(ALL) NOPASSWD: /usr/bin/apt-get update
+administrator ALL=(ALL) NOPASSWD: /usr/bin/apt-get install -y fail2ban
+administrator ALL=(ALL) NOPASSWD: /bin/systemctl enable fail2ban
+administrator ALL=(ALL) NOPASSWD: /bin/systemctl start fail2ban
+administrator ALL=(ALL) NOPASSWD: /bin/systemctl status fail2ban
+administrator ALL=(ALL) NOPASSWD: /bin/cp /home/administrator/deploy/huduglue-fail2ban-sudoers /etc/sudoers.d/huduglue-fail2ban
+administrator ALL=(ALL) NOPASSWD: /bin/chmod 0440 /etc/sudoers.d/huduglue-fail2ban

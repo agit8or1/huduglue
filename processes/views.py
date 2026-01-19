@@ -549,6 +549,31 @@ def execution_audit_log(request, pk):
 
 
 @login_required
+@user_passes_test(is_superuser)
+@require_http_methods(["POST"])
+def execution_delete(request, pk):
+    """Delete a workflow execution (admin only)"""
+    org = get_request_organization(request)
+    execution = get_object_or_404(ProcessExecution, pk=pk, organization=org)
+
+    # Store execution details for message
+    process_title = execution.process.title
+    assigned_to = execution.assigned_to.username if execution.assigned_to else "Unassigned"
+
+    # Delete the execution (cascade will delete completions and audit logs)
+    execution.delete()
+
+    messages.success(
+        request,
+        f'Workflow execution deleted: {process_title} (assigned to {assigned_to})'
+    )
+    logger.info(f"Admin {request.user.username} deleted execution #{pk} for process '{process_title}'")
+
+    # Redirect to execution list
+    return redirect('processes:execution_list')
+
+
+@login_required
 def stage_complete(request, pk):
     """Mark a stage as complete (AJAX)"""
     if request.method != 'POST':

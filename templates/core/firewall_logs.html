@@ -3,21 +3,29 @@
 {% block title %}Firewall Logs{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1><i class="fas fa-clipboard-list"></i> Firewall Logs</h1>
-    <div>
-        <form method="post" action="{% url 'core:firewall_logs_clear' %}" style="display:inline;"
-              onsubmit="return confirm('Clear ALL firewall logs? This cannot be undone.')">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-outline-danger">
-                <i class="fas fa-trash"></i> Clear All Logs
-            </button>
-        </form>
-        <a href="{% url 'core:firewall_settings' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Firewall
-        </a>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'core:firewall_settings' %}">Firewall Settings</a></li>
+        <li class="breadcrumb-item active">Firewall Logs</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-3">
+        {% include "core/_settings_menu.html" with active_page="firewall" %}
     </div>
-</div>
+
+    <div class="col-md-9">
+        <div class="d-flex justify-content-end mb-3">
+            <form method="post" action="{% url 'core:firewall_logs_clear' %}" style="display:inline;"
+                  onsubmit="return confirm('Clear ALL firewall logs? This cannot be undone.')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-trash"></i> Clear All Logs
+                </button>
+            </form>
+        </div>
 
 <!-- Statistics Cards -->
 <div class="row mb-4">
@@ -210,6 +218,8 @@
             No firewall logs yet. Logs will appear here when requests are blocked.
         </div>
         {% endif %}
+    </div>
+</div>
     </div>
 </div>
 

@@ -3,33 +3,78 @@
 {% block title %}Fail2ban Status{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1><i class="fas fa-ban"></i> Fail2ban Status</h1>
-    <div>
-        <a href="{% url 'core:firewall_settings' %}" class="btn btn-outline-primary">
-            <i class="fas fa-shield-alt"></i> Firewall Settings
-        </a>
-        <a href="{% url 'core:settings_general' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Settings
-        </a>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Fail2ban Status</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-3">
+        {% include "core/_settings_menu.html" with active_page="fail2ban" %}
+    </div>
+
+    <div class="col-md-9">
+{% if not fail2ban_installed %}
+<!-- Fail2ban Not Installed -->
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Fail2ban Not Installed</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle"></i> <strong>Fail2ban</strong> is a powerful intrusion prevention tool that monitors log files and automatically bans IPs showing malicious behavior (brute force attacks, vulnerability scans, etc.).
+        </div>
+
+        <div class="alert alert-warning mb-4">
+            <h6 class="mb-2"><i class="fas fa-key"></i> Prerequisite: One-Time Sudo Setup</h6>
+            <p class="mb-2">Before automatic installation, run this one command to grant HuduGlue permission:</p>
+            <pre class="bg-dark text-white p-2 mb-0 rounded"><code>sudo cp ~/deploy/huduglue-install-sudoers /etc/sudoers.d/huduglue-install && sudo chmod 0440 /etc/sudoers.d/huduglue-install</code></pre>
+        </div>
+
+        <div class="text-center mb-4">
+            <form method="post" action="{% url 'core:fail2ban_install' %}" id="installForm">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-lg" id="installBtn">
+                    <i class="fas fa-download"></i> Install Fail2ban Now
+                </button>
+            </form>
+            <p class="text-muted mt-2 mb-0">
+                <small>Click to automatically install fail2ban, enable the service, and configure access.</small>
+            </p>
+        </div>
+
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6><i class="fas fa-shield-alt"></i> What will be installed:</h6>
+                <ul class="mb-0">
+                    <li><strong>fail2ban</strong> package via apt-get</li>
+                    <li>Systemd service (enabled and started)</li>
+                    <li>Sudoers configuration for HuduGlue</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h6><i class="fas fa-book"></i> Common Use Cases:</h6>
+            <ul class="mb-0">
+                <li>SSH brute force protection</li>
+                <li>HTTP authentication failures</li>
+                <li>Django/web application login attempts</li>
+                <li>Nginx/Apache attack prevention</li>
+            </ul>
+        </div>
     </div>
 </div>
 
-{% if not fail2ban_installed %}
-<!-- Fail2ban Not Installed -->
-<div class="alert alert-warning">
-    <h4><i class="fas fa-exclamation-triangle"></i> Fail2ban Not Installed</h4>
-    <p>Fail2ban is not installed or not accessible on this system.</p>
-    <p class="mb-0">To install fail2ban:</p>
-    <pre class="bg-dark text-white p-3 mt-2"><code>sudo apt-get update
-sudo apt-get install fail2ban
-sudo systemctl enable fail2ban
-sudo systemctl start fail2ban</code></pre>
-    <p class="mt-2 mb-0">After installation, configure sudo access:</p>
-    <pre class="bg-dark text-white p-3 mt-2"><code>sudo visudo -f /etc/sudoers.d/huduglue-fail2ban
-# Add this line:
-administrator ALL=(ALL) NOPASSWD: /usr/bin/fail2ban-client</code></pre>
-</div>
+<script>
+document.getElementById('installForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('installBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing... (this may take 1-2 minutes)';
+});
+</script>
 
 {% elif not fail2ban_running %}
 <!-- Fail2ban Not Running -->
@@ -213,6 +258,8 @@ sudo fail2ban-client set sshd unbanip 192.168.1.100
 
 # Reload fail2ban
 sudo systemctl reload fail2ban</code></pre>
+    </div>
+</div>
     </div>
 </div>
 

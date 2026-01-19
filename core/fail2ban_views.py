@@ -232,3 +232,82 @@ def fail2ban_check_ip(request):
         'is_banned': len(banned_in_jails) > 0,
         'jails': banned_in_jails,
     })
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def fail2ban_install(request):
+    """Automatically install and configure fail2ban."""
+    import os
+
+    try:
+        # Check sudo access first
+        test_result = subprocess.run(
+            ['sudo', '-n', 'apt-get', '--version'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+
+        if test_result.returncode != 0:
+            messages.error(
+                request,
+                'Sudo access not configured. Please run: sudo cp ~/deploy/huduglue-install-sudoers /etc/sudoers.d/huduglue-install && sudo chmod 0440 /etc/sudoers.d/huduglue-install'
+            )
+            return redirect('core:fail2ban_status')
+
+        # Step 1: Update package list
+        logger.info("Updating apt package list...")
+        result = subprocess.run(
+            ['sudo', 'apt-get', 'update'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        # Step 2: Install fail2ban
+        logger.info("Installing fail2ban package...")
+        result = subprocess.run(
+            ['sudo', 'apt-get', 'install', '-y', 'fail2ban'],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+
+        if result.returncode != 0:
+            messages.error(request, f'Failed to install fail2ban: {result.stderr[:200]}')
+            logger.error(f"fail2ban installation failed: {result.stderr}")
+            return redirect('core:fail2ban_status')
+
+        # Step 3: Enable and start service
+        logger.info("Enabling and starting fail2ban service...")
+        subprocess.run(['sudo', 'systemctl', 'enable', 'fail2ban'], timeout=10, check=False)
+        subprocess.run(['sudo', 'systemctl', 'start', 'fail2ban'], timeout=10, check=False)
+
+        # Step 4: Configure sudoers for fail2ban-client access
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        source_path = os.path.join(base_dir, 'deploy', 'huduglue-fail2ban-sudoers')
+        dest_path = '/etc/sudoers.d/huduglue-fail2ban'
+
+        if os.path.exists(source_path):
+            logger.info("Installing fail2ban sudoers configuration...")
+            subprocess.run(['sudo', 'cp', source_path, dest_path], timeout=10, check=False)
+            subprocess.run(['sudo', 'chmod', '0440', dest_path], timeout=10, check=False)
+        else:
+            logger.warning("fail2ban sudoers source file not found")
+
+        messages.success(request, 'Fail2ban installed and configured successfully! Refresh the page to see the status.')
+        logger.info(f"User {request.user.username} successfully installed fail2ban automatically")
+
+    except subprocess.TimeoutExpired:
+        messages.error(request, 'Installation timed out. The package manager may be locked by another process.')
+        logger.error("Fail2ban installation timed out")
+    except FileNotFoundError:
+        messages.error(request, 'Required system commands not found. Please ensure sudo and apt-get are available.')
+        logger.error("sudo or apt-get not found")
+    except Exception as e:
+        messages.error(request, f'Installation failed: {str(e)[:200]}')
+        logger.error(f"Fail2ban installation failed with exception: {e}")
+
+    return redirect('core:fail2ban_status')
