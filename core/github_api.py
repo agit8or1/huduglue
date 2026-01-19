@@ -4,6 +4,7 @@ GitHub API integration for bug reporting
 import requests
 import base64
 import logging
+import urllib.parse
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -218,7 +219,7 @@ def format_bug_report_body(description, steps_to_reproduce, system_info, reporte
     body_parts.append(description)
     body_parts.append("")
 
-    # Steps to reproduce (if provided)
+    # Steps to Reproduce (if provided)
     if steps_to_reproduce:
         body_parts.append("## Steps to Reproduce")
         body_parts.append(steps_to_reproduce)
@@ -238,3 +239,32 @@ def format_bug_report_body(description, steps_to_reproduce, system_info, reporte
     body_parts.append("_This bug report was submitted via HuduGlue's built-in bug reporting feature._")
 
     return "\n".join(body_parts)
+
+
+def generate_github_issue_url(title, body, labels=None, repo='agit8or1/huduglue'):
+    """
+    Generate a GitHub URL with pre-filled issue template.
+    User opens this in their browser and submits with their own GitHub account.
+
+    Args:
+        title: Issue title
+        body: Issue body (markdown)
+        labels: List of labels (optional, comma-separated string)
+        repo: Repository in format 'owner/repo'
+
+    Returns:
+        str: GitHub new issue URL with pre-filled data
+    """
+    if labels is None:
+        labels = 'bug,user-reported'
+    elif isinstance(labels, list):
+        labels = ','.join(labels)
+
+    params = {
+        'title': title,
+        'body': body,
+        'labels': labels
+    }
+
+    query_string = urllib.parse.urlencode(params)
+    return f'https://github.com/{repo}/issues/new?{query_string}'

@@ -5,6 +5,38 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.173] - 2026-01-19
+
+### ✨ Features
+
+**Bug Reporting with User GitHub Authentication:**
+- **Changed** bug reporting from system PAT to user-based authentication
+- **Users** now submit bug reports with their own GitHub account
+- **Removed** requirement for admin to configure system GitHub PAT
+- **Pre-fills** GitHub issue with all system info and bug details
+- **Opens** GitHub in new tab for user to complete submission
+- **No** admin configuration needed - works out of the box
+- **Rate limit** increased from 5 to 10 reports per user per hour
+
+**User Experience:**
+1. Click "Report Bug" from user dropdown menu
+2. Fill in title, description, and steps to reproduce
+3. Click "Submit Bug Report"
+4. GitHub opens in new tab with pre-filled issue
+5. User completes submission with their GitHub account
+
+### 🎨 UI/UX Improvements
+
+**Document Page Button Contrast:**
+- **Fixed** poor contrast on "Categories" and "Templates" buttons
+- **Changed** from outline-secondary to solid secondary buttons
+- **Improves** visibility in both light and dark themes
+
+**Upload Modal Positioning:**
+- **Removed** screen dimming backdrop on upload modal
+- **Repositioned** modal lower to prevent navbar cutoff
+- **Improves** usability with better positioning
+
 ## [2.24.172] - 2026-01-19
 
 ### ✨ Features

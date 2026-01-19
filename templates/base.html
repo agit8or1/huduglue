@@ -256,7 +256,7 @@
                     {% csrf_token %}
                     <div class="modal-body">
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Your bug report will be submitted as a GitHub issue to help improve HuduGlue.
+                            <i class="fas fa-info-circle"></i> Your bug report will open in GitHub where you can submit it with your own GitHub account. System information will be pre-filled for you.
                         </div>
 
                         <div class="mb-3">
@@ -276,12 +276,6 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="bugScreenshot" class="form-label">Screenshot</label>
-                            <input type="file" class="form-control" id="bugScreenshot" name="screenshot" accept="image/*">
-                            <small class="form-text text-muted">Optional: Attach a screenshot (max 5MB, formats: png, jpg, gif, webp)</small>
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label">System Information (Auto-collected)</label>
                             <div class="card bg-light">
                                 <div class="card-body small">
@@ -294,8 +288,8 @@
                             </div>
                         </div>
 
-                        <div class="alert alert-info mt-3">
-                            <i class="fas fa-info-circle"></i> Bug reports are submitted to GitHub using the system account. Your HuduGlue username will be included in the report.
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> You'll need a GitHub account to submit the bug report. If you don't have one, you can <a href="https://github.com/signup" target="_blank" class="alert-link">create a free account</a>.
                         </div>
 
                         <div id="bugReportAlert" class="alert" style="display: none;" role="alert"></div>
@@ -344,18 +338,21 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Open GitHub issue creation page in new tab
+                    window.open(data.github_url, '_blank');
+
+                    // Show success message
                     alertDiv.className = 'alert alert-success';
-                    alertDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}<br>` +
-                        `<a href="${data.issue_url}" target="_blank" class="alert-link">View Issue #${data.issue_number} on GitHub</a>`;
+                    alertDiv.innerHTML = `<i class="fas fa-check-circle"></i> Opening GitHub in a new tab. Please complete and submit your bug report there.`;
                     alertDiv.style.display = 'block';
 
                     // Reset form
                     document.getElementById('bugReportForm').reset();
-        
-                    // Auto-close modal after 5 seconds
+
+                    // Auto-close modal after 3 seconds
                     setTimeout(function() {
                         bootstrap.Modal.getInstance(document.getElementById('reportBugModal')).hide();
-                    }, 5000);
+                    }, 3000);
                 } else {
                     alertDiv.className = 'alert alert-danger';
                     alertDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${data.message}`;

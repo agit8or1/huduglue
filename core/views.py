@@ -229,20 +229,20 @@ def update_progress_api(request):
 
 
 @login_required
-@ratelimit(key='user', rate='5/h', method='POST', block=True)
+@ratelimit(key='user', rate='10/h', method='POST', block=True)
 def report_bug(request):
     """
-    Bug reporting endpoint - creates GitHub issues using system credentials.
-    Rate limited to 5 reports per user per hour to prevent abuse.
+    Bug reporting endpoint - generates pre-filled GitHub issue URL.
+    Users submit with their own GitHub account.
+    Rate limited to 10 reports per user per hour.
     """
     from django.http import JsonResponse
-    from .github_api import GitHubIssueCreator, format_bug_report_body, GitHubAPIError
-    from .models import SystemSetting
+    from .github_api import format_bug_report_body, generate_github_issue_url
     import sys
     import platform
     from datetime import datetime
     from config.version import VERSION
-    
+
     if request.method != 'POST':
         return JsonResponse({
             'success': False,
@@ -256,33 +256,23 @@ def report_bug(request):
             user=request.user,
             action='bug_report_rate_limited',
             resource_type='bug_report',
-            details=f'User exceeded rate limit (5 reports per hour)'
+            details=f'User exceeded rate limit (10 reports per hour)'
         )
         return JsonResponse({
             'success': False,
-            'message': 'Rate limit exceeded. You can only submit 5 bug reports per hour. Please wait before submitting another report.'
+            'message': 'Rate limit exceeded. You can only submit 10 bug reports per hour. Please wait before submitting another report.'
         }, status=429)
 
     # Get form data
     title = request.POST.get('title', '').strip()
     description = request.POST.get('description', '').strip()
     steps_to_reproduce = request.POST.get('steps_to_reproduce', '').strip()
-    screenshot = request.FILES.get('screenshot')
 
     # Validate required fields
     if not title or not description:
         return JsonResponse({
             'success': False,
             'message': 'Title and description are required'
-        }, status=400)
-
-    # Get system GitHub PAT (only option for security)
-    system_settings = SystemSetting.get_settings()
-    token = system_settings.github_pat
-    if not token:
-        return JsonResponse({
-            'success': False,
-            'message': 'System GitHub PAT is not configured. Please contact your administrator to configure bug reporting.'
         }, status=400)
 
 
@@ -298,14 +288,14 @@ def report_bug(request):
         'os': platform.platform(),
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')
     }
-    
+
     # Collect reporter information
     reporter_info = {
         'username': request.user.username,
         'email': request.user.email if request.user.email else None,
         'organization': request.current_organization.name if hasattr(request, 'current_organization') and request.current_organization else None
     }
-    
+
     # Format issue body
     issue_body = format_bug_report_body(
         description=description,
@@ -313,85 +303,30 @@ def report_bug(request):
         system_info=system_info,
         reporter_info=reporter_info
     )
-    
-    # Create GitHub issue
+
+    # Generate pre-filled GitHub issue URL
     try:
-        github_client = GitHubIssueCreator(token)
-        
-        # Validate token first
-        if not github_client.validate_token():
-            return JsonResponse({
-                'success': False,
-                'message': 'Invalid GitHub token or insufficient permissions. Please ensure your token has "public_repo" scope.'
-            }, status=400)
-        
-        # Create the issue
-        issue = github_client.create_issue(
+        github_url = generate_github_issue_url(
             title=title,
             body=issue_body,
             labels=['bug', 'user-reported']
         )
-        
-        issue_number = issue['number']
-        issue_url = issue['html_url']
-        
-        # Upload screenshot if provided
-        if screenshot:
-            # Validate file size (max 5MB)
-            if screenshot.size > 5 * 1024 * 1024:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Screenshot file size must be less than 5MB'
-                }, status=400)
-            
-            # Validate file type
-            allowed_extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp']
-            file_extension = screenshot.name.lower().split('.')[-1]
-            if file_extension not in allowed_extensions:
-                return JsonResponse({
-                    'success': False,
-                    'message': f'Invalid file type. Allowed types: {", ".join(allowed_extensions)}'
-                }, status=400)
-            
-            try:
-                github_client.upload_image_to_issue(
-                    issue_number=issue_number,
-                    image_data=screenshot.read(),
-                    filename=screenshot.name
-                )
-            except GitHubAPIError as e:
-                # Issue was created but screenshot upload failed - still return success
-                logger.warning(f"Screenshot upload failed for bug report: {e}")
-                pass
 
-        # Log successful bug report submission
+        # Log bug report initiation
         AuditLog.objects.create(
             user=request.user,
-            action='bug_report_submitted',
+            action='bug_report_initiated',
             resource_type='bug_report',
-            details=f'GitHub Issue #{issue_number} created: {title}'
+            details=f'Bug report URL generated: {title}'
         )
-        logger.info(f"Bug report submitted by {request.user.username}: Issue #{issue_number}")
+        logger.info(f"Bug report URL generated for {request.user.username}: {title}")
 
         return JsonResponse({
             'success': True,
-            'message': f'Bug report submitted successfully! Issue #{issue_number} created.',
-            'issue_number': issue_number,
-            'issue_url': issue_url
+            'message': 'Opening GitHub to submit your bug report...',
+            'github_url': github_url
         })
 
-    except GitHubAPIError as e:
-        logger.error(f"GitHub API error in bug report: {e}")
-        AuditLog.objects.create(
-            user=request.user,
-            action='bug_report_failed',
-            resource_type='bug_report',
-            details=f'GitHub API error: {str(e)}'
-        )
-        return JsonResponse({
-            'success': False,
-            'message': f'Failed to create GitHub issue: {str(e)}'
-        }, status=500)
     except Exception as e:
         logger.error(f"Unexpected error in report_bug: {e}")
         import traceback
