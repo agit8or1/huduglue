@@ -11,6 +11,7 @@ from .freshservice import FreshserviceProvider
 from .zendesk import ZendeskProvider
 from .itflow import ITFlowProvider
 from .psa.rangermsp import RangerMSPProvider
+from .psa.alga import AlgaPSAProvider
 
 # Registry of available providers
 PROVIDER_REGISTRY = {
@@ -23,6 +24,7 @@ PROVIDER_REGISTRY = {
     'zendesk': ZendeskProvider,
     'itflow': ITFlowProvider,
     'rangermsp': RangerMSPProvider,
+    'alga_psa': AlgaPSAProvider,
 }
 
 def get_provider(connection):

@@ -24,6 +24,7 @@ class PSAConnection(BaseModel):
         ('zendesk', 'Zendesk'),
         ('itflow', 'ITFlow'),
         ('rangermsp', 'RangerMSP (CommitCRM)'),
+        ('alga_psa', 'Alga PSA'),
     ]
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='psa_connections')

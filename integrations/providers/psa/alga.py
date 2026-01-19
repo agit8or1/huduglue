@@ -1,16 +1,17 @@
 """
-Alga PSA provider integration (PLACEHOLDER)
+Alga PSA provider integration
 
 Alga PSA is an open-source MSP PSA platform by Nine-Minds.
-API documentation: To be completed when API is documented
+API documentation: https://github.com/Nine-Minds/alga-psa/tree/release/0.16.0/sdk/docs/openapi
 
 Repository: https://github.com/Nine-Minds/alga-psa
-Hosted: api.algapsa.com
+Default hosted: https://algapsa.com
 """
 from ..psa_base import BasePSAProvider
 from ..base import ProviderError, AuthenticationError
 import requests
 import logging
+from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger('integrations')
 
@@ -19,17 +20,18 @@ class AlgaPSAProvider(BasePSAProvider):
     """
     Alga PSA integration provider.
 
-    NOTE: This is a PLACEHOLDER implementation. Alga PSA's REST API
-    is not yet publicly documented. This will need to be completed
-    once API documentation is available or by examining the codebase
-    at server/src/pages/api in the Alga PSA repository.
+    Alga PSA uses API key authentication with tenant-based multi-tenancy.
+    Based on OpenAPI spec v0.1.0 and SDK samples from release/0.16.0.
 
     Required credentials:
-        - base_url: Alga PSA instance URL (e.g., https://api.algapsa.com)
-        - api_key: API authentication key (method TBD)
-        OR
-        - username: User email
-        - password: User password (via NextAuth.js)
+        - api_key: API authentication key (from Alga PSA settings)
+        - tenant_id: Tenant/organization UUID (from Alga PSA instance)
+
+    Base URL: https://algapsa.com (production) or self-hosted instance URL
+
+    Authentication:
+        - Header: x-api-key
+        - Header: x-tenant-id (required for all API calls)
     """
 
     provider_name = 'Alga PSA'
@@ -39,44 +41,44 @@ class AlgaPSAProvider(BasePSAProvider):
         self.base_url = connection.base_url.rstrip('/')
         self.session = requests.Session()
 
-    def _get_auth_headers(self):
+    def _get_auth_headers(self) -> Dict[str, str]:
         """
-        Get authentication headers.
+        Get authentication headers for Alga PSA API.
 
-        TODO: Implement actual Alga PSA authentication.
-        Options:
-        1. API Key in header (if they support this)
-        2. NextAuth.js session token
-        3. JWT bearer token
+        Returns headers with x-api-key and x-tenant-id.
         """
         credentials = self.connection.get_credentials()
 
-        # Placeholder - update once auth method is known
         api_key = credentials.get('api_key', '')
-        if api_key:
-            return {
-                'Authorization': f'Bearer {api_key}',
-                'Content-Type': 'application/json'
-            }
+        tenant_id = credentials.get('tenant_id', '')
 
-        raise AuthenticationError("No API key configured for Alga PSA")
+        if not api_key:
+            raise AuthenticationError("API key not configured for Alga PSA")
 
-    def test_connection(self):
+        if not tenant_id:
+            raise AuthenticationError("Tenant ID not configured for Alga PSA")
+
+        return {
+            'x-api-key': api_key,
+            'x-tenant-id': tenant_id,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+    def test_connection(self) -> bool:
         """
-        Test API connectivity.
+        Test API connectivity by fetching clients with limit=1.
 
-        TODO: Implement with actual Alga PSA health check endpoint
-        Possible endpoints:
-        - GET /api/health
-        - GET /api/status
-        - GET /api/user (to verify auth)
+        Returns:
+            True if connection successful, False otherwise
         """
         try:
             headers = self._get_auth_headers()
-            # Placeholder endpoint - update with actual health check
+            # Test with clients endpoint (limit 1 for speed)
             response = self.session.get(
-                f'{self.base_url}/api/health',
+                f'{self.base_url}/api/v1/clients',
                 headers=headers,
+                params={'limit': 1},
                 timeout=10
             )
             return response.status_code == 200
@@ -84,15 +86,15 @@ class AlgaPSAProvider(BasePSAProvider):
             logger.error(f"Alga PSA connection test failed: {e}")
             return False
 
-    def list_companies(self, updated_since=None):
+    def list_companies(self, updated_since: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        List all companies/clients.
+        List all companies/clients from Alga PSA.
 
-        TODO: Implement with actual Alga PSA endpoint
-        Expected endpoint: GET /api/companies or /api/clients
+        Endpoint: GET /api/v1/clients
+        Response format: {data: [{client_id, client_name, ...}], pagination: {...}}
 
         Args:
-            updated_since: datetime to filter by last update
+            updated_since: datetime to filter by last update (not currently supported by Alga PSA)
 
         Returns:
             list of normalized company dicts
@@ -100,70 +102,109 @@ class AlgaPSAProvider(BasePSAProvider):
         companies = []
         headers = self._get_auth_headers()
 
-        # TODO: Replace with actual endpoint
         try:
+            # Alga PSA uses /api/v1/clients endpoint
             response = self.session.get(
-                f'{self.base_url}/api/companies',
+                f'{self.base_url}/api/v1/clients',
                 headers=headers,
                 timeout=30
             )
             response.raise_for_status()
 
-            data = response.json()
+            result = response.json()
 
-            # TODO: Update based on actual response structure
-            for company_data in data:
-                companies.append(self.normalize_company(company_data))
+            # Alga PSA wraps data in {data: [...]} format
+            client_list = result.get('data', [])
+            if not isinstance(client_list, list):
+                logger.warning(f"Unexpected response format from Alga PSA clients endpoint: {type(client_list)}")
+                return companies
+
+            for client_data in client_list:
+                try:
+                    companies.append(self.normalize_company(client_data))
+                except Exception as e:
+                    logger.error(f"Error normalizing Alga PSA client {client_data.get('client_id')}: {e}")
+
+            logger.info(f"Alga PSA: Retrieved {len(companies)} clients")
 
         except Exception as e:
-            logger.error(f"Error fetching Alga PSA companies: {e}")
+            logger.error(f"Error fetching Alga PSA clients: {e}")
             raise ProviderError(f"Failed to fetch companies: {e}")
 
         return companies
 
-    def get_company(self, company_id):
+    def get_company(self, company_id: str) -> Dict[str, Any]:
         """
-        Get single company details.
+        Get single company/client details.
 
-        TODO: Implement with actual Alga PSA endpoint
-        Expected: GET /api/companies/{id}
+        Endpoint: GET /api/v1/clients/{id}
+
+        Args:
+            company_id: Client UUID
+
+        Returns:
+            Normalized company dict
         """
         headers = self._get_auth_headers()
 
         try:
             response = self.session.get(
-                f'{self.base_url}/api/companies/{company_id}',
+                f'{self.base_url}/api/v1/clients/{company_id}',
                 headers=headers,
                 timeout=10
             )
             response.raise_for_status()
-            return self.normalize_company(response.json())
+
+            result = response.json()
+            client_data = result.get('data', result)  # Handle both wrapped and unwrapped responses
+
+            return self.normalize_company(client_data)
         except Exception as e:
-            logger.error(f"Error fetching Alga PSA company {company_id}: {e}")
+            logger.error(f"Error fetching Alga PSA client {company_id}: {e}")
             raise ProviderError(f"Failed to fetch company: {e}")
 
-    def list_contacts(self, company_id=None, updated_since=None):
+    def list_contacts(self, company_id: Optional[str] = None, updated_since: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        List contacts.
+        List contacts from Alga PSA.
 
-        TODO: Implement with actual Alga PSA endpoint
-        Expected: GET /api/contacts or /api/companies/{id}/contacts
+        Endpoints:
+        - GET /api/v1/contacts (all contacts)
+        - GET /api/v1/clients/{id}/contacts (contacts for specific client)
+
+        Args:
+            company_id: Optional client UUID to filter contacts
+            updated_since: datetime to filter by last update (not currently supported)
+
+        Returns:
+            list of normalized contact dicts
         """
         contacts = []
         headers = self._get_auth_headers()
 
-        # Placeholder implementation
-        url = f'{self.base_url}/api/contacts'
+        # Use client-specific endpoint if company_id provided
         if company_id:
-            url = f'{self.base_url}/api/companies/{company_id}/contacts'
+            url = f'{self.base_url}/api/v1/clients/{company_id}/contacts'
+        else:
+            url = f'{self.base_url}/api/v1/contacts'
 
         try:
             response = self.session.get(url, headers=headers, timeout=30)
             response.raise_for_status()
 
-            data = response.json()
-            for contact_data in data:
-                contacts.append(self.normalize_contact(contact_data))
+            result = response.json()
+            contact_list = result.get('data', [])
+
+            if not isinstance(contact_list, list):
+                logger.warning(f"Unexpected response format from Alga PSA contacts endpoint: {type(contact_list)}")
+                return contacts
+
+            for contact_data in contact_list:
+                try:
+                    contacts.append(self.normalize_contact(contact_data))
+                except Exception as e:
+                    logger.error(f"Error normalizing Alga PSA contact {contact_data.get('contact_id')}: {e}")
+
+            logger.info(f"Alga PSA: Retrieved {len(contacts)} contacts")
 
         except Exception as e:
             logger.error(f"Error fetching Alga PSA contacts: {e}")
@@ -171,12 +212,20 @@ class AlgaPSAProvider(BasePSAProvider):
 
         return contacts
 
-    def list_tickets(self, company_id=None, status=None, updated_since=None):
+    def list_tickets(self, company_id: Optional[str] = None, status: Optional[str] = None, updated_since: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        List tickets.
+        List tickets from Alga PSA.
 
-        TODO: Implement with actual Alga PSA endpoint
-        Expected: GET /api/tickets
+        Endpoint: GET /api/v1/tickets
+        Can filter by company_id and status using query parameters.
+
+        Args:
+            company_id: Optional client UUID to filter tickets
+            status: Optional status filter
+            updated_since: datetime to filter by last update (not currently supported)
+
+        Returns:
+            list of normalized ticket dicts
         """
         tickets = []
         headers = self._get_auth_headers()
@@ -189,16 +238,27 @@ class AlgaPSAProvider(BasePSAProvider):
 
         try:
             response = self.session.get(
-                f'{self.base_url}/api/tickets',
+                f'{self.base_url}/api/v1/tickets',
                 headers=headers,
                 params=params,
                 timeout=30
             )
             response.raise_for_status()
 
-            data = response.json()
-            for ticket_data in data:
-                tickets.append(self.normalize_ticket(ticket_data))
+            result = response.json()
+            ticket_list = result.get('data', [])
+
+            if not isinstance(ticket_list, list):
+                logger.warning(f"Unexpected response format from Alga PSA tickets endpoint: {type(ticket_list)}")
+                return tickets
+
+            for ticket_data in ticket_list:
+                try:
+                    tickets.append(self.normalize_ticket(ticket_data))
+                except Exception as e:
+                    logger.error(f"Error normalizing Alga PSA ticket {ticket_data.get('ticket_id')}: {e}")
+
+            logger.info(f"Alga PSA: Retrieved {len(tickets)} tickets")
 
         except Exception as e:
             logger.error(f"Error fetching Alga PSA tickets: {e}")
@@ -206,135 +266,118 @@ class AlgaPSAProvider(BasePSAProvider):
 
         return tickets
 
-    def normalize_company(self, raw_data):
+    def normalize_company(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Normalize Alga PSA company to standard format.
+        Normalize Alga PSA client to standard company format.
 
-        TODO: Update based on actual Alga PSA company data structure
+        Alga PSA client structure:
+        {
+            "client_id": "uuid",
+            "client_name": "Company Name",
+            "phone_no": "+1 555 0100",
+            "email": "hello@example.com",
+            "url": "https://example.com",
+            "billing_cycle": "monthly",
+            "tenant": "uuid",
+            "client_type": "...",
+            "account_manager_id": "uuid",
+            "notes": "...",
+            "tags": ["..."],
+            "created_at": "2026-01-19T...",
+            "updated_at": "2026-01-19T..."
+        }
 
-        Expected fields from Alga PSA (to be confirmed):
-        - id: company ID
-        - name: company name
-        - status: active/inactive
-        - phone: phone number
-        - address: full address or address object
-        - website: company website
+        Returns standard company dict format
         """
+        # Alga PSA stores website in 'url' field
+        website = raw_data.get('url', '')
+
+        # Determine status - Alga PSA may have is_active or status field
+        status = 'active' if raw_data.get('is_active', True) else 'inactive'
+        if 'status' in raw_data:
+            status = raw_data['status']
+
         return {
-            'external_id': str(raw_data.get('id', '')),
-            'name': raw_data.get('name', ''),
-            'status': raw_data.get('status', 'active'),
-            'phone': raw_data.get('phone', ''),
-            'address': self._format_address(raw_data.get('address', {})),
-            'website': raw_data.get('website', ''),
+            'external_id': str(raw_data.get('client_id', '')),
+            'name': raw_data.get('client_name', ''),
+            'status': status,
+            'phone': raw_data.get('phone_no', ''),
+            'address': raw_data.get('address', ''),  # Alga PSA may store address differently
+            'website': website,
             'raw_data': raw_data,
         }
 
-    def normalize_contact(self, raw_data):
+    def normalize_contact(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Normalize Alga PSA contact to standard format.
 
-        TODO: Update based on actual Alga PSA contact structure
+        Alga PSA likely uses:
+        - contact_id (UUID)
+        - company_id/client_id (UUID)
+        - first_name, last_name
+        - email, phone_number/phone
+        - role/title
+        - is_primary
         """
+        # Alga PSA may use either 'company_id' or 'client_id' for the parent company
+        company_id = raw_data.get('company_id') or raw_data.get('client_id', '')
+
         return {
-            'external_id': str(raw_data.get('id', '')),
-            'company_id': str(raw_data.get('company_id', '')),
+            'external_id': str(raw_data.get('contact_id', raw_data.get('id', ''))),
+            'company_id': str(company_id),
             'first_name': raw_data.get('first_name', ''),
             'last_name': raw_data.get('last_name', ''),
             'email': raw_data.get('email', ''),
-            'phone': raw_data.get('phone', ''),
-            'title': raw_data.get('title', ''),
+            'phone': raw_data.get('phone', raw_data.get('phone_number', '')),
+            'title': raw_data.get('title', raw_data.get('role', '')),
             'is_primary': raw_data.get('is_primary', False),
             'raw_data': raw_data,
         }
 
-    def normalize_ticket(self, raw_data):
+    def normalize_ticket(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Normalize Alga PSA ticket to standard format.
 
-        TODO: Update based on actual Alga PSA ticket structure
+        Alga PSA likely uses:
+        - ticket_id (UUID)
+        - company_id/client_id (UUID)
+        - contact_id (UUID)
+        - title, description
+        - status, priority
+        - assigned_to (user_id)
+        - created_at, updated_at
         """
         # Map Alga status to standard status
         status_map = {
+            'new': 'open',
             'open': 'open',
             'in_progress': 'in_progress',
+            'in progress': 'in_progress',
             'pending': 'waiting',
             'resolved': 'resolved',
             'closed': 'closed',
+            'cancelled': 'closed',
         }
 
         alga_status = raw_data.get('status', 'open').lower()
         standard_status = status_map.get(alga_status, 'open')
 
+        # Alga PSA may use 'subject' instead of 'title'
+        title = raw_data.get('title', raw_data.get('subject', ''))
+
+        # Company ID might be 'company_id' or 'client_id'
+        company_id = raw_data.get('company_id', raw_data.get('client_id', ''))
+
         return {
-            'external_id': str(raw_data.get('id', '')),
-            'company_id': str(raw_data.get('company_id', '')),
+            'external_id': str(raw_data.get('ticket_id', raw_data.get('id', ''))),
+            'ticket_number': str(raw_data.get('ticket_number', raw_data.get('number', ''))),
+            'company_id': str(company_id),
             'contact_id': str(raw_data.get('contact_id', '')),
-            'title': raw_data.get('title', ''),
+            'subject': title,
             'description': raw_data.get('description', ''),
             'status': standard_status,
             'priority': raw_data.get('priority', 'medium'),
-            'assigned_to': raw_data.get('assigned_to', ''),
             'created_at': self._parse_datetime(raw_data.get('created_at')),
             'updated_at': self._parse_datetime(raw_data.get('updated_at')),
             'raw_data': raw_data,
         }
-
-    def _format_address(self, address_data):
-        """Format address from Alga PSA data structure."""
-        if isinstance(address_data, str):
-            return address_data
-
-        # TODO: Update based on actual Alga address structure
-        parts = [
-            address_data.get('street', ''),
-            address_data.get('city', ''),
-            address_data.get('state', ''),
-            address_data.get('postal_code', ''),
-            address_data.get('country', ''),
-        ]
-
-        return ', '.join(filter(None, parts))
-
-
-# TODO: Remove this comment block once implementation is complete
-"""
-IMPLEMENTATION CHECKLIST:
-
-1. Obtain Alga PSA API Documentation
-   - Contact Nine-Minds team for API docs
-   - OR examine server/src/pages/api directory in their repo
-   - Document authentication method
-   - Document endpoint paths and parameters
-
-2. Update Authentication
-   - Implement actual auth in _get_auth_headers()
-   - May need to handle NextAuth.js flow
-   - Store tokens in encrypted_credentials
-
-3. Update All Endpoints
-   - Replace placeholder URLs with actual endpoints
-   - Update response parsing based on real structure
-   - Handle pagination if needed
-   - Implement error handling for Alga-specific errors
-
-4. Test Connection
-   - Implement proper health check in test_connection()
-   - Test with real Alga PSA instance
-
-5. Add to Provider Registry
-   - Update integrations/providers/psa/__init__.py
-   - Add 'alga_psa' to PSA_PROVIDERS dict
-
-6. Update Forms
-   - Add Alga PSA credentials fields to PSAConnectionForm
-   - Update templates with Alga-specific help text
-
-7. Create Migration
-   - Add 'alga_psa' to PSAConnection.PROVIDER_TYPES
-
-8. Documentation
-   - Add setup guide to INTEGRATIONS.md
-   - Document required credentials
-   - Add example configuration
-"""

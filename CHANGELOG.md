@@ -5,6 +5,27 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.183] - 2026-01-19
+
+### ✨ Features
+
+**Alga PSA Integration (GitHub Discussion #27):**
+- **Added** full Alga PSA provider implementation based on OpenAPI spec v0.1.0
+- **Added** support for Alga PSA's API key + tenant ID authentication model
+- **Implemented** client (company) sync from `/api/v1/clients` endpoint
+- **Implemented** contact sync from `/api/v1/contacts` and client-specific endpoints
+- **Implemented** ticket sync from `/api/v1/tickets` endpoint
+- **Added** proper response handling for Alga's `{data: [...]}` wrapper format
+- **Added** normalization for Alga PSA data structures (client_id, client_name, etc.)
+- **Added** 'alga_psa' to PSA provider registry and connection types
+- **Updated** provider documentation with authentication requirements
+- **Supported** both production (https://algapsa.com) and self-hosted instances
+- **Required Credentials**:
+  - `api_key`: API authentication key from Alga PSA settings
+  - `tenant_id`: Tenant/organization UUID
+- **Documentation**: Based on https://github.com/Nine-Minds/alga-psa SDK samples
+- **Connection Path**: Integrations → PSA Connections → Create → Select "Alga PSA"
+
 ## [2.24.182] - 2026-01-19
 
 ### ✨ Features
