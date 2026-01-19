@@ -5,6 +5,28 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.185] - 2026-01-19
+
+### ✨ Improvements
+
+**Alphabetized Dropdown Choices (Part 1):**
+- **Sorted** PSA provider types alphabetically by display name (Alga PSA → Zendesk)
+- **Sorted** RMM provider types alphabetically (Atera → Tactical RMM)
+- **Sorted** RMM device types alphabetically (Laptop → Workstation)
+- **Sorted** RMM OS types alphabetically (Android → Windows)
+- **Sorted** PSA ticket status choices (Closed → Waiting)
+- **Sorted** PSA ticket priority choices (High → Urgent)
+- **Sorted** scheduled task types (Cleanup Stuck Scans → Website Monitoring)
+- **Sorted** task status choices (Failed → Success)
+- **Sorted** Snyk scan status choices (Cancelled → Timed Out)
+- **Sorted** Snyk severity choices (Critical → Medium)
+- **Sorted** SystemSetting severity thresholds (Critical → Medium)
+- **Sorted** SystemSetting scan frequencies (Daily → Weekly)
+- **Sorted** Relation types (Applies To → Used By)
+- **Sorted** Firewall block reasons (Country in blocklist → IP not in allowlist)
+- **Improved** UX consistency across all dropdown selections
+- **Note**: More dropdowns will be alphabetized in subsequent updates
+
 ## [2.24.184] - 2026-01-19
 
 ### 🐛 Bug Fixes

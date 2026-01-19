@@ -15,16 +15,16 @@ class PSAConnection(BaseModel):
     Credentials and tokens are encrypted at rest.
     """
     PROVIDER_TYPES = [
-        ('connectwise_manage', 'ConnectWise Manage'),
-        ('autotask', 'Autotask PSA'),
-        ('halo_psa', 'HaloPSA'),
-        ('kaseya_bms', 'Kaseya BMS'),
-        ('syncro', 'Syncro'),
-        ('freshservice', 'Freshservice'),
-        ('zendesk', 'Zendesk'),
-        ('itflow', 'ITFlow'),
-        ('rangermsp', 'RangerMSP (CommitCRM)'),
         ('alga_psa', 'Alga PSA'),
+        ('autotask', 'Autotask PSA'),
+        ('connectwise_manage', 'ConnectWise Manage'),
+        ('freshservice', 'Freshservice'),
+        ('halo_psa', 'HaloPSA'),
+        ('itflow', 'ITFlow'),
+        ('kaseya_bms', 'Kaseya BMS'),
+        ('rangermsp', 'RangerMSP (CommitCRM)'),
+        ('syncro', 'Syncro'),
+        ('zendesk', 'Zendesk'),
     ]
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='psa_connections')
@@ -192,17 +192,17 @@ class PSATicket(BaseModel):
     Synced ticket from PSA.
     """
     STATUS_CHOICES = [
-        ('new', 'New'),
-        ('in_progress', 'In Progress'),
-        ('waiting', 'Waiting'),
-        ('resolved', 'Resolved'),
         ('closed', 'Closed'),
+        ('in_progress', 'In Progress'),
+        ('new', 'New'),
+        ('resolved', 'Resolved'),
+        ('waiting', 'Waiting'),
     ]
 
     PRIORITY_CHOICES = [
+        ('high', 'High'),
         ('low', 'Low'),
         ('medium', 'Medium'),
-        ('high', 'High'),
         ('urgent', 'Urgent'),
     ]
 
@@ -249,10 +249,10 @@ class RMMConnection(BaseModel):
     Credentials and tokens are encrypted at rest.
     """
     PROVIDER_TYPES = [
-        ('ninjaone', 'NinjaOne'),
-        ('datto_rmm', 'Datto RMM'),
-        ('connectwise_automate', 'ConnectWise Automate'),
         ('atera', 'Atera'),
+        ('connectwise_automate', 'ConnectWise Automate'),
+        ('datto_rmm', 'Datto RMM'),
+        ('ninjaone', 'NinjaOne'),
         ('tactical_rmm', 'Tactical RMM'),
     ]
 
@@ -324,22 +324,22 @@ class RMMDevice(BaseModel):
     Synced device/asset from RMM.
     """
     DEVICE_TYPES = [
-        ('workstation', 'Workstation'),
-        ('server', 'Server'),
         ('laptop', 'Laptop'),
-        ('network', 'Network Device'),
         ('mobile', 'Mobile Device'),
-        ('virtual', 'Virtual Machine'),
+        ('network', 'Network Device'),
+        ('server', 'Server'),
         ('unknown', 'Unknown'),
+        ('virtual', 'Virtual Machine'),
+        ('workstation', 'Workstation'),
     ]
 
     OS_TYPES = [
-        ('windows', 'Windows'),
+        ('android', 'Android'),
+        ('ios', 'iOS'),
         ('linux', 'Linux'),
         ('macos', 'macOS'),
-        ('ios', 'iOS'),
-        ('android', 'Android'),
         ('other', 'Other'),
+        ('windows', 'Windows'),
     ]
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='rmm_devices')

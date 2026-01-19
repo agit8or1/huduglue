@@ -123,13 +123,13 @@ class Relation(BaseModel):
     - Contact -> Asset (relation_type='responsible_for')
     """
     RELATION_TYPES = [
-        ('documented_by', 'Documented By'),
-        ('credentials', 'Credentials'),
         ('applies_to', 'Applies To'),
+        ('contains', 'Contains'),
+        ('credentials', 'Credentials'),
+        ('depends_on', 'Depends On'),
+        ('documented_by', 'Documented By'),
         ('related_to', 'Related To'),
         ('responsible_for', 'Responsible For'),
-        ('depends_on', 'Depends On'),
-        ('contains', 'Contains'),
         ('used_by', 'Used By'),
     ]
 
@@ -361,10 +361,10 @@ class SystemSetting(models.Model):
         max_length=20,
         default='high',
         choices=[
+            ('critical', 'Critical'),
+            ('high', 'High'),
             ('low', 'Low'),
             ('medium', 'Medium'),
-            ('high', 'High'),
-            ('critical', 'Critical'),
         ],
         help_text='Minimum severity level to report'
     )
@@ -372,10 +372,10 @@ class SystemSetting(models.Model):
         max_length=20,
         default='daily',
         choices=[
-            ('hourly', 'Every Hour'),
             ('daily', 'Daily'),
-            ('weekly', 'Weekly'),
+            ('hourly', 'Every Hour'),
             ('manual', 'Manual Only'),
+            ('weekly', 'Weekly'),
         ],
         help_text='How often to run automatic scans'
     )
@@ -434,15 +434,15 @@ class ScheduledTask(models.Model):
     Defines recurring tasks with their schedules.
     """
     TASK_TYPES = [
-        ('website_monitoring', 'Website Monitoring Checks'),
+        ('cleanup_stuck_scans', 'Cleanup Stuck Security Scans'),
+        ('domain_expiry_check', 'Domain Expiry Check'),
+        ('equipment_catalog_update', 'Equipment Catalog Update'),
+        ('password_breach_scan', 'Password Breach Scanning'),
         ('psa_sync', 'PSA Synchronization'),
         ('rmm_sync', 'RMM Synchronization'),
-        ('password_breach_scan', 'Password Breach Scanning'),
-        ('equipment_catalog_update', 'Equipment Catalog Update'),
         ('ssl_expiry_check', 'SSL Certificate Expiry Check'),
-        ('domain_expiry_check', 'Domain Expiry Check'),
         ('update_check', 'System Update Check'),
-        ('cleanup_stuck_scans', 'Cleanup Stuck Security Scans'),
+        ('website_monitoring', 'Website Monitoring Checks'),
     ]
 
     task_type = models.CharField(max_length=50, choices=TASK_TYPES, unique=True)
@@ -461,10 +461,10 @@ class ScheduledTask(models.Model):
     last_status = models.CharField(
         max_length=20,
         choices=[
-            ('success', 'Success'),
             ('failed', 'Failed'),
-            ('running', 'Running'),
             ('pending', 'Pending'),
+            ('running', 'Running'),
+            ('success', 'Success'),
         ],
         default='pending'
     )
@@ -592,19 +592,19 @@ class SnykScan(models.Model):
     """Track Snyk security scan results."""
     
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('running', 'Running'),
+        ('cancelled', 'Cancelled'),
         ('completed', 'Completed'),
         ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+        ('running', 'Running'),
         ('timeout', 'Timed Out'),
     ]
-    
+
     SEVERITY_CHOICES = [
+        ('critical', 'Critical'),
+        ('high', 'High'),
         ('low', 'Low'),
         ('medium', 'Medium'),
-        ('high', 'High'),
-        ('critical', 'Critical'),
     ]
     
     # Scan metadata
@@ -1002,11 +1002,11 @@ class FirewallLog(models.Model):
     Log of blocked firewall requests for audit trail.
     """
     BLOCK_REASON_CHOICES = [
-        ('ip_blocklist', 'IP in blocklist'),
-        ('ip_not_in_allowlist', 'IP not in allowlist'),
         ('country_blocklist', 'Country in blocklist'),
         ('country_not_in_allowlist', 'Country not in allowlist'),
         ('geoip_lookup_failed', 'GeoIP lookup failed'),
+        ('ip_blocklist', 'IP in blocklist'),
+        ('ip_not_in_allowlist', 'IP not in allowlist'),
     ]
 
     ip_address = models.GenericIPAddressField()
