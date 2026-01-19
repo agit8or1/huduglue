@@ -188,7 +188,8 @@ class UpdateService:
                         "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
                         f"$(whoami) ALL=(ALL) NOPASSWD: /bin/systemctl restart huduglue-gunicorn.service, "
                         "/bin/systemctl status huduglue-gunicorn.service, /bin/systemctl daemon-reload, "
-                        "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service\n"
+                        "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service, "
+                        "/usr/bin/cp, /usr/bin/chmod\n"
                         "SUDOERS\n\n"
                         "sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update\n\n"
                         "After configuring, refresh this page and try again. "
@@ -339,7 +340,74 @@ class UpdateService:
             if progress_tracker:
                 progress_tracker.step_complete('Generate Workflow Diagrams')
 
-            # Step 7: Restart service (if running under systemd)
+            # Step 7: Install fail2ban sudoers configuration (if needed)
+            if progress_tracker:
+                progress_tracker.step_start('Configure Fail2ban Integration')
+            logger.info("Checking fail2ban configuration...")
+            try:
+                # Check if fail2ban is installed
+                fail2ban_check = subprocess.run(
+                    ['/usr/bin/which', 'fail2ban-client'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+
+                if fail2ban_check.returncode == 0:
+                    # fail2ban is installed, check if sudoers is configured
+                    sudoers_path = '/etc/sudoers.d/huduglue-fail2ban'
+                    if not os.path.exists(sudoers_path):
+                        logger.info("fail2ban installed but sudoers not configured - installing...")
+
+                        # Copy sudoers file from deploy directory
+                        source_path = os.path.join(self.base_dir, 'deploy', 'huduglue-fail2ban-sudoers')
+                        if os.path.exists(source_path):
+                            # Install sudoers file
+                            copy_result = subprocess.run(
+                                ['/usr/bin/sudo', '/usr/bin/cp', source_path, sudoers_path],
+                                capture_output=True,
+                                text=True,
+                                timeout=10
+                            )
+
+                            if copy_result.returncode == 0:
+                                # Set correct permissions
+                                chmod_result = subprocess.run(
+                                    ['/usr/bin/sudo', '/usr/bin/chmod', '0440', sudoers_path],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=10
+                                )
+
+                                if chmod_result.returncode == 0:
+                                    result['steps_completed'].append('fail2ban_sudoers')
+                                    result['output'].append("✓ Fail2ban sudoers configuration installed automatically")
+                                    logger.info("Fail2ban sudoers configuration installed successfully")
+                                else:
+                                    logger.warning(f"Failed to set sudoers permissions: {chmod_result.stderr}")
+                                    result['output'].append("⚠ Fail2ban sudoers installed but permissions not set - please run: sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban")
+                            else:
+                                logger.warning(f"Failed to copy sudoers file: {copy_result.stderr}")
+                                result['output'].append(f"⚠ Fail2ban sudoers installation failed: {copy_result.stderr[:100]}")
+                        else:
+                            logger.warning("Fail2ban sudoers source file not found")
+                            result['output'].append("⚠ Fail2ban sudoers source file not found in deploy/ directory")
+                    else:
+                        logger.info("Fail2ban sudoers already configured")
+                        result['output'].append("✓ Fail2ban sudoers already configured")
+                else:
+                    logger.info("fail2ban not installed - skipping sudoers configuration")
+                    result['output'].append("• Fail2ban not installed - sudoers configuration skipped")
+
+            except Exception as e:
+                # Non-critical - log warning but continue
+                logger.warning(f"Fail2ban configuration check failed (non-critical): {e}")
+                result['output'].append(f"⚠ Fail2ban configuration check skipped: {str(e)[:100]}")
+
+            if progress_tracker:
+                progress_tracker.step_complete('Configure Fail2ban Integration')
+
+            # Step 8: Restart service (if running under systemd)
             is_systemd = self._is_systemd_service()
             logger.info(f"Systemd service check result: {is_systemd}")
 
@@ -378,7 +446,8 @@ class UpdateService:
                             "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
                             f"$(whoami) ALL=(ALL) NOPASSWD: /bin/systemctl restart huduglue-gunicorn.service, "
                             "/bin/systemctl status huduglue-gunicorn.service, /bin/systemctl daemon-reload, "
-                            "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service\n"
+                            "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service, "
+                            "/usr/bin/cp, /usr/bin/chmod\n"
                             "SUDOERS\n\n"
                             "sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update\n\n"
                             "Or update manually via command line. See the system updates page for instructions."
