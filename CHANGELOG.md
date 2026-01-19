@@ -5,6 +5,16 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.177] - 2026-01-19
+
+### 🔧 Debug
+
+**Upload Debug Logging:**
+- **Added** extensive console logging to track upload process
+- **Added** server-side logging to track request receipt
+- **Logs** element detection, file selection, CSRF token, and response status
+- **Helps** diagnose upload issues with detailed output
+
 ## [2.24.176] - 2026-01-19
 
 ### 🐛 Bug Fixes

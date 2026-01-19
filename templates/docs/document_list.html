@@ -271,6 +271,9 @@ $(document).ready(function() {
     const progressBar = document.getElementById('progressBar');
     const uploadStatus = document.getElementById('uploadStatus');
 
+    console.log('Upload button element:', uploadButton);
+    console.log('Upload form element:', uploadForm);
+
     let selectedFiles = [];
 
     // Click to browse
@@ -350,17 +353,30 @@ $(document).ready(function() {
 
     // Upload button click
     uploadButton.addEventListener('click', async () => {
-        if (selectedFiles.length === 0) return;
+        console.log('Upload button clicked');
+        console.log('Selected files:', selectedFiles);
+
+        if (selectedFiles.length === 0) {
+            console.log('No files selected');
+            return;
+        }
 
         uploadButton.disabled = true;
         uploadProgress.style.display = 'block';
+        progressBar.style.width = '50%';
 
         const formData = new FormData(uploadForm);
         formData.delete('files'); // Remove old files
-        selectedFiles.forEach(file => formData.append('files', file));
+        selectedFiles.forEach(file => {
+            console.log('Adding file to FormData:', file.name);
+            formData.append('files', file);
+        });
 
         try {
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            console.log('CSRF Token:', csrfToken ? 'Found' : 'Missing');
+            console.log('Upload URL:', uploadForm.action);
+
             const response = await fetch(uploadForm.action, {
                 method: 'POST',
                 body: formData,
@@ -370,20 +386,33 @@ $(document).ready(function() {
                 }
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
             if (response.ok) {
+                console.log('Response is OK, parsing JSON...');
                 const result = await response.json();
+                console.log('Upload result:', result);
                 uploadStatus.textContent = `Successfully uploaded ${result.uploaded} file(s)`;
                 progressBar.style.width = '100%';
                 progressBar.classList.remove('progress-bar-animated');
                 progressBar.classList.add('bg-success');
 
                 // Reload page after 1 second
+                console.log('Reloading page in 1 second...');
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
             } else {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Upload failed');
+                console.log('Response not OK, parsing error...');
+                const errorText = await response.text();
+                console.log('Error response:', errorText);
+                try {
+                    const errorData = JSON.parse(errorText);
+                    throw new Error(errorData.error || 'Upload failed');
+                } catch (e) {
+                    throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
+                }
             }
         } catch (error) {
             console.error('Upload error:', error);
