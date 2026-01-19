@@ -5,6 +5,15 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.175] - 2026-01-19
+
+### 🐛 Bug Fixes
+
+**Upload Modal Centering:**
+- **Changed** upload modal to use Bootstrap's `modal-dialog-centered` class
+- **Centers** modal vertically on page to prevent navbar cutoff
+- **Improves** accessibility and viewing on all screen sizes
+
 ## [2.24.174] - 2026-01-19
 
 ### 🐛 Bug Fixes
