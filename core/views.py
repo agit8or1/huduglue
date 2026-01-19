@@ -255,8 +255,8 @@ def report_bug(request):
         AuditLog.objects.create(
             user=request.user,
             action='bug_report_rate_limited',
-            resource_type='bug_report',
-            details=f'User exceeded rate limit (10 reports per hour)'
+            object_type='bug_report',
+            description=f'User exceeded rate limit (10 reports per hour)'
         )
         return JsonResponse({
             'success': False,
@@ -316,8 +316,8 @@ def report_bug(request):
         AuditLog.objects.create(
             user=request.user,
             action='bug_report_initiated',
-            resource_type='bug_report',
-            details=f'Bug report URL generated: {title}'
+            object_type='bug_report',
+            description=f'Bug report URL generated: {title}'
         )
         logger.info(f"Bug report URL generated for {request.user.username}: {title}")
 
@@ -334,8 +334,8 @@ def report_bug(request):
         AuditLog.objects.create(
             user=request.user,
             action='bug_report_error',
-            resource_type='bug_report',
-            details=f'Unexpected error: {str(e)}'
+            object_type='bug_report',
+            description=f'Unexpected error: {str(e)}'
         )
         return JsonResponse({
             'success': False,
