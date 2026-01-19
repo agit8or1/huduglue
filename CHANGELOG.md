@@ -5,6 +5,16 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.169] - 2026-01-19
+
+### 🐛 Bug Fixes
+
+**Document Upload:**
+- **Fixed** file upload functionality for documents (PDFs, images, Word, Excel, etc.)
+- **Added** missing `enctype="multipart/form-data"` to document form
+- **Resolved** issue where file uploads would fail silently
+- File upload UI was present but non-functional without proper form encoding
+
 ## [2.24.168] - 2026-01-19
 
 ### 🎨 UI/UX Improvements

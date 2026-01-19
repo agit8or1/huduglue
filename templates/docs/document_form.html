@@ -140,7 +140,7 @@
                 <h3 class="mb-0"><i class="fas fa-file-alt"></i> {{ action }} Document</h3>
             </div>
             <div class="card-body">
-                <form method="post" id="document-form">
+                <form method="post" id="document-form" enctype="multipart/form-data">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
