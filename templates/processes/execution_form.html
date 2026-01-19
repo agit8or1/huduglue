@@ -7,7 +7,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="fas fa-play"></i> Start Process Execution</h5>
+                <h5 class="mb-0"><i class="fas fa-rocket"></i> Launch Workflow</h5>
             </div>
             <div class="card-body">
                 <h4>{{ process.title }}</h4>
@@ -47,12 +47,32 @@
                         {% endif %}
                     </div>
 
+                    <div class="mb-3">
+                        <label for="{{ form.psa_ticket.id_for_label }}" class="form-label">PSA Ticket (optional)</label>
+                        {{ form.psa_ticket }}
+                        {% if form.psa_ticket.errors %}
+                        <div class="text-danger small">{{ form.psa_ticket.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ form.psa_ticket.help_text }}</small>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form.psa_note_internal }}
+                        <label class="form-check-label" for="{{ form.psa_note_internal.id_for_label }}">
+                            Make PSA note internal/private
+                        </label>
+                        {% if form.psa_note_internal.errors %}
+                        <div class="text-danger small">{{ form.psa_note_internal.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted d-block">{{ form.psa_note_internal.help_text }}</small>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{% url 'processes:process_detail' process.slug %}" class="btn btn-outline-secondary">
                             <i class="fas fa-times"></i> Cancel
                         </a>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-play"></i> Start Execution
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-rocket"></i> Launch Workflow
                         </button>
                     </div>
                 </form>

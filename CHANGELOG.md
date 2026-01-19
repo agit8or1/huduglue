@@ -5,6 +5,38 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.157] - 2026-01-19
+
+### ✨ Features
+
+**Improved Workflow Launch Experience:**
+- **Renamed** "Start Execution" to "Launch Workflow" throughout UI for clarity
+- **Enhanced** Launch button visibility with larger size and rocket icon
+- **Added** PSA Ticket selection to workflow launch form
+- **Added** PSA note visibility toggle (internal/public) to launch form
+- **Improved** workflow launch flow for better user experience
+
+### 🎨 UI/UX Improvements
+
+**Workflow Templates:**
+- **Clarified** separation between viewing workflow template and launching execution
+- **Launch Button** - Prominent green button with rocket icon for launching workflows
+- **Edit Button** - Standard edit button for modifying workflow templates
+- **Better Visual Hierarchy** - Clearer distinction between template management and execution
+
+**Workflow Launch Form:**
+- **Complete Form** - All execution options now available at launch time
+- **PSA Integration** - Select PSA ticket directly when launching workflow
+- **Note Visibility** - Choose whether completion notes are internal or public
+- **Improved Layout** - Better organization of form fields
+
+### 🔧 Improvements
+
+**Templates:**
+- **Updated** processes/execution_form.html with PSA ticket fields
+- **Updated** processes/process_detail.html with prominent Launch button
+- **Consistent Iconography** - Rocket icon for launching workflows throughout
+
 ## [2.24.156] - 2026-01-19
 
 ### ✨ Features

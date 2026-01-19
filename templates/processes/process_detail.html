@@ -17,8 +17,8 @@
         </div>
     </div>
     <div class="btn-group">
-        <a href="{% url 'processes:execution_create' process.slug %}" class="btn btn-success">
-            <i class="fas fa-play"></i> Start Execution
+        <a href="{% url 'processes:execution_create' process.slug %}" class="btn btn-success btn-lg">
+            <i class="fas fa-rocket"></i> Launch Workflow
         </a>
         {% if not process.is_global %}
         <a href="{% url 'processes:process_edit' process.slug %}" class="btn btn-outline-secondary">
