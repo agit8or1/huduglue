@@ -132,13 +132,21 @@
                         {% endif %}
                     </div>
 
-                    {% if not completion.is_completed and execution.status == 'in_progress' %}
+                    {% if execution.status == 'in_progress' %}
                     <div class="ms-3">
+                        {% if not completion.is_completed %}
                         <button type="button"
                                 class="btn btn-success complete-stage"
                                 data-completion-id="{{ completion.pk }}">
                             <i class="fas fa-check"></i> Mark Complete
                         </button>
+                        {% else %}
+                        <button type="button"
+                                class="btn btn-warning uncomplete-stage"
+                                data-completion-id="{{ completion.pk }}">
+                            <i class="fas fa-undo"></i> Uncheck
+                        </button>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -180,6 +188,32 @@ $(document).ready(function() {
                 },
                 error: function() {
                     alert('Error marking stage as complete');
+                }
+            });
+        }
+    });
+
+    $('.uncomplete-stage').click(function() {
+        const button = $(this);
+        const completionId = button.data('completion-id');
+
+        if (confirm('Uncheck this stage? This will mark it as incomplete.')) {
+            $.ajax({
+                url: '/processes/completion/' + completionId + '/uncomplete/',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(data) {
+                    if (data.success) {
+                        // Reload page to show updated status
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                },
+                error: function() {
+                    alert('Error unchecking stage');
                 }
             });
         }
