@@ -449,6 +449,60 @@ def execution_create(request, slug):
 
 
 @login_required
+def execution_list(request):
+    """List all workflow executions for the organization"""
+    org = get_request_organization(request)
+    if not org:
+        messages.error(request, 'Organization context required.')
+        return redirect('accounts:organization_list')
+
+    # Get all executions for this org
+    executions = ProcessExecution.objects.filter(
+        organization=org
+    ).select_related(
+        'process', 'assigned_to', 'started_by'
+    ).prefetch_related(
+        'stage_completions'
+    ).order_by('-created_at')
+
+    # Filter by status if requested
+    status_filter = request.GET.get('status')
+    if status_filter:
+        executions = executions.filter(status=status_filter)
+
+    # Filter by user if requested
+    user_filter = request.GET.get('user')
+    if user_filter:
+        executions = executions.filter(assigned_to__id=user_filter)
+
+    # Filter by process if requested
+    process_filter = request.GET.get('process')
+    if process_filter:
+        executions = executions.filter(process__id=process_filter)
+
+    # Get unique processes for filter dropdown
+    processes = Process.objects.filter(
+        Q(organization=org) | Q(is_global=True)
+    ).order_by('title')
+
+    # Get unique users for filter dropdown
+    from django.contrib.auth.models import User
+    users = User.objects.filter(
+        profile__organization=org
+    ).order_by('username')
+
+    return render(request, 'processes/execution_list.html', {
+        'executions': executions,
+        'processes': processes,
+        'users': users,
+        'status_filter': status_filter,
+        'user_filter': user_filter,
+        'process_filter': process_filter,
+        'current_organization': org,
+    })
+
+
+@login_required
 def execution_detail(request, pk):
     """View execution with stage completion tracking"""
     org = get_request_organization(request)

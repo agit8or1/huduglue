@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Workflow Executions{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-clipboard-list"></i> Workflow Executions</h1>
+    <a href="{% url 'processes:process_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Workflows
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="not_started" {% if status_filter == 'not_started' %}selected{% endif %}>Not Started</option>
+                    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="process" class="form-label">Workflow</label>
+                <select name="process" id="process" class="form-select">
+                    <option value="">All Workflows</option>
+                    {% for process in processes %}
+                    <option value="{{ process.id }}" {% if process_filter == process.id|stringformat:"s" %}selected{% endif %}>
+                        {{ process.title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="user" class="form-label">Assigned To</label>
+                <select name="user" id="user" class="form-select">
+                    <option value="">All Users</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}" {% if user_filter == user.id|stringformat:"s" %}selected{% endif %}>
+                        {{ user.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <a href="{% url 'processes:execution_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Executions Table -->
+{% if executions %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Workflow</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Assigned To</th>
+                        <th>Started By</th>
+                        <th>Started</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for execution in executions %}
+                    <tr class="{% if execution.status == 'completed' %}table-success{% elif execution.status == 'failed' %}table-danger{% elif execution.status == 'in_progress' %}table-warning{% endif %}">
+                        <td>
+                            <strong>{{ execution.process.title }}</strong>
+                            {% if execution.psa_ticket %}
+                            <br><small class="text-muted">
+                                <i class="fas fa-ticket-alt"></i>
+                                PSA: {{ execution.psa_ticket.ticket_number }}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge
+                                {% if execution.status == 'not_started' %}bg-secondary
+                                {% elif execution.status == 'in_progress' %}bg-warning text-dark
+                                {% elif execution.status == 'completed' %}bg-success
+                                {% elif execution.status == 'failed' %}bg-danger
+                                {% elif execution.status == 'cancelled' %}bg-dark
+                                {% endif %}">
+                                {{ execution.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 20px; min-width: 100px;">
+                                <div class="progress-bar {% if execution.completion_percentage == 100 %}bg-success{% else %}bg-primary{% endif %}"
+                                     role="progressbar"
+                                     style="width: {{ execution.completion_percentage }}%;"
+                                     aria-valuenow="{{ execution.completion_percentage }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    {{ execution.completion_percentage }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ execution.assigned_to.username }}</td>
+                        <td>
+                            {% if execution.started_by %}
+                            {{ execution.started_by.username }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if execution.started_at %}
+                            {{ execution.started_at|date:"Y-m-d H:i" }}
+                            {% else %}
+                            <span class="text-muted">Not started</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if execution.due_date %}
+                            {{ execution.due_date|date:"Y-m-d H:i" }}
+                            {% if execution.is_overdue %}
+                            <span class="badge bg-danger">Overdue</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'processes:execution_detail' execution.pk %}" class="btn btn-outline-primary" title="View Execution">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'processes:execution_audit_log' execution.pk %}" class="btn btn-outline-info" title="View Audit Log">
+                                    <i class="fas fa-history"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3 text-muted">
+    <small>Total: {{ executions.count }} execution{{ executions.count|pluralize }}</small>
+</div>
+
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> No workflow executions found.
+    {% if status_filter or process_filter or user_filter %}
+    <br>Try adjusting your filters.
+    {% else %}
+    <br>Launch a workflow to get started!
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

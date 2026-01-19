@@ -5,7 +5,14 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1><i class="fas fa-tasks"></i> Processes</h1>
-    <a href="{% url 'processes:process_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Workflow</a>
+    <div class="btn-group">
+        <a href="{% url 'processes:execution_list' %}" class="btn btn-info">
+            <i class="fas fa-clipboard-list"></i> View All Executions
+        </a>
+        <a href="{% url 'processes:process_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Workflow
+        </a>
+    </div>
 </div>
 
 <!-- Filters -->

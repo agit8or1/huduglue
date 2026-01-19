@@ -5,6 +5,40 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.158] - 2026-01-19
+
+### ✨ Features
+
+**Workflow Execution List View:**
+- **Added** execution_list view showing all workflow executions across organization
+- **Added** comprehensive filtering by status, workflow, and assigned user
+- **Added** visual progress bars for each execution
+- **Added** quick access to execution details and audit logs
+- **Shows** workflow name, status, progress percentage, assigned user, who launched it, start date, due date
+- **Displays** PSA ticket association if linked
+- **Highlights** overdue executions with warning badge
+- **Color-coded** rows by status (green=completed, yellow=in progress, red=failed)
+
+### 🔧 Bug Fixes
+
+**Workflow Launch Form:**
+- **Fixed** ProcessExecutionForm removing process and status fields that were set programmatically
+- **Fixed** "Cannot query Organization: Must be UserProfile instance" error
+- **Cleared** Python cache to ensure changes take effect
+
+### 🎨 UI/UX Improvements
+
+**Navigation:**
+- **Added** "View All Executions" button on workflow list page
+- **Improved** visibility of execution tracking features
+
+**Execution List:**
+- **Table View** with sortable columns
+- **Status Badges** with color coding
+- **Progress Bars** showing completion percentage
+- **Filter Controls** for status, workflow, and user
+- **Quick Actions** - View execution details or audit log
+
 ## [2.24.157] - 2026-01-19
 
 ### ✨ Features

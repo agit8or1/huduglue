@@ -11,6 +11,9 @@ urlpatterns = [
     path('', views.process_list, name='process_list'),
     path('create/', views.process_create, name='process_create'),
 
+    # Execution list - MUST come before slug patterns
+    path('executions/', views.execution_list, name='execution_list'),
+
     # Global processes (superuser only) - MUST come before slug patterns
     path('global/', views.global_process_list, name='global_process_list'),
     path('global/create/', views.global_process_create, name='global_process_create'),

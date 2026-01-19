@@ -130,18 +130,15 @@ ProcessStageFormSet = inlineformset_factory(
 class ProcessExecutionForm(forms.ModelForm):
     class Meta:
         model = ProcessExecution
-        fields = ['process', 'assigned_to', 'status', 'due_date', 'notes', 'psa_ticket', 'psa_note_internal']
+        fields = ['assigned_to', 'due_date', 'notes', 'psa_ticket', 'psa_note_internal']
         widgets = {
-            'process': forms.Select(attrs={'class': 'form-select'}),
             'assigned_to': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
             'due_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Execution notes...'}),
             'psa_ticket': forms.Select(attrs={'class': 'form-select'}),
             'psa_note_internal': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         help_texts = {
-            'process': 'Select the process to execute',
             'assigned_to': 'User responsible for executing this process',
             'due_date': 'Optional deadline for completion',
             'psa_ticket': 'Optional: Link to PSA ticket (updates ticket when workflow completes)',
@@ -154,13 +151,6 @@ class ProcessExecutionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.organization:
-            # Filter processes by organization
-            self.fields['process'].queryset = Process.objects.filter(
-                organization=self.organization,
-                is_published=True,
-                is_archived=False
-            ).order_by('title')
-
             # Filter assigned_to to organization members
             from django.contrib.auth.models import User
             org_users = User.objects.filter(
@@ -176,11 +166,6 @@ class ProcessExecutionForm(forms.ModelForm):
             ).select_related('connection').order_by('-created_at')[:100]  # Limit to 100 recent tickets
             self.fields['psa_ticket'].label_from_instance = lambda obj: f"[{obj.connection.provider}] {obj.ticket_number} - {obj.subject[:50]}"
             self.fields['psa_ticket'].required = False
-
-        # If editing existing execution, disable process field
-        if self.instance and self.instance.pk:
-            self.fields['process'].disabled = True
-            self.fields['process'].help_text = 'Cannot change process after creation'
 
 
 class ProcessStageCompletionForm(forms.ModelForm):
