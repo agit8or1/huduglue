@@ -5,6 +5,83 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.155] - 2026-01-19
+
+### ✨ Major New Features
+
+**Workflow Execution Comprehensive Audit Logging:**
+- **Added** ProcessExecutionAuditLog model for complete workflow activity tracking
+- **Added** execution_audit_log view with timeline display grouped by date
+- **Added** audit log template with color-coded events and visual timeline
+- **Added** stage_uncomplete endpoint for unchecking completed stages
+- **Added** Audit Log button to execution detail page
+- **Tracks** all workflow actions:
+  - Execution created/started/completed/failed/cancelled
+  - Stage completed/uncompleted with before/after values
+  - Status changes, notes updates, due date changes
+  - User, IP address, timestamp for every action
+- **Timeline View** - Chronological activity feed with date grouping
+- **Change History** - Old/new values displayed for all updates
+- **Color Coding** - Green (completed), yellow (uncompleted), red (failed), blue (other)
+- **Stage Tracking** - Links audit events to specific workflow stages
+- **Integration** - Logs to both process-specific audit log and general audit system
+
+**PSA Ticket Integration for Workflows:**
+- **Added** psa_ticket foreign key to ProcessExecution model
+- **Added** automatic PSA ticket update when workflow completes
+- **Added** PSA ticket selection in ProcessExecutionForm
+- **Created** PSAManager class with add_ticket_note method
+- **Supported PSA Platforms**:
+  - ITFlow (fully implemented)
+  - ConnectWise Manage (fully implemented)
+  - Syncro (fully implemented)
+  - Autotask (stub - to be implemented)
+  - HaloPSA (stub - to be implemented)
+- **Completion Summary** - Posts detailed summary to PSA ticket:
+  - Workflow title and completion status
+  - All completed steps with timestamps
+  - User who completed each stage
+- **Error Handling** - PSA update failures don't block workflow completion
+
+### 🔧 Improvements
+
+**Workflow Forms:**
+- **Updated** ProcessExecutionForm to include PSA ticket selection
+- **Added** filtering of PSA tickets by organization and status (open/in_progress)
+- **Added** helpful labels showing PSA provider and ticket number
+- **Limited** to 100 most recent tickets for performance
+
+**Documentation:**
+- **Added** comprehensive "Workflows & Process Automation" section to FEATURES.md
+- **Documented** audit logging capabilities
+- **Documented** PSA ticket integration
+- **Updated** feature list with v2.24.155 markers
+
+### 🗃️ Database Changes
+
+**New Tables:**
+- `process_execution_audit_logs` - Complete audit trail for workflow executions
+  - Indexes on (execution, -created_at), (action_type, -created_at), (user, -created_at)
+  - Stores: action_type, description, user, username, stage info, old/new values, IP, user agent
+
+**Schema Updates:**
+- Added `psa_ticket` foreign key to `process_executions` table
+
+### 📝 Migration
+
+**Migration:** `processes/migrations/0003_processexecution_psa_ticket_processexecutionauditlog.py`
+- Adds psa_ticket field to ProcessExecution
+- Creates ProcessExecutionAuditLog model with indexes
+
+### 🎯 Use Cases Enabled
+
+1. **Compliance & Auditing** - Complete audit trail for workflow executions
+2. **PSA Integration** - Automatically update tickets when workflows complete
+3. **Customer Communication** - Ticket updates show what was done and when
+4. **Process Improvement** - Analyze workflow completion times and patterns
+5. **Accountability** - Track who did what in each workflow execution
+6. **Troubleshooting** - See complete history if workflow issues occur
+
 ## [2.24.111] - 2026-01-16
 
 ### 🐛 Bug Fixes

@@ -251,6 +251,65 @@ Complete feature documentation for HuduGlue - Self-hosted IT documentation platf
 - **IP Status** - Active, Reserved, Available
 - **Network Planning** - Visual network organization
 
+## 📋 Workflows & Process Automation (NEW in v2.24.155)
+
+### Process/Workflow Management
+- **Process Templates** - Create reusable workflow templates
+- **Sequential Steps** - Multi-stage workflows with order tracking
+- **Process Categories** - Organize by type (onboarding, offboarding, deployment, maintenance, incident, backup, security, change)
+- **Global Processes** - Superuser-created templates available to all organizations
+- **Organization Processes** - Org-specific custom workflows
+- **Process Execution** - Track workflow runs from start to completion
+
+### Workflow Execution Tracking
+- **Execution Status** - Not Started, In Progress, Completed, Failed, Cancelled
+- **Stage Completion** - Track which steps are complete
+- **User Assignment** - Assign executions to specific users
+- **Due Date Tracking** - Set deadlines for workflow completion
+- **Progress Percentage** - Real-time completion tracking
+- **Stage Requirements** - Mark stages as requiring confirmation
+
+### Comprehensive Audit Logging (NEW in v2.24.155)
+- **Complete Activity Timeline** - Every action logged with timestamp and user
+- **Audit Log Events**:
+  - Execution created/started/completed/failed/cancelled
+  - Stage completed/uncompleted
+  - Stage notes added
+  - Execution notes updated
+  - Status changes with before/after values
+  - Due date changes
+- **Timeline View** - Chronological activity feed grouped by date
+- **Action Details** - User, IP address, timestamp, description
+- **Change History** - Old/new values for updates
+- **Color-Coded Events** - Visual indicators (green=completed, yellow=uncompleted, red=failed)
+- **Stage-Specific Tracking** - Links actions to specific workflow stages
+
+### PSA Ticket Integration (NEW in v2.24.155)
+- **Ticket Linking** - Link workflow executions to PSA tickets
+- **Automatic Updates** - Post completion summary to PSA ticket when workflow finishes
+- **Completion Summary** - Includes:
+  - All completed steps with timestamps
+  - User who completed each stage
+  - Workflow title and completion status
+- **Supported PSA Platforms**:
+  - ITFlow
+  - ConnectWise Manage
+  - Syncro
+  - (More providers: Autotask, HaloPSA coming soon)
+- **Internal/Public Notes** - Control note visibility in PSA system
+
+### Flowchart Generation
+- **Auto-Generate Diagrams** - Convert workflows to draw.io flowcharts
+- **Visual Workflow** - Rectangle nodes for steps, diamond nodes for decision points
+- **One-Click Generation** - Generate/regenerate from workflow detail page
+- **Color-Coded Stages** - Alternating colors for visual clarity
+
+### Interactive Checklist Mode
+- **Live Progress Tracking** - Check off stages as you complete them
+- **Stage Uncomplete** - Uncheck stages if needed (tracked in audit log)
+- **Execution Lock** - Cannot modify completed executions
+- **Real-Time Updates** - AJAX-powered progress updates
+
 ## 🔌 PSA Integrations
 
 ### Supported PSA Platforms

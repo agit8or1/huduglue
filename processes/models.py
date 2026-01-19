@@ -259,6 +259,16 @@ class ProcessExecution(BaseModel):
     # Notes
     notes = models.TextField(blank=True)
 
+    # PSA ticket linking
+    psa_ticket = models.ForeignKey(
+        'integrations.PSATicket',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='process_executions',
+        help_text='Related PSA ticket for this execution'
+    )
+
     objects = OrganizationManager()
 
     class Meta:
@@ -327,3 +337,140 @@ class ProcessStageCompletion(BaseModel):
     def __str__(self):
         status = "✓" if self.is_completed else "○"
         return f"{status} {self.stage.title}"
+
+
+class ProcessExecutionAuditLog(BaseModel):
+    """
+    Audit log for process execution activities.
+    Tracks every action/change during workflow execution.
+    """
+    ACTION_TYPES = [
+        ('execution_created', 'Execution Created'),
+        ('execution_started', 'Execution Started'),
+        ('execution_assigned', 'Execution Assigned'),
+        ('execution_status_changed', 'Status Changed'),
+        ('execution_completed', 'Execution Completed'),
+        ('execution_failed', 'Execution Failed'),
+        ('execution_cancelled', 'Execution Cancelled'),
+        ('stage_completed', 'Stage Completed'),
+        ('stage_uncompleted', 'Stage Uncompleted'),
+        ('stage_notes_added', 'Stage Notes Added'),
+        ('notes_updated', 'Execution Notes Updated'),
+        ('due_date_changed', 'Due Date Changed'),
+    ]
+
+    # Link to execution
+    execution = models.ForeignKey(
+        ProcessExecution,
+        on_delete=models.CASCADE,
+        related_name='audit_logs'
+    )
+
+    # Action details
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES)
+    description = models.TextField(help_text='Human-readable description of the action')
+
+    # Who performed the action
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='process_execution_audit_logs'
+    )
+    username = models.CharField(max_length=150, help_text='Username stored for history')
+
+    # For stage-specific actions
+    stage = models.ForeignKey(
+        ProcessStage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_logs',
+        help_text='Related stage (if action is stage-specific)'
+    )
+    stage_title = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Stage title stored for history'
+    )
+
+    # Change tracking
+    old_value = models.JSONField(
+        null=True,
+        blank=True,
+        help_text='Previous value (for updates)'
+    )
+    new_value = models.JSONField(
+        null=True,
+        blank=True,
+        help_text='New value (for updates)'
+    )
+
+    # Metadata
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'process_execution_audit_logs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['execution', '-created_at']),
+            models.Index(fields=['action_type', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.username} - {self.get_action_type_display()} - {self.execution}"
+
+    @classmethod
+    def log_action(cls, execution, action_type, user, description,
+                   stage=None, old_value=None, new_value=None,
+                   request=None):
+        """Helper method to create audit log entries."""
+        # Get IP and user agent from request if provided
+        ip_address = None
+        user_agent = ''
+        if request:
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip_address = x_forwarded_for.split(',')[0].strip()
+            else:
+                ip_address = request.META.get('REMOTE_ADDR')
+            user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+
+        # Create process-specific audit log
+        audit_log = cls.objects.create(
+            execution=execution,
+            action_type=action_type,
+            description=description,
+            user=user,
+            username=user.username if user else 'System',
+            stage=stage,
+            stage_title=stage.title if stage else '',
+            old_value=old_value,
+            new_value=new_value,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+
+        # Also log to general audit system for system-wide tracking
+        from audit.models import AuditLog
+        AuditLog.log(
+            user=user,
+            action='update',
+            organization=execution.organization,
+            object_type='process_execution',
+            object_id=execution.id,
+            object_repr=str(execution),
+            description=description,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            extra_data={
+                'action_type': action_type,
+                'stage_id': stage.id if stage else None,
+                'stage_title': stage.title if stage else None,
+            }
+        )
+
+        return audit_log

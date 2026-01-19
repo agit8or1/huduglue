@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log - {{ execution.process.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1><i class="fas fa-history"></i> Execution Audit Log</h1>
+        <h4 class="text-muted">{{ execution.process.title }}</h4>
+        <p class="text-muted mb-0">
+            Assigned to: {{ execution.assigned_to.username }} |
+            Status: <span class="badge
+                {% if execution.status == 'completed' %}bg-success
+                {% elif execution.status == 'in_progress' %}bg-primary
+                {% elif execution.status == 'failed' %}bg-danger
+                {% else %}bg-secondary
+                {% endif %}">{{ execution.get_status_display }}</span>
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'processes:execution_detail' execution.pk %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Execution
+        </a>
+    </div>
+</div>
+
+<!-- Summary Card -->
+<div class="card mb-4">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-info-circle"></i> Summary</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Total Events:</strong> {{ audit_logs.count }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Created:</strong> {{ execution.created_at|date:"Y-m-d H:i" }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Last Activity:</strong>
+                    {% if audit_logs %}{{ audit_logs.first.created_at|date:"Y-m-d H:i" }}{% else %}N/A{% endif %}
+                </p>
+            </div>
+            <div class="col-md-3">
+                <p class="mb-1"><strong>Progress:</strong> {{ execution.completion_percentage }}%</p>
+            </div>
+        </div>
+        {% if execution.psa_ticket %}
+        <div class="row mt-2">
+            <div class="col-md-12">
+                <p class="mb-0">
+                    <strong>PSA Ticket:</strong>
+                    <span class="badge bg-info">{{ execution.psa_ticket.ticket_number }}</span>
+                    {{ execution.psa_ticket.subject }}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Timeline -->
+{% if logs_by_date %}
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-stream"></i> Activity Timeline</h6>
+    </div>
+    <div class="card-body">
+        {% for date, logs in logs_by_date %}
+        <div class="mb-4">
+            <h5 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-calendar-day text-primary"></i>
+                {{ date|date:"l, F j, Y" }}
+            </h5>
+
+            <div class="timeline">
+                {% for log in logs %}
+                <div class="timeline-item mb-3 ms-3">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            <div class="timeline-marker
+                                {% if log.action_type == 'execution_created' or log.action_type == 'stage_completed' or log.action_type == 'execution_completed' %}bg-success
+                                {% elif log.action_type == 'stage_uncompleted' or log.action_type == 'execution_cancelled' %}bg-warning
+                                {% elif log.action_type == 'execution_failed' %}bg-danger
+                                {% else %}bg-primary
+                                {% endif %}">
+                                {% if log.action_type == 'stage_completed' or log.action_type == 'execution_completed' %}
+                                    <i class="fas fa-check text-white"></i>
+                                {% elif log.action_type == 'stage_uncompleted' %}
+                                    <i class="fas fa-undo text-white"></i>
+                                {% elif log.action_type == 'execution_created' %}
+                                    <i class="fas fa-plus text-white"></i>
+                                {% elif log.action_type == 'execution_failed' %}
+                                    <i class="fas fa-times text-white"></i>
+                                {% else %}
+                                    <i class="fas fa-circle text-white"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <span class="badge
+                                                    {% if log.action_type == 'execution_created' or log.action_type == 'stage_completed' or log.action_type == 'execution_completed' %}bg-success
+                                                    {% elif log.action_type == 'stage_uncompleted' or log.action_type == 'execution_cancelled' %}bg-warning
+                                                    {% elif log.action_type == 'execution_failed' %}bg-danger
+                                                    {% else %}bg-primary
+                                                    {% endif %}">
+                                                    {{ log.get_action_type_display }}
+                                                </span>
+                                                {% if log.stage_title %}
+                                                <span class="text-muted ms-2">{{ log.stage_title }}</span>
+                                                {% endif %}
+                                            </h6>
+                                            <p class="mb-1">{{ log.description }}</p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user"></i> {{ log.username }}
+                                                {% if log.ip_address %}
+                                                | <i class="fas fa-network-wired"></i> {{ log.ip_address }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                {{ log.created_at|date:"H:i:s" }}
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    {% if log.old_value or log.new_value %}
+                                    <div class="mt-2 p-2 bg-light rounded">
+                                        <small>
+                                            {% if log.old_value %}
+                                            <strong>Before:</strong> <code>{{ log.old_value|safe }}</code><br>
+                                            {% endif %}
+                                            {% if log.new_value %}
+                                            <strong>After:</strong> <code>{{ log.new_value|safe }}</code>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No audit logs yet</h5>
+        <p class="text-muted">Activity will appear here as the workflow progresses.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 50px;
+    width: 2px;
+    height: calc(100% - 10px);
+    background: #dee2e6;
+}
+</style>
+{% endblock %}

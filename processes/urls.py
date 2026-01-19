@@ -25,5 +25,7 @@ urlpatterns = [
     # Process Execution
     path('<slug:slug>/execute/', views.execution_create, name='execution_create'),
     path('execution/<int:pk>/', views.execution_detail, name='execution_detail'),
+    path('execution/<int:pk>/audit-log/', views.execution_audit_log, name='execution_audit_log'),
     path('completion/<int:pk>/complete/', views.stage_complete, name='stage_complete'),
+    path('completion/<int:pk>/uncomplete/', views.stage_uncomplete, name='stage_uncomplete'),
 ]

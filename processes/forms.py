@@ -130,18 +130,20 @@ ProcessStageFormSet = inlineformset_factory(
 class ProcessExecutionForm(forms.ModelForm):
     class Meta:
         model = ProcessExecution
-        fields = ['process', 'assigned_to', 'status', 'due_date', 'notes']
+        fields = ['process', 'assigned_to', 'status', 'due_date', 'notes', 'psa_ticket']
         widgets = {
             'process': forms.Select(attrs={'class': 'form-select'}),
             'assigned_to': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'due_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Execution notes...'}),
+            'psa_ticket': forms.Select(attrs={'class': 'form-select'}),
         }
         help_texts = {
             'process': 'Select the process to execute',
             'assigned_to': 'User responsible for executing this process',
             'due_date': 'Optional deadline for completion',
+            'psa_ticket': 'Optional: Link to PSA ticket (updates ticket when workflow completes)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -163,6 +165,15 @@ class ProcessExecutionForm(forms.ModelForm):
                 profile__organization=self.organization
             ).order_by('username')
             self.fields['assigned_to'].queryset = org_users
+
+            # Filter PSA tickets by organization and open status
+            from integrations.models import PSATicket
+            self.fields['psa_ticket'].queryset = PSATicket.objects.filter(
+                connection__organization=self.organization,
+                status__in=['open', 'in_progress']
+            ).select_related('connection').order_by('-created_at')[:100]  # Limit to 100 recent tickets
+            self.fields['psa_ticket'].label_from_instance = lambda obj: f"[{obj.connection.provider}] {obj.ticket_number} - {obj.subject[:50]}"
+            self.fields['psa_ticket'].required = False
 
         # If editing existing execution, disable process field
         if self.instance and self.instance.pk:

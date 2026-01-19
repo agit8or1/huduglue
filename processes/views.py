@@ -15,7 +15,7 @@ from django.db.models import Q, Count
 from core.middleware import get_request_organization
 
 logger = logging.getLogger('processes')
-from .models import Process, ProcessStage, ProcessExecution, ProcessStageCompletion
+from .models import Process, ProcessStage, ProcessExecution, ProcessStageCompletion, ProcessExecutionAuditLog
 from .forms import ProcessForm, ProcessStageFormSet, ProcessExecutionForm
 
 
@@ -424,6 +424,15 @@ def execution_create(request, slug):
                     is_completed=False
                 )
 
+            # Log execution creation
+            ProcessExecutionAuditLog.log_action(
+                execution=execution,
+                action_type='execution_created',
+                user=request.user,
+                description=f"{request.user.username} created execution of '{process.title}' assigned to {execution.assigned_to.username}",
+                request=request
+            )
+
             messages.success(request, f"Started execution of '{process.title}'.")
             return redirect('processes:execution_detail', pk=execution.pk)
     else:
@@ -456,28 +465,158 @@ def execution_detail(request, pk):
 
 
 @login_required
+def execution_audit_log(request, pk):
+    """View audit log for a specific execution"""
+    org = get_request_organization(request)
+    execution = get_object_or_404(ProcessExecution, pk=pk, organization=org)
+
+    # Get all audit logs for this execution
+    audit_logs = execution.audit_logs.select_related('user', 'stage').all()
+
+    # Group by date for better visualization
+    logs_by_date = {}
+    for log in audit_logs:
+        date_key = log.created_at.date()
+        if date_key not in logs_by_date:
+            logs_by_date[date_key] = []
+        logs_by_date[date_key].append(log)
+
+    return render(request, 'processes/execution_audit_log.html', {
+        'execution': execution,
+        'audit_logs': audit_logs,
+        'logs_by_date': sorted(logs_by_date.items(), reverse=True),
+        'current_organization': org,
+    })
+
+
+@login_required
 def stage_complete(request, pk):
     """Mark a stage as complete (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=400)
 
     completion = get_object_or_404(ProcessStageCompletion, pk=pk)
-    
+
     # Check permissions
     org = get_request_organization(request)
     if completion.execution.organization != org:
         return JsonResponse({'error': 'Permission denied'}, status=403)
 
+    # Store old state for audit
+    was_completed = completion.is_completed
+
+    # Update completion
     completion.is_completed = True
     completion.completed_by = request.user
     completion.completed_at = timezone.now()
     completion.save()
 
+    # Log the stage completion
+    ProcessExecutionAuditLog.log_action(
+        execution=completion.execution,
+        action_type='stage_completed',
+        user=request.user,
+        description=f"{request.user.username} completed stage '{completion.stage.title}'",
+        stage=completion.stage,
+        old_value={'is_completed': was_completed},
+        new_value={'is_completed': True, 'completed_at': str(completion.completed_at)},
+        request=request
+    )
+
     # Check if all stages complete -> mark execution complete
     if completion.execution.stage_completions.filter(is_completed=False).count() == 0:
+        old_status = completion.execution.status
         completion.execution.status = 'completed'
         completion.execution.completed_at = timezone.now()
         completion.execution.save()
+
+        # Log execution completion
+        ProcessExecutionAuditLog.log_action(
+            execution=completion.execution,
+            action_type='execution_completed',
+            user=request.user,
+            description=f"{request.user.username} completed the entire execution",
+            old_value={'status': old_status},
+            new_value={'status': 'completed'},
+            request=request
+        )
+
+        # Update PSA ticket if linked
+        if completion.execution.psa_ticket:
+            try:
+                # Generate completion summary
+                summary = f"Workflow '{completion.execution.process.title}' completed by {request.user.username}.\n\n"
+                summary += "Completed steps:\n"
+                for stage_completion in completion.execution.stage_completions.filter(is_completed=True):
+                    completed_at = stage_completion.completed_at.strftime('%Y-%m-%d %H:%M')
+                    completed_by = stage_completion.completed_by.username if stage_completion.completed_by else 'Unknown'
+                    summary += f"- {stage_completion.stage.title} (completed by {completed_by} at {completed_at})\n"
+
+                # Post to PSA ticket
+                from integrations.psa_manager import PSAManager
+                psa_manager = PSAManager()
+                psa_manager.add_ticket_note(
+                    ticket=completion.execution.psa_ticket,
+                    note=summary,
+                    internal=False
+                )
+
+                # Log the PSA update in audit
+                ProcessExecutionAuditLog.log_action(
+                    execution=completion.execution,
+                    action_type='execution_completed',
+                    user=request.user,
+                    description=f"{request.user.username} completed execution and updated PSA ticket {completion.execution.psa_ticket.ticket_number}",
+                    request=request
+                )
+            except Exception as e:
+                logger.error(f"Failed to update PSA ticket: {e}")
+                # Don't fail the execution if PSA update fails
+
+    return JsonResponse({
+        'success': True,
+        'completion_percentage': completion.execution.completion_percentage
+    })
+
+
+@login_required
+def stage_uncomplete(request, pk):
+    """Mark a stage as incomplete (AJAX) - for unchecking"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=400)
+
+    completion = get_object_or_404(ProcessStageCompletion, pk=pk)
+
+    # Check permissions
+    org = get_request_organization(request)
+    if completion.execution.organization != org:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    # Only allow uncompleting if execution is still in progress
+    if completion.execution.status not in ['in_progress', 'not_started']:
+        return JsonResponse({'error': 'Cannot modify completed execution'}, status=400)
+
+    # Store for audit
+    was_completed = completion.is_completed
+    old_completed_by = completion.completed_by.username if completion.completed_by else None
+
+    # Update
+    completion.is_completed = False
+    completion.completed_by = None
+    completion.completed_at = None
+    completion.save()
+
+    # Log the uncomplete action
+    ProcessExecutionAuditLog.log_action(
+        execution=completion.execution,
+        action_type='stage_uncompleted',
+        user=request.user,
+        description=f"{request.user.username} marked stage '{completion.stage.title}' as incomplete",
+        stage=completion.stage,
+        old_value={'is_completed': was_completed, 'completed_by': old_completed_by},
+        new_value={'is_completed': False},
+        request=request
+    )
 
     return JsonResponse({
         'success': True,

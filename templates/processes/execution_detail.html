@@ -8,7 +8,10 @@
         <h1><i class="fas fa-running"></i> Process Execution</h1>
         <h4 class="text-muted">{{ execution.process.title }}</h4>
     </div>
-    <div>
+    <div class="btn-group">
+        <a href="{% url 'processes:execution_audit_log' execution.pk %}" class="btn btn-outline-info">
+            <i class="fas fa-history"></i> Audit Log
+        </a>
         <a href="{% url 'processes:process_detail' execution.process.slug %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back to Process
         </a>
