@@ -23,6 +23,12 @@
                 <a href="{% url 'core:settings_security' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-shield-alt"></i> Security
                 </a>
+                <a href="{% url 'core:firewall_settings' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-shield-halved"></i> Firewall & GeoIP
+                </a>
+                <a href="{% url 'core:fail2ban_status' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-ban"></i> Fail2ban
+                </a>
                 <a href="{% url 'core:settings_features' %}" class="list-group-item list-group-item-action active">
                     <i class="fas fa-toggle-on"></i> Feature Toggles
                 </a>
