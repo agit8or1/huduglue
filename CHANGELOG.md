@@ -5,6 +5,25 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.179] - 2026-01-19
+
+### 🐛 Bug Fixes
+
+**Sudoers Configuration Path Fix (GitHub Issue #5):**
+- **Fixed** incorrect systemctl path in sudoers instructions
+- **Changed** `/bin/systemctl` to `/usr/bin/systemctl` in both error messages
+- **Resolves** auto-update failures due to path mismatch
+- **Fixes** "password required" errors during web-based updates
+- **Note**: Users who followed previous instructions need to regenerate their sudoers file
+
+**Corrected Command:**
+```bash
+sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'
+$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart huduglue-gunicorn.service, /usr/bin/systemctl status huduglue-gunicorn.service, /usr/bin/systemctl daemon-reload, /usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service, /usr/bin/cp, /usr/bin/chmod
+SUDOERS
+sudo chmod 0440 /etc/sudoers.d/huduglue-auto-update
+```
+
 ## [2.24.178] - 2026-01-19
 
 ### ✨ Features
