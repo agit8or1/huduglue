@@ -805,3 +805,231 @@ class SnykScan(models.Model):
             count += 1
 
         return count
+
+
+class FirewallSettings(models.Model):
+    """
+    Global firewall settings (singleton).
+    Controls IP-based and GeoIP-based access restrictions.
+    """
+    # IP Firewall
+    ip_firewall_enabled = models.BooleanField(
+        default=False,
+        help_text='Enable IP-based firewall'
+    )
+    ip_firewall_mode = models.CharField(
+        max_length=20,
+        default='blocklist',
+        choices=[
+            ('allowlist', 'Allow List (block all except listed IPs)'),
+            ('blocklist', 'Block List (allow all except listed IPs)'),
+        ],
+        help_text='Firewall operation mode'
+    )
+
+    # GeoIP Firewall
+    geoip_firewall_enabled = models.BooleanField(
+        default=False,
+        help_text='Enable GeoIP country-based firewall'
+    )
+    geoip_firewall_mode = models.CharField(
+        max_length=20,
+        default='blocklist',
+        choices=[
+            ('allowlist', 'Allow List (block all except listed countries)'),
+            ('blocklist', 'Block List (allow all except listed countries)'),
+        ],
+        help_text='GeoIP operation mode'
+    )
+
+    # Bypass settings
+    bypass_for_staff = models.BooleanField(
+        default=True,
+        help_text='Allow staff users to bypass firewall rules'
+    )
+    bypass_for_api = models.BooleanField(
+        default=False,
+        help_text='Allow API requests to bypass firewall rules'
+    )
+
+    # Logging
+    log_blocked_requests = models.BooleanField(
+        default=True,
+        help_text='Log all blocked requests to audit log'
+    )
+
+    # Metadata
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='firewall_settings_updates'
+    )
+
+    class Meta:
+        db_table = 'firewall_settings'
+        verbose_name = 'Firewall Settings'
+        verbose_name_plural = 'Firewall Settings'
+
+    def __str__(self):
+        return f"Firewall Settings (Updated: {self.updated_at})"
+
+    @classmethod
+    def get_settings(cls):
+        """Get or create the singleton settings instance."""
+        settings, created = cls.objects.get_or_create(pk=1)
+        return settings
+
+    def save(self, *args, **kwargs):
+        """Enforce singleton pattern."""
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion of settings."""
+        pass
+
+
+class FirewallIPRule(models.Model):
+    """
+    IP address or IP range (CIDR) allow/block rule.
+    """
+    ip_address = models.CharField(
+        max_length=50,
+        help_text='IP address or CIDR range (e.g., 192.168.1.100 or 192.168.0.0/16)'
+    )
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Optional description (e.g., "Office Network", "VPN Gateway")'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Enable/disable this rule'
+    )
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_ip_rules'
+    )
+
+    class Meta:
+        db_table = 'firewall_ip_rules'
+        ordering = ['ip_address']
+        indexes = [
+            models.Index(fields=['is_active', 'ip_address']),
+        ]
+
+    def __str__(self):
+        status = "Active" if self.is_active else "Inactive"
+        desc = f" - {self.description}" if self.description else ""
+        return f"{self.ip_address}{desc} ({status})"
+
+    def matches_ip(self, ip_address):
+        """
+        Check if the given IP address matches this rule.
+        Supports both single IPs and CIDR ranges.
+        """
+        import ipaddress
+        try:
+            # Parse the rule (could be single IP or network)
+            if '/' in self.ip_address:
+                # CIDR notation
+                network = ipaddress.ip_network(self.ip_address, strict=False)
+                ip_obj = ipaddress.ip_address(ip_address)
+                return ip_obj in network
+            else:
+                # Single IP address
+                return self.ip_address == ip_address
+        except (ValueError, ipaddress.AddressValueError):
+            return False
+
+
+class FirewallCountryRule(models.Model):
+    """
+    Country-based allow/block rule using GeoIP.
+    """
+    country_code = models.CharField(
+        max_length=2,
+        help_text='2-letter ISO country code (e.g., US, GB, CN)'
+    )
+    country_name = models.CharField(
+        max_length=100,
+        help_text='Country name for display'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Enable/disable this rule'
+    )
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_country_rules'
+    )
+
+    class Meta:
+        db_table = 'firewall_country_rules'
+        ordering = ['country_name']
+        unique_together = [['country_code']]
+        indexes = [
+            models.Index(fields=['is_active', 'country_code']),
+        ]
+
+    def __str__(self):
+        status = "Active" if self.is_active else "Inactive"
+        return f"{self.country_name} ({self.country_code}) - {status}"
+
+
+class FirewallLog(models.Model):
+    """
+    Log of blocked firewall requests for audit trail.
+    """
+    BLOCK_REASON_CHOICES = [
+        ('ip_blocklist', 'IP in blocklist'),
+        ('ip_not_in_allowlist', 'IP not in allowlist'),
+        ('country_blocklist', 'Country in blocklist'),
+        ('country_not_in_allowlist', 'Country not in allowlist'),
+        ('geoip_lookup_failed', 'GeoIP lookup failed'),
+    ]
+
+    ip_address = models.GenericIPAddressField()
+    country_code = models.CharField(max_length=2, blank=True)
+    country_name = models.CharField(max_length=100, blank=True)
+    block_reason = models.CharField(max_length=50, choices=BLOCK_REASON_CHOICES)
+    request_path = models.CharField(max_length=500)
+    request_method = models.CharField(max_length=10)
+    user_agent = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    # Optional user if authenticated
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='firewall_blocks'
+    )
+
+    class Meta:
+        db_table = 'firewall_logs'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['ip_address', '-timestamp']),
+            models.Index(fields=['country_code', '-timestamp']),
+        ]
+
+    def __str__(self):
+        return f"Blocked {self.ip_address} ({self.get_block_reason_display()}) at {self.timestamp}"

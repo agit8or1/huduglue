@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Country Firewall Rules{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-globe"></i> Country Firewall Rules</h1>
+    <a href="{% url 'core:firewall_settings' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Firewall Settings
+    </a>
+</div>
+
+<!-- Add New Rule -->
+<div class="card mb-4">
+    <div class="card-header py-2 bg-info text-white">
+        <h6 class="mb-0"><i class="fas fa-plus"></i> Add New Country Rule</h6>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="country_code" class="form-label">Country Code *</label>
+                    <input type="text" class="form-control" id="country_code" name="country_code"
+                           placeholder="US" maxlength="2" required style="text-transform: uppercase;">
+                    <small class="form-text text-muted">2-letter ISO code</small>
+                </div>
+                <div class="col-md-7">
+                    <label for="country_name" class="form-label">Country Name *</label>
+                    <input type="text" class="form-control" id="country_name" name="country_name"
+                           placeholder="United States" required>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-plus"></i> Add Rule
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Quick Add Common Countries -->
+        <div class="mt-3">
+            <h6>Quick Add:</h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% for code, name in common_countries %}
+                <button class="btn btn-sm btn-outline-info quick-add-country"
+                        data-code="{{ code }}" data-name="{{ name }}">
+                    {{ name }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rules List -->
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-list"></i> Country Rules ({{ rules.count }})</h6>
+    </div>
+    <div class="card-body">
+        {% if rules %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Country</th>
+                        <th>Code</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rule in rules %}
+                    <tr>
+                        <td>
+                            <i class="fas fa-flag"></i> {{ rule.country_name }}
+                        </td>
+                        <td><code>{{ rule.country_code }}</code></td>
+                        <td>
+                            {% if rule.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ rule.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <form method="post" action="{% url 'core:firewall_country_rule_toggle' rule.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning"
+                                            title="{% if rule.is_active %}Disable{% else %}Enable{% endif %}">
+                                        <i class="fas fa-{% if rule.is_active %}pause{% else %}play{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'core:firewall_country_rule_delete' rule.pk %}"
+                                      onsubmit="return confirm('Delete this country rule?')" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            No country rules configured. Add your first rule above or use quick add buttons.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <h6><i class="fas fa-lightbulb"></i> Common Country Codes:</h6>
+    <div class="row">
+        <div class="col-md-3">
+            <ul class="list-unstyled small">
+                <li><code>US</code> - United States</li>
+                <li><code>GB</code> - United Kingdom</li>
+                <li><code>CA</code> - Canada</li>
+                <li><code>AU</code> - Australia</li>
+            </ul>
+        </div>
+        <div class="col-md-3">
+            <ul class="list-unstyled small">
+                <li><code>DE</code> - Germany</li>
+                <li><code>FR</code> - France</li>
+                <li><code>IT</code> - Italy</li>
+                <li><code>ES</code> - Spain</li>
+            </ul>
+        </div>
+        <div class="col-md-3">
+            <ul class="list-unstyled small">
+                <li><code>CN</code> - China</li>
+                <li><code>RU</code> - Russia</li>
+                <li><code>IN</code> - India</li>
+                <li><code>BR</code> - Brazil</li>
+            </ul>
+        </div>
+        <div class="col-md-3">
+            <ul class="list-unstyled small">
+                <li><code>JP</code> - Japan</li>
+                <li><code>KR</code> - South Korea</li>
+                <li><code>MX</code> - Mexico</li>
+                <li><code>NL</code> - Netherlands</li>
+            </ul>
+        </div>
+    </div>
+    <p class="mb-0 mt-2">
+        <a href="https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2" target="_blank">
+            <i class="fas fa-external-link-alt"></i> Full list of ISO 3166-1 alpha-2 country codes
+        </a>
+    </p>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.quick-add-country').click(function() {
+        var code = $(this).data('code');
+        var name = $(this).data('name');
+        $('#country_code').val(code);
+        $('#country_name').val(name);
+        $('html, body').animate({
+            scrollTop: $("#country_code").offset().top - 100
+        }, 500);
+    });
+});
+</script>
+{% endblock %}

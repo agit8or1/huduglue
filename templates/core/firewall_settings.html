@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Firewall Settings{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-shield-alt"></i> Firewall Settings</h1>
+    <a href="{% url 'core:settings_general' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Settings
+    </a>
+</div>
+
+<!-- Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0">
+                    {% if settings.ip_firewall_enabled %}
+                    <span class="badge bg-success">Enabled</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Disabled</span>
+                    {% endif %}
+                </h3>
+                <p class="text-muted mb-0">IP Firewall</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0">
+                    {% if settings.geoip_firewall_enabled %}
+                    <span class="badge bg-success">Enabled</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Disabled</span>
+                    {% endif %}
+                </h3>
+                <p class="text-muted mb-0">GeoIP Firewall</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ ip_rules_count }}</h3>
+                <p class="text-muted mb-0">IP Rules</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ country_rules_count }}</h3>
+                <p class="text-muted mb-0">Country Rules</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Form -->
+<div class="card mb-4">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-cog"></i> Firewall Configuration</h6>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- IP Firewall -->
+            <div class="card mb-3">
+                <div class="card-header py-2 bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-network-wired"></i> IP-Based Firewall</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="ip_firewall_enabled"
+                               name="ip_firewall_enabled" {% if settings.ip_firewall_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="ip_firewall_enabled">
+                            <strong>Enable IP Firewall</strong>
+                        </label>
+                        <div class="form-text">Block or allow access based on IP addresses or CIDR ranges</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Firewall Mode</strong></label>
+                        <select name="ip_firewall_mode" class="form-select">
+                            <option value="blocklist" {% if settings.ip_firewall_mode == 'blocklist' %}selected{% endif %}>
+                                Block List (allow all except listed IPs)
+                            </option>
+                            <option value="allowlist" {% if settings.ip_firewall_mode == 'allowlist' %}selected{% endif %}>
+                                Allow List (block all except listed IPs)
+                            </option>
+                        </select>
+                        <div class="form-text">
+                            <strong>Block List:</strong> Allow all traffic except IPs in the rules list<br>
+                            <strong>Allow List:</strong> Block all traffic except IPs in the rules list (high security)
+                        </div>
+                    </div>
+
+                    <a href="{% url 'core:firewall_ip_rules' %}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Manage IP Rules ({{ ip_rules_count }})
+                    </a>
+                </div>
+            </div>
+
+            <!-- GeoIP Firewall -->
+            <div class="card mb-3">
+                <div class="card-header py-2 bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-globe"></i> GeoIP-Based Firewall</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="geoip_firewall_enabled"
+                               name="geoip_firewall_enabled" {% if settings.geoip_firewall_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="geoip_firewall_enabled">
+                            <strong>Enable GeoIP Firewall</strong>
+                        </label>
+                        <div class="form-text">Block or allow access based on visitor's country</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Firewall Mode</strong></label>
+                        <select name="geoip_firewall_mode" class="form-select">
+                            <option value="blocklist" {% if settings.geoip_firewall_mode == 'blocklist' %}selected{% endif %}>
+                                Block List (allow all except listed countries)
+                            </option>
+                            <option value="allowlist" {% if settings.geoip_firewall_mode == 'allowlist' %}selected{% endif %}>
+                                Allow List (block all except listed countries)
+                            </option>
+                        </select>
+                        <div class="form-text">
+                            <strong>Block List:</strong> Allow all countries except those in the rules list<br>
+                            <strong>Allow List:</strong> Block all countries except those in the rules list (high security)
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>GeoIP Provider:</strong> Uses ip-api.com (free service, 45 requests/minute)
+                    </div>
+
+                    <a href="{% url 'core:firewall_country_rules' %}" class="btn btn-info">
+                        <i class="fas fa-list"></i> Manage Country Rules ({{ country_rules_count }})
+                    </a>
+                </div>
+            </div>
+
+            <!-- Bypass Settings -->
+            <div class="card mb-3">
+                <div class="card-header py-2 bg-warning">
+                    <h6 class="mb-0"><i class="fas fa-user-shield"></i> Bypass Settings</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="bypass_for_staff"
+                               name="bypass_for_staff" {% if settings.bypass_for_staff %}checked{% endif %}>
+                        <label class="form-check-label" for="bypass_for_staff">
+                            <strong>Bypass for Staff Users</strong>
+                        </label>
+                        <div class="form-text">Allow authenticated staff users to bypass firewall rules</div>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="bypass_for_api"
+                               name="bypass_for_api" {% if settings.bypass_for_api %}checked{% endif %}>
+                        <label class="form-check-label" for="bypass_for_api">
+                            <strong>Bypass for API Requests</strong>
+                        </label>
+                        <div class="form-text">Allow API requests (/api/*) to bypass firewall rules</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logging Settings -->
+            <div class="card mb-3">
+                <div class="card-header py-2 bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-clipboard-list"></i> Logging Settings</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="log_blocked_requests"
+                               name="log_blocked_requests" {% if settings.log_blocked_requests %}checked{% endif %}>
+                        <label class="form-check-label" for="log_blocked_requests">
+                            <strong>Log Blocked Requests</strong>
+                        </label>
+                        <div class="form-text">Record all blocked requests in the firewall log</div>
+                    </div>
+
+                    <a href="{% url 'core:firewall_logs' %}" class="btn btn-secondary mt-2">
+                        <i class="fas fa-history"></i> View Firewall Logs
+                    </a>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'core:settings_general' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Recent Blocked Requests -->
+{% if recent_blocks %}
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-ban"></i> Recent Blocked Requests (Last 20)</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>IP Address</th>
+                        <th>Country</th>
+                        <th>Reason</th>
+                        <th>Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_blocks %}
+                    <tr>
+                        <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td><code>{{ log.ip_address }}</code></td>
+                        <td>
+                            {% if log.country_name %}
+                            {{ log.country_name }} ({{ log.country_code }})
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-danger">{{ log.get_block_reason_display }}</span>
+                        </td>
+                        <td><small>{{ log.request_path }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center">
+            <a href="{% url 'core:firewall_logs' %}" class="btn btn-sm btn-outline-secondary">
+                View All Logs
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="alert alert-warning mt-4">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Warning:</strong> Be careful when configuring firewall rules in "Allow List" mode.
+    If you lock yourself out, you'll need SSH access to disable the firewall from the server.
+</div>
+
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}IP Firewall Rules{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-network-wired"></i> IP Firewall Rules</h1>
+    <a href="{% url 'core:firewall_settings' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Firewall Settings
+    </a>
+</div>
+
+<!-- Add New Rule -->
+<div class="card mb-4">
+    <div class="card-header py-2 bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-plus"></i> Add New IP Rule</h6>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="ip_address" class="form-label">IP Address or CIDR Range *</label>
+                    <input type="text" class="form-control" id="ip_address" name="ip_address"
+                           placeholder="192.168.1.100 or 10.0.0.0/24" required>
+                    <small class="form-text text-muted">
+                        Single IP: 192.168.1.100<br>
+                        CIDR Range: 192.168.0.0/16
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <label for="description" class="form-label">Description (Optional)</label>
+                    <input type="text" class="form-control" id="description" name="description"
+                           placeholder="Office Network, VPN Gateway, etc.">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus"></i> Add Rule
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rules List -->
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-list"></i> IP Rules ({{ rules.count }})</h6>
+    </div>
+    <div class="card-body">
+        {% if rules %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>IP Address / CIDR</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rule in rules %}
+                    <tr>
+                        <td>
+                            <code>{{ rule.ip_address }}</code>
+                            {% if '/' in rule.ip_address %}
+                            <span class="badge bg-info">CIDR Range</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ rule.description|default:"-" }}</td>
+                        <td>
+                            {% if rule.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ rule.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <form method="post" action="{% url 'core:firewall_ip_rule_toggle' rule.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning"
+                                            title="{% if rule.is_active %}Disable{% else %}Enable{% endif %}">
+                                        <i class="fas fa-{% if rule.is_active %}pause{% else %}play{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'core:firewall_ip_rule_delete' rule.pk %}"
+                                      onsubmit="return confirm('Delete this IP rule?')" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            No IP rules configured. Add your first rule above.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <h6><i class="fas fa-lightbulb"></i> Examples:</h6>
+    <ul class="mb-0">
+        <li><strong>Single IP:</strong> <code>203.0.113.50</code></li>
+        <li><strong>Office Network:</strong> <code>192.168.1.0/24</code> (192.168.1.1 - 192.168.1.254)</li>
+        <li><strong>Large Network:</strong> <code>10.0.0.0/8</code> (10.0.0.0 - 10.255.255.255)</li>
+        <li><strong>VPN Range:</strong> <code>172.16.0.0/12</code></li>
+    </ul>
+</div>
+
+{% endblock %}

@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Fail2ban Status{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-ban"></i> Fail2ban Status</h1>
+    <div>
+        <a href="{% url 'core:firewall_settings' %}" class="btn btn-outline-primary">
+            <i class="fas fa-shield-alt"></i> Firewall Settings
+        </a>
+        <a href="{% url 'core:settings_general' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Settings
+        </a>
+    </div>
+</div>
+
+{% if not fail2ban_installed %}
+<!-- Fail2ban Not Installed -->
+<div class="alert alert-warning">
+    <h4><i class="fas fa-exclamation-triangle"></i> Fail2ban Not Installed</h4>
+    <p>Fail2ban is not installed or not accessible on this system.</p>
+    <p class="mb-0">To install fail2ban:</p>
+    <pre class="bg-dark text-white p-3 mt-2"><code>sudo apt-get update
+sudo apt-get install fail2ban
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban</code></pre>
+    <p class="mt-2 mb-0">After installation, configure sudo access:</p>
+    <pre class="bg-dark text-white p-3 mt-2"><code>sudo visudo -f /etc/sudoers.d/huduglue-fail2ban
+# Add this line:
+administrator ALL=(ALL) NOPASSWD: /usr/bin/fail2ban-client</code></pre>
+</div>
+
+{% elif not fail2ban_running %}
+<!-- Fail2ban Not Running -->
+<div class="alert alert-danger">
+    <h4><i class="fas fa-times-circle"></i> Fail2ban Not Running</h4>
+    <p>Fail2ban is installed but not currently running.</p>
+    <p class="mb-0">To start fail2ban:</p>
+    <pre class="bg-dark text-white p-3 mt-2"><code>sudo systemctl start fail2ban
+sudo systemctl enable fail2ban</code></pre>
+</div>
+
+{% else %}
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="mb-0 text-success">{{ jails|length }}</h2>
+                <p class="text-muted mb-0">Active Jails</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="mb-0 text-danger">{{ total_currently_banned }}</h2>
+                <p class="text-muted mb-0">Currently Banned IPs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="mb-0 text-warning">{{ total_all_time_banned }}</h2>
+                <p class="text-muted mb-0">Total Bans (All Time)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Jails -->
+{% for jail in jails %}
+<div class="card mb-3">
+    <div class="card-header py-2 {% if jail.currently_banned > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <i class="fas fa-shield-alt"></i> {{ jail.name }}
+            </h6>
+            <div>
+                <span class="badge bg-light text-dark">
+                    {{ jail.currently_banned }} Currently Banned
+                </span>
+                <span class="badge bg-light text-dark">
+                    {{ jail.total_banned }} Total
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if jail.banned_ips %}
+        <div class="table-responsive">
+            <table class="table table-sm mb-2">
+                <thead>
+                    <tr>
+                        <th>Banned IP Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ip in jail.banned_ips %}
+                    <tr>
+                        <td>
+                            <code>{{ ip }}</code>
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'core:fail2ban_unban_ip' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="ip_address" value="{{ ip }}">
+                                <input type="hidden" name="jail_name" value="{{ jail.name }}">
+                                <button type="submit" class="btn btn-sm btn-warning"
+                                        onclick="return confirm('Unban {{ ip }} from {{ jail.name }}?')">
+                                    <i class="fas fa-unlock"></i> Unban
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if jail.currently_banned > 1 %}
+        <div class="text-end">
+            <form method="post" action="{% url 'core:fail2ban_unban_all' %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="jail_name" value="{{ jail.name }}">
+                <button type="submit" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Unban ALL {{ jail.currently_banned }} IPs from {{ jail.name }}?')">
+                    <i class="fas fa-unlock-alt"></i> Unban All IPs
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="alert alert-success mb-0">
+            <i class="fas fa-check-circle"></i> No IPs currently banned in this jail.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+{% if not jails %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    No fail2ban jails are currently configured. Configure jails in <code>/etc/fail2ban/jail.local</code>
+</div>
+{% endif %}
+
+<!-- Check IP Tool -->
+<div class="card mt-4">
+    <div class="card-header py-2 bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-search"></i> Check If IP Is Banned</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="check_ip" placeholder="Enter IP address">
+                    <button class="btn btn-primary" type="button" id="check_ip_btn">
+                        <i class="fas fa-search"></i> Check
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div id="check_ip_result"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+<!-- Documentation -->
+<div class="card mt-4">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-book"></i> Fail2ban Documentation</h6>
+    </div>
+    <div class="card-body">
+        <p><strong>What is Fail2ban?</strong></p>
+        <p>
+            Fail2ban scans log files and bans IPs that show malicious signs (too many password failures,
+            seeking exploits, etc.). It updates firewall rules to reject the IP addresses for a specified time.
+        </p>
+
+        <p><strong>Common Jails:</strong></p>
+        <ul>
+            <li><strong>sshd</strong> - SSH brute force protection</li>
+            <li><strong>nginx-http-auth</strong> - HTTP basic authentication failures</li>
+            <li><strong>nginx-botsearch</strong> - Block bots searching for vulnerabilities</li>
+            <li><strong>django</strong> - Django login failures</li>
+        </ul>
+
+        <p><strong>Configuration Files:</strong></p>
+        <ul>
+            <li><code>/etc/fail2ban/jail.conf</code> - Default configuration (don't edit)</li>
+            <li><code>/etc/fail2ban/jail.local</code> - Your custom configuration</li>
+            <li><code>/etc/fail2ban/filter.d/</code> - Log parsing filters</li>
+        </ul>
+
+        <p><strong>Useful Commands:</strong></p>
+        <pre class="bg-dark text-white p-3"><code># Check fail2ban status
+sudo fail2ban-client status
+
+# Check specific jail
+sudo fail2ban-client status sshd
+
+# Unban an IP
+sudo fail2ban-client set sshd unbanip 192.168.1.100
+
+# Reload fail2ban
+sudo systemctl reload fail2ban</code></pre>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#check_ip_btn').click(function() {
+        var ip = $('#check_ip').val().trim();
+        if (!ip) {
+            $('#check_ip_result').html('<div class="alert alert-warning">Please enter an IP address</div>');
+            return;
+        }
+
+        $('#check_ip_result').html('<div class="spinner-border spinner-border-sm"></div> Checking...');
+
+        $.get('{% url "core:fail2ban_check_ip" %}', {ip: ip}, function(data) {
+            if (data.is_banned) {
+                var jails = data.jails.join(', ');
+                $('#check_ip_result').html(
+                    '<div class="alert alert-danger"><i class="fas fa-ban"></i> <strong>Banned</strong><br>' +
+                    'IP is banned in: ' + jails + '</div>'
+                );
+            } else {
+                $('#check_ip_result').html(
+                    '<div class="alert alert-success"><i class="fas fa-check-circle"></i> <strong>Not Banned</strong><br>' +
+                    'IP is not currently banned</div>'
+                );
+            }
+        }).fail(function() {
+            $('#check_ip_result').html('<div class="alert alert-danger">Error checking IP</div>');
+        });
+    });
+
+    $('#check_ip').keypress(function(e) {
+        if (e.which == 13) {
+            $('#check_ip_btn').click();
+        }
+    });
+});
+</script>
+{% endblock %}

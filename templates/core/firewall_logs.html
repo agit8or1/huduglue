@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Firewall Logs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="fas fa-clipboard-list"></i> Firewall Logs</h1>
+    <div>
+        <form method="post" action="{% url 'core:firewall_logs_clear' %}" style="display:inline;"
+              onsubmit="return confirm('Clear ALL firewall logs? This cannot be undone.')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="fas fa-trash"></i> Clear All Logs
+            </button>
+        </form>
+        <a href="{% url 'core:firewall_settings' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Firewall
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0 text-danger">{{ total_blocks }}</h3>
+                <p class="text-muted mb-0">Total Blocks</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0 text-warning">{{ blocks_today }}</h3>
+                <p class="text-muted mb-0">Blocked Today</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0 text-info">{{ blocks_this_week }}</h3>
+                <p class="text-muted mb-0">Blocked This Week</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ logs.paginator.count }}</h3>
+                <p class="text-muted mb-0">Log Entries</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Blocked IPs -->
+{% if top_ips %}
+<div class="card mb-4">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-ban"></i> Top Blocked IP Addresses</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Block Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_ips %}
+                    <tr>
+                        <td><code>{{ item.ip_address }}</code></td>
+                        <td><span class="badge bg-danger">{{ item.count }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top Blocked Countries -->
+{% if top_countries %}
+<div class="card mb-4">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-globe"></i> Top Blocked Countries</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Country</th>
+                        <th>Block Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_countries %}
+                    <tr>
+                        <td>
+                            <i class="fas fa-flag"></i>
+                            {{ item.country_name }} ({{ item.country_code }})
+                        </td>
+                        <td><span class="badge bg-danger">{{ item.count }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Firewall Logs Table -->
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="mb-0"><i class="fas fa-list"></i> Firewall Logs</h6>
+    </div>
+    <div class="card-body">
+        {% if logs %}
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>IP Address</th>
+                        <th>Country</th>
+                        <th>Block Reason</th>
+                        <th>Request</th>
+                        <th>User</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>
+                            <small>{{ log.timestamp|date:"Y-m-d H:i:s" }}</small>
+                        </td>
+                        <td>
+                            <code>{{ log.ip_address }}</code>
+                        </td>
+                        <td>
+                            {% if log.country_name %}
+                            <small>{{ log.country_name }} ({{ log.country_code }})</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-danger">{{ log.get_block_reason_display }}</span>
+                        </td>
+                        <td>
+                            <small>
+                                <span class="badge bg-secondary">{{ log.request_method }}</span>
+                                {{ log.request_path|truncatechars:50 }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if log.user %}
+                            <small>{{ log.user.username }}</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if logs.has_other_pages %}
+        <nav aria-label="Firewall logs pagination">
+            <ul class="pagination justify-content-center">
+                {% if logs.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ logs.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Page {{ logs.number }} of {{ logs.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if logs.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ logs.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ logs.paginator.num_pages }}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            No firewall logs yet. Logs will appear here when requests are blocked.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -9,6 +9,8 @@ from . import securenotes_views
 from . import dashboard_views
 from . import settings_views
 from . import tag_views
+from . import firewall_views
+from . import fail2ban_views
 
 app_name = 'core'
 
@@ -40,6 +42,23 @@ urlpatterns = [
 
     # Security (superuser only)
     path('security/', settings_views.security_dashboard, name='security_dashboard'),
+
+    # Firewall (superuser only)
+    path('settings/firewall/', firewall_views.firewall_settings, name='firewall_settings'),
+    path('settings/firewall/ip-rules/', firewall_views.firewall_ip_rules, name='firewall_ip_rules'),
+    path('settings/firewall/ip-rules/<int:pk>/delete/', firewall_views.firewall_ip_rule_delete, name='firewall_ip_rule_delete'),
+    path('settings/firewall/ip-rules/<int:pk>/toggle/', firewall_views.firewall_ip_rule_toggle, name='firewall_ip_rule_toggle'),
+    path('settings/firewall/country-rules/', firewall_views.firewall_country_rules, name='firewall_country_rules'),
+    path('settings/firewall/country-rules/<int:pk>/delete/', firewall_views.firewall_country_rule_delete, name='firewall_country_rule_delete'),
+    path('settings/firewall/country-rules/<int:pk>/toggle/', firewall_views.firewall_country_rule_toggle, name='firewall_country_rule_toggle'),
+    path('settings/firewall/logs/', firewall_views.firewall_logs, name='firewall_logs'),
+    path('settings/firewall/logs/clear/', firewall_views.firewall_logs_clear, name='firewall_logs_clear'),
+
+    # Fail2ban (superuser only)
+    path('settings/fail2ban/', fail2ban_views.fail2ban_status, name='fail2ban_status'),
+    path('settings/fail2ban/unban/', fail2ban_views.fail2ban_unban_ip, name='fail2ban_unban_ip'),
+    path('settings/fail2ban/unban-all/', fail2ban_views.fail2ban_unban_all, name='fail2ban_unban_all'),
+    path('settings/fail2ban/check-ip/', fail2ban_views.fail2ban_check_ip, name='fail2ban_check_ip'),
 
     # Admin Settings (superuser only)
     path('settings/general/', settings_views.settings_general, name='settings_general'),
