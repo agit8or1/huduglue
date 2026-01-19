@@ -16286,6 +16286,7 @@ ssh-copy-id user@server
                 defaults={
                     'title': article_data['title'],
                     'body': article_data['body'],
+                    'content_type': 'markdown',  # Articles are in Markdown format
                     'category': category,
                     'is_global': True,
                     'is_published': True,
