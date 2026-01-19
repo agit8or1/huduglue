@@ -17,6 +17,7 @@ urlpatterns = [
 
     # Process detail/edit/delete - slug patterns come AFTER specific paths
     path('<slug:slug>/', views.process_detail, name='process_detail'),
+    path('<slug:slug>/generate-diagram/', views.process_generate_diagram, name='process_generate_diagram'),
     path('<slug:slug>/edit/', views.process_edit, name='process_edit'),
     path('<slug:slug>/delete/', views.process_delete, name='process_delete'),
     path('<slug:slug>/reorder/', views.stage_reorder, name='stage_reorder'),

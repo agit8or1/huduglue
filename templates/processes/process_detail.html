@@ -45,9 +45,23 @@
 
 <!-- Linked Diagram -->
 {% if process.linked_diagram %}
-<div class="alert alert-info">
-    <i class="fas fa-project-diagram"></i> This workflow has a linked diagram:
-    <a href="{% url 'docs:diagram_detail' process.linked_diagram.slug %}">{{ process.linked_diagram.title }}</a>
+<div class="alert alert-info d-flex justify-content-between align-items-center">
+    <div>
+        <i class="fas fa-project-diagram"></i> This workflow has a linked diagram:
+        <a href="{% url 'docs:diagram_detail' process.linked_diagram.slug %}">{{ process.linked_diagram.title }}</a>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-primary" id="regenerateDiagramBtn">
+        <i class="fas fa-sync"></i> Regenerate Flowchart
+    </button>
+</div>
+{% else %}
+<div class="alert alert-warning d-flex justify-content-between align-items-center">
+    <div>
+        <i class="fas fa-project-diagram"></i> No flowchart diagram for this workflow yet.
+    </div>
+    <button type="button" class="btn btn-sm btn-primary" id="generateDiagramBtn">
+        <i class="fas fa-magic"></i> Generate Flowchart
+    </button>
 </div>
 {% endif %}
 
@@ -189,6 +203,36 @@
 <script>
 $(document).ready(function() {
     let activeExecutionId = null;
+
+    // Generate/Regenerate flowchart diagram
+    $('#generateDiagramBtn, #regenerateDiagramBtn').click(function() {
+        const $btn = $(this);
+        const isRegenerate = $btn.attr('id') === 'regenerateDiagramBtn';
+        const originalText = $btn.html();
+
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating...');
+
+        $.ajax({
+            url: '{% url "processes:process_generate_diagram" process.slug %}',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Reload page to show new diagram link
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + response.error);
+                    $btn.prop('disabled', false).html(originalText);
+                }
+            },
+            error: function(xhr) {
+                alert('Failed to generate diagram. Please try again.');
+                $btn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
 
     // Toggle interactive mode
     $('#interactiveModeToggle').change(function() {

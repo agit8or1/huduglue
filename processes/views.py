@@ -1,15 +1,20 @@
 """
 Process views - CRUD operations for processes
 """
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 from django.forms import inlineformset_factory
 from django.db.models import Q, Count
 
 from core.middleware import get_request_organization
+
+logger = logging.getLogger('processes')
 from .models import Process, ProcessStage, ProcessExecution, ProcessStageCompletion
 from .forms import ProcessForm, ProcessStageFormSet, ProcessExecutionForm
 
@@ -88,6 +93,150 @@ def process_detail(request, slug):
         'current_organization': org,
         'my_executions': my_executions,
     })
+
+
+@login_required
+@require_http_methods(["POST"])
+def process_generate_diagram(request, slug):
+    """
+    AJAX endpoint to generate/regenerate flowchart diagram for a workflow.
+    """
+    from django.http import JsonResponse
+    from .models import Process
+    from docs.models import Diagram
+    import xml.etree.ElementTree as ET
+
+    org = get_request_organization(request)
+    process = get_object_or_404(Process, slug=slug, organization=org)
+
+    try:
+        # Generate diagram XML from workflow stages
+        diagram_xml = _generate_flowchart_xml_from_process(process)
+
+        # Create or update diagram
+        if process.linked_diagram:
+            # Update existing diagram
+            diagram = process.linked_diagram
+            diagram.diagram_xml = diagram_xml
+            diagram.description = f'Auto-generated flowchart for {process.title} (Updated: {timezone.now().strftime("%Y-%m-%d %H:%M")})'
+            diagram.save()
+            message = f'✓ Flowchart diagram regenerated successfully!'
+        else:
+            # Create new diagram
+            diagram = Diagram.objects.create(
+                organization=org,
+                title=f'{process.title} - Flowchart',
+                slug=f'{process.slug}-flowchart',
+                diagram_type='flowchart',
+                diagram_xml=diagram_xml,
+                description=f'Auto-generated flowchart for {process.title}',
+                created_by=request.user,
+            )
+            process.linked_diagram = diagram
+            process.save()
+            message = f'✓ Flowchart diagram generated successfully!'
+
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'diagram_slug': diagram.slug,
+            'diagram_url': f'/docs/diagrams/{diagram.slug}/'
+        })
+
+    except Exception as e:
+        logger.error(f"Error generating diagram for workflow {slug}: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+def _generate_flowchart_xml_from_process(process):
+    """Generate draw.io XML for a flowchart based on process/workflow steps."""
+    from .models import ProcessStage
+
+    stages = process.stages.all().order_by('order')
+
+    # Draw.io XML template
+    xml_template = '''<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="workflow-{workflow_id}">
+    <mxGraphModel dx="800" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        {shapes}
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>'''
+
+    shapes = []
+    current_id = 2
+    y_position = 60
+    x_position = 325
+    shape_height = 80
+    shape_width = 200
+    spacing = 120
+
+    # Start node
+    shapes.append(f'''
+        <mxCell id="{current_id}" value="Start: {process.title[:30]}" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="{x_position}" y="{y_position}" width="{shape_width}" height="60" as="geometry" />
+        </mxCell>''')
+    prev_id = current_id
+    current_id += 1
+    y_position += 60 + spacing
+
+    # Process stages
+    for idx, stage in enumerate(stages):
+        fill_color = "#dae8fc" if idx % 2 == 0 else "#fff2cc"
+        stroke_color = "#6c8ebf" if idx % 2 == 0 else "#d6b656"
+
+        stage_label = stage.title[:40]
+        if stage.requires_confirmation:
+            # Diamond for decision points
+            shapes.append(f'''
+        <mxCell id="{current_id}" value="{stage_label}?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff3cd;strokeColor=#ffc107;" vertex="1" parent="1">
+          <mxGeometry x="{x_position - 50}" y="{y_position}" width="{shape_width + 100}" height="{shape_height + 20}" as="geometry" />
+        </mxCell>''')
+            y_offset = shape_height + 20
+        else:
+            # Rectangle for standard steps
+            shapes.append(f'''
+        <mxCell id="{current_id}" value="{stage_label}" style="rounded=1;whiteSpace=wrap;html=1;fillColor={fill_color};strokeColor={stroke_color};" vertex="1" parent="1">
+          <mxGeometry x="{x_position}" y="{y_position}" width="{shape_width}" height="{shape_height}" as="geometry" />
+        </mxCell>''')
+            y_offset = shape_height
+
+        # Connection from previous
+        shapes.append(f'''
+        <mxCell id="{current_id + 1}" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="{prev_id}" target="{current_id}">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>''')
+
+        prev_id = current_id
+        current_id += 2
+        y_position += y_offset + spacing
+
+    # End node
+    shapes.append(f'''
+        <mxCell id="{current_id}" value="End" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8d7da;strokeColor=#dc3545;" vertex="1" parent="1">
+          <mxGeometry x="{x_position}" y="{y_position}" width="{shape_width}" height="60" as="geometry" />
+        </mxCell>''')
+
+    # Final connection
+    shapes.append(f'''
+        <mxCell id="{current_id + 1}" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="{prev_id}" target="{current_id}">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>''')
+
+    # Build final XML
+    diagram_xml = xml_template.format(
+        workflow_id=process.id,
+        shapes=''.join(shapes)
+    )
+
+    return diagram_xml
 
 
 @login_required

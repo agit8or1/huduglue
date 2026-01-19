@@ -55,8 +55,85 @@
 </div>
 
 {% if org_docs %}
-<div class="row">
-    <!-- Organization Documents -->
+<!-- View Toggle -->
+<div class="d-flex justify-content-end mb-3">
+    <div class="btn-group btn-group-sm" role="group">
+        <button type="button" class="btn btn-outline-secondary active" id="cardViewBtn"><i class="fas fa-th"></i> Card</button>
+        <button type="button" class="btn btn-outline-secondary" id="tableViewBtn"><i class="fas fa-list"></i> Table</button>
+    </div>
+</div>
+
+<!-- Card View -->
+<div id="cardView" class="row">
+    {% for doc in org_docs %}
+    <div class="col-md-4 col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm">
+            <!-- Preview/Thumbnail -->
+            <div class="position-relative" style="height: 200px; overflow: hidden; background: #f8f9fa;">
+                {% if doc.content_type == 'file' and doc.file %}
+                    {% if 'image' in doc.file_type %}
+                        <img src="{{ doc.file.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ doc.title }}">
+                    {% elif 'pdf' in doc.file_type %}
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <i class="fas fa-file-pdf fa-5x text-danger"></i>
+                        </div>
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <i class="fas fa-file fa-5x text-muted"></i>
+                        </div>
+                    {% endif %}
+                {% elif doc.preview_image %}
+                    <img src="{{ doc.preview_image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ doc.title }}">
+                {% else %}
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <i class="fas fa-file-alt fa-5x text-primary"></i>
+                    </div>
+                {% endif %}
+                <!-- Type Badge -->
+                <div class="position-absolute top-0 end-0 m-2">
+                    {% if doc.content_type == 'file' %}
+                        <span class="badge bg-success"><i class="fas fa-paperclip"></i> File</span>
+                    {% elif doc.content_type == 'markdown' %}
+                        <span class="badge bg-info"><i class="fab fa-markdown"></i> MD</span>
+                    {% else %}
+                        <span class="badge bg-primary"><i class="fas fa-code"></i> HTML</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body">
+                <h6 class="card-title">
+                    <a href="{% url 'docs:document_detail' doc.slug %}" class="text-decoration-none">{{ doc.title|truncatechars:40 }}</a>
+                </h6>
+                {% if doc.category %}
+                <p class="small text-muted mb-1"><i class="fas fa-folder"></i> {{ doc.category.name }}</p>
+                {% endif %}
+                {% if doc.content_type == 'file' and doc.file_size %}
+                <p class="small text-muted mb-2"><i class="fas fa-hdd"></i> {{ doc.file_size|filesizeformat }}</p>
+                {% endif %}
+                <div class="d-flex gap-1 flex-wrap mb-2">
+                    {% for tag in doc.tags.all|slice:":3" %}
+                    <span class="badge" style="background-color: {{ tag.color }}; font-size: 0.7rem;">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                <p class="small text-muted mb-0">
+                    <i class="far fa-clock"></i> {{ doc.updated_at|date:"M d, Y" }}
+                </p>
+            </div>
+
+            <div class="card-footer bg-transparent border-top-0 pt-0">
+                <div class="btn-group btn-group-sm w-100">
+                    <a href="{% url 'docs:document_detail' doc.slug %}" class="btn btn-outline-primary"><i class="fas fa-eye"></i> View</a>
+                    <a href="{% url 'docs:document_edit' doc.slug %}" class="btn btn-outline-secondary"><i class="fas fa-edit"></i> Edit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Table View (Hidden by default) -->
+<div id="tableView" class="row" style="display: none;">
     <div class="col-md-12 mb-4">
         <div class="card">
             <div class="card-header py-2">
@@ -67,6 +144,7 @@
                     <thead>
                         <tr>
                             <th>Title</th>
+                            <th>Type</th>
                             <th>Category</th>
                             <th>Tags</th>
                             <th>Updated</th>
@@ -81,8 +159,18 @@
                                 {% if doc.is_template %}<span class="badge bg-success ms-2">Template</span>{% endif %}
                             </td>
                             <td>
+                                {% if doc.content_type == 'file' %}
+                                    <span class="badge bg-success"><i class="fas fa-paperclip"></i> File</span>
+                                    {% if doc.file_size %}<small class="text-muted">({{ doc.file_size|filesizeformat }})</small>{% endif %}
+                                {% elif doc.content_type == 'markdown' %}
+                                    <span class="badge bg-info"><i class="fab fa-markdown"></i> Markdown</span>
+                                {% else %}
+                                    <span class="badge bg-primary"><i class="fas fa-code"></i> HTML</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 {% if doc.category %}
-                                <span class="badge bg-info">{{ doc.category.name }}</span>
+                                <span class="badge bg-secondary">{{ doc.category.name }}</span>
                                 {% else %}—{% endif %}
                             </td>
                             <td>
@@ -118,14 +206,43 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
-    $('#orgDocsTable').DataTable({
-        order: [[3, 'desc']],
-        pageLength: 25,
-        language: {
-            search: "_INPUT_",
-            searchPlaceholder: "Search documents..."
+    // Initialize DataTable
+    let table = null;
+
+    // View toggle functionality
+    $('#cardViewBtn').click(function() {
+        $('#cardView').show();
+        $('#tableView').hide();
+        $(this).addClass('active');
+        $('#tableViewBtn').removeClass('active');
+        localStorage.setItem('docViewMode', 'card');
+    });
+
+    $('#tableViewBtn').click(function() {
+        $('#cardView').hide();
+        $('#tableView').show();
+        $(this).addClass('active');
+        $('#cardViewBtn').removeClass('active');
+        localStorage.setItem('docViewMode', 'table');
+
+        // Initialize DataTable when switching to table view
+        if (table === null) {
+            table = $('#orgDocsTable').DataTable({
+                order: [[4, 'desc']],
+                pageLength: 25,
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search documents..."
+                }
+            });
         }
     });
+
+    // Restore view mode from localStorage
+    const savedView = localStorage.getItem('docViewMode');
+    if (savedView === 'table') {
+        $('#tableViewBtn').click();
+    }
 });
 </script>
 {% endblock %}
