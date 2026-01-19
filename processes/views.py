@@ -488,8 +488,9 @@ def execution_list(request):
     # Get unique users for filter dropdown
     from django.contrib.auth.models import User
     users = User.objects.filter(
-        profile__organization__id=org.id
-    ).order_by('username')
+        memberships__organization=org,
+        memberships__is_active=True
+    ).distinct().order_by('username')
 
     return render(request, 'processes/execution_list.html', {
         'executions': executions,
