@@ -360,11 +360,13 @@ $(document).ready(function() {
         selectedFiles.forEach(file => formData.append('files', file));
 
         try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             const response = await fetch(uploadForm.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
                 }
             });
 
@@ -380,12 +382,16 @@ $(document).ready(function() {
                     window.location.reload();
                 }, 1000);
             } else {
-                throw new Error('Upload failed');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Upload failed');
             }
         } catch (error) {
-            uploadStatus.textContent = 'Upload failed. Please try again.';
+            console.error('Upload error:', error);
+            uploadStatus.textContent = `Upload failed: ${error.message}`;
             uploadStatus.classList.add('text-danger');
             uploadButton.disabled = false;
+            progressBar.classList.remove('progress-bar-animated');
+            progressBar.classList.add('bg-danger');
         }
     });
 

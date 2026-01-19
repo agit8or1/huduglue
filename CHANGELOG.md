@@ -5,6 +5,16 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.176] - 2026-01-19
+
+### 🐛 Bug Fixes
+
+**File Upload CSRF Token:**
+- **Fixed** missing CSRF token in file upload AJAX request
+- **Added** proper CSRF token header for upload security
+- **Improved** error handling with detailed error messages
+- **Added** console logging for debugging upload issues
+
 ## [2.24.175] - 2026-01-19
 
 ### 🐛 Bug Fixes
