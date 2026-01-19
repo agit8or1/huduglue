@@ -309,7 +309,7 @@ class UpdateService:
             logger.info("Generating diagram previews...")
             try:
                 preview_output = self._run_command([
-                    self._get_python_path(), 'manage.py', 'generate_diagram_previews'
+                    self._get_python_path(), 'manage.py', 'generate_diagram_previews', '--force'
                 ], timeout=60)
                 result['steps_completed'].append('generate_diagram_previews')
                 result['output'].append(f"✓ Diagram previews generated")

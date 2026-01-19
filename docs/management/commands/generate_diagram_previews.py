@@ -34,7 +34,12 @@ class Command(BaseCommand):
 
         if not force:
             # Only generate for diagrams without PNG exports or thumbnails
-            diagrams = diagrams.filter(png_export='', thumbnail='')
+            # Use Q objects with isnull and exact='' for FileField empty checks
+            from django.db.models import Q
+            diagrams = diagrams.filter(
+                Q(png_export='') | Q(png_export__isnull=True),
+                Q(thumbnail='') | Q(thumbnail__isnull=True)
+            )
 
         count = 0
         for diagram in diagrams:
