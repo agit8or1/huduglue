@@ -185,7 +185,7 @@ class UpdateService:
                     raise Exception(
                         "Passwordless sudo is not configured for auto-updates. "
                         "Please configure it by running these commands:\n\n"
-                        "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
+                        "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<SUDOERS\n"
                         f"$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart huduglue-gunicorn.service, "
                         "/usr/bin/systemctl status huduglue-gunicorn.service, /usr/bin/systemctl daemon-reload, "
                         "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service, "
@@ -443,7 +443,7 @@ class UpdateService:
                         raise Exception(
                             "Passwordless sudo is not configured. Auto-update requires passwordless sudo "
                             "to restart the service. Please configure it by running:\n\n"
-                            "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<'SUDOERS'\n"
+                            "sudo tee /etc/sudoers.d/huduglue-auto-update > /dev/null <<SUDOERS\n"
                             f"$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart huduglue-gunicorn.service, "
                             "/usr/bin/systemctl status huduglue-gunicorn.service, /usr/bin/systemctl daemon-reload, "
                             "/usr/bin/systemd-run, /usr/bin/tee /etc/systemd/system/huduglue-gunicorn.service, "
