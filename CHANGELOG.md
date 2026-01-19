@@ -5,6 +5,15 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.167] - 2026-01-19
+
+### 🐛 Bug Fixes
+
+**Task Scheduler:**
+- **Fixed** contrast issue in task scheduler table
+- **Replaced** inline background styles with Bootstrap table-secondary class
+- **Improved** visibility in both light and dark modes
+
 ## [2.24.166] - 2026-01-19
 
 ### ✨ Features
