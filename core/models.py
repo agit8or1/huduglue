@@ -302,6 +302,11 @@ class SystemSetting(models.Model):
     site_url = models.URLField(max_length=500, blank=True, help_text='Base URL for email links')
     default_timezone = models.CharField(max_length=50, default='UTC', help_text='Default timezone for new users')
 
+    # Whitelabeling Settings
+    custom_company_name = models.CharField(max_length=255, blank=True, help_text='Custom company name (replaces HuduGlue branding)')
+    custom_logo = models.ImageField(upload_to='branding/', blank=True, null=True, help_text='Custom logo (recommended: 200x40px PNG with transparent background)')
+    custom_logo_height = models.PositiveIntegerField(default=30, help_text='Logo height in pixels (default: 30px)')
+
     # Security Settings
     session_timeout_minutes = models.PositiveIntegerField(default=480, help_text='Session timeout in minutes (default: 8 hours)')
     require_2fa = models.BooleanField(default=True, help_text='Require 2FA for all users')

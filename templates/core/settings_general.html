@@ -21,8 +21,10 @@
                 <h5 class="mb-0"><i class="fas fa-sliders-h"></i> General Settings</h5>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+
+                    <h6 class="border-bottom pb-2 mb-3"><i class="fas fa-cog"></i> General Configuration</h6>
 
                     <div class="mb-3">
                         <label for="site_name" class="form-label">Site Name</label>
@@ -44,6 +46,38 @@
                             {% endfor %}
                         </select>
                         <div class="form-text">Default timezone for new users</div>
+                    </div>
+
+                    <hr>
+                    <h6 class="border-bottom pb-2 mb-3"><i class="fas fa-paint-brush"></i> Whitelabeling / Branding</h6>
+
+                    <div class="mb-3">
+                        <label for="custom_company_name" class="form-label">Custom Company Name</label>
+                        <input type="text" class="form-control" id="custom_company_name" name="custom_company_name" value="{{ settings.custom_company_name|default:'' }}" placeholder="Leave empty to use default 'HuduGlue'">
+                        <div class="form-text">Replace "HuduGlue" branding with your company name</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="custom_logo" class="form-label">Custom Logo</label>
+                        {% if settings.custom_logo %}
+                        <div class="mb-2">
+                            <img src="{{ settings.custom_logo.url }}" alt="Current logo" height="{{ settings.custom_logo_height }}" class="border p-2 bg-dark rounded">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="clear_logo" name="clear_logo">
+                                <label class="form-check-label text-danger" for="clear_logo">
+                                    Remove current logo
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="custom_logo" name="custom_logo" accept="image/*">
+                        <div class="form-text">Upload a custom logo (recommended: 200x40px PNG with transparent background)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="custom_logo_height" class="form-label">Logo Height (pixels)</label>
+                        <input type="number" class="form-control" id="custom_logo_height" name="custom_logo_height" value="{{ settings.custom_logo_height }}" min="20" max="100" required>
+                        <div class="form-text">Height of the logo in the navbar (default: 30px)</div>
                     </div>
 
                     <hr>

@@ -10,7 +10,7 @@ def organization_context(request):
     """
     Add organization context to all templates.
     """
-    # Get system settings for feature toggles
+    # Get system settings for feature toggles and branding
     from .models import SystemSetting
     try:
         settings = SystemSetting.get_settings()
@@ -19,6 +19,7 @@ def organization_context(request):
             'global_kb_enabled': settings.global_kb_enabled,
             'workflows_enabled': settings.workflows_enabled,
         }
+        system_settings = settings
     except Exception:
         # If settings don't exist or there's an error, default to all enabled
         feature_toggles = {
@@ -26,6 +27,7 @@ def organization_context(request):
             'global_kb_enabled': True,
             'workflows_enabled': True,
         }
+        system_settings = None
 
     context = {
         'current_organization': getattr(request, 'current_organization', None),
@@ -33,6 +35,7 @@ def organization_context(request):
         'app_version': get_version(),  # Add version to all templates
         'DJANGO_VERSION': f"{'.'.join(map(str, django.VERSION[:3]))}",
         'PYTHON_VERSION': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        'system_settings': system_settings,  # Add system settings for whitelabeling
         **feature_toggles,  # Add feature toggles to context
     }
 

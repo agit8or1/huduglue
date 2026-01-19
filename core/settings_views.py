@@ -112,6 +112,16 @@ def settings_general(request):
         settings.site_url = request.POST.get('site_url', settings.site_url)
         settings.default_timezone = request.POST.get('default_timezone', settings.default_timezone)
 
+        # Update whitelabeling settings
+        settings.custom_company_name = request.POST.get('custom_company_name', '').strip()
+        settings.custom_logo_height = int(request.POST.get('custom_logo_height', 30))
+
+        # Handle logo upload
+        if 'custom_logo' in request.FILES:
+            settings.custom_logo = request.FILES['custom_logo']
+        elif request.POST.get('clear_logo') == 'on':
+            settings.custom_logo = None
+
         settings.updated_by = request.user
         settings.save()
 

@@ -21,7 +21,11 @@
     <nav class="navbar navbar-expand {% if user_theme == 'dark' or user_theme == 'dracula' or user_theme == 'monokai' %}navbar-dark{% else %}navbar-light{% endif %}">
         <div class="container-fluid navbar-container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'images/logo-light.svg' %}" alt="HuduGlue" height="30">
+                {% if system_settings.custom_logo %}
+                    <img src="{{ system_settings.custom_logo.url }}" alt="{{ system_settings.custom_company_name|default:'HuduGlue' }}" height="{{ system_settings.custom_logo_height }}">
+                {% else %}
+                    <img src="{% static 'images/logo-light.svg' %}" alt="{{ system_settings.custom_company_name|default:'HuduGlue' }}" height="30">
+                {% endif %}
             </a>
             <div class="navbar-collapse" id="navbarNav">
                 {% if user.is_authenticated %}

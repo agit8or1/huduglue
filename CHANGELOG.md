@@ -5,6 +5,26 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.182] - 2026-01-19
+
+### ✨ Features
+
+**Whitelabeling & Custom Branding (GitHub Discussion #26):**
+- **Added** custom company name field to replace "HuduGlue" branding throughout the application
+- **Added** custom logo upload functionality with image preview
+- **Added** configurable logo height setting (20-100px, default 30px)
+- **Added** ability to remove uploaded logo via checkbox
+- **Updated** navbar to display custom logo when configured
+- **Updated** context processor to make system settings globally available in all templates
+- **Added** whitelabeling section to General Settings page with:
+  - Custom company name input field
+  - Logo upload with file type validation (images only)
+  - Current logo preview with height adjustment
+  - Remove logo option
+- **Created** migration `0020_add_whitelabeling_settings` for database schema
+- **Recommended** logo dimensions: 200x40px PNG with transparent background
+- **Locations**: Settings → General → Whitelabeling / Branding section
+
 ## [2.24.181] - 2026-01-19
 
 ### ✨ Features
