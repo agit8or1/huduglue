@@ -5,6 +5,20 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.181] - 2026-01-19
+
+### ✨ Features
+
+**Enhanced Image Previews in Documents:**
+- **Added** 40x40px thumbnail previews in table view for image files
+- **Changed** card view thumbnail from `object-fit: cover` to `contain` to show full image
+- **Added** white background to card thumbnails for better visibility
+- **Added** click-to-zoom functionality on detail page images
+- **Added** file type and size info below images in detail view
+- **Added** rounded corners and shadow to detail page images
+- **Added** lazy loading for performance on image thumbnails
+- **Images** now display as actual previews instead of just icons in table view
+
 ## [2.24.180] - 2026-01-19
 
 ### 🐛 Bug Fixes

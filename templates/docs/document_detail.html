@@ -26,9 +26,14 @@
             <!-- File upload display -->
             <div class="text-center py-5">
                 {% if document.file_type %}
-                    {% if 'image' in document.file_type %}
+                    {% if document.file_type and 'image' in document.file_type %}
                         <!-- Display image -->
-                        <img src="{{ document.file.url }}" alt="{{ document.title }}" class="img-fluid" style="max-width: 100%; max-height: 800px;">
+                        <div class="mb-3">
+                            <img src="{{ document.file.url }}" alt="{{ document.title }}" class="img-fluid rounded shadow-sm" style="max-width: 100%; max-height: 800px; cursor: zoom-in;" onclick="window.open('{{ document.file.url }}', '_blank')">
+                        </div>
+                        <div class="text-muted">
+                            <small>{{ document.file_type }} • {{ document.file_size|filesizeformat }} • Click image to view full size</small>
+                        </div>
                     {% elif 'pdf' in document.file_type %}
                         <!-- PDF viewer -->
                         <div class="ratio ratio-16x9">
