@@ -73,6 +73,7 @@ class ITFlowProvider(BaseProvider):
             'X-API-KEY': api_key,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'User-Agent': 'HuduGlue/2.24 (PSA Integration Client)',
         }
 
     def _safe_json(self, response):
@@ -99,6 +100,23 @@ class ITFlowProvider(BaseProvider):
                 f"URL: {response.url}, "
                 f"Content preview: {content_preview}"
             )
+
+            # Check for common security violation patterns
+            if "Potential Security Violation" in content_preview or "mod_security" in content_preview.lower():
+                raise ProviderError(
+                    f"ITFlow security system (mod_security or WAF) blocked the request. "
+                    f"This usually happens when:\n"
+                    f"1. The API key is invalid or has insufficient permissions\n"
+                    f"2. mod_security rules are too strict and blocking API requests\n"
+                    f"3. IP address is blocked or not whitelisted\n\n"
+                    f"To fix:\n"
+                    f"- Verify your API key is correct and has full API access\n"
+                    f"- Check ITFlow's mod_security configuration (/var/www/html/.htaccess)\n"
+                    f"- Consider adding this server's IP to ITFlow's whitelist\n"
+                    f"- Check ITFlow error logs at: /var/log/apache2/error.log or /var/log/nginx/error.log\n\n"
+                    f"Response: {content_preview}"
+                )
+
             raise ProviderError(
                 f"Invalid JSON response from ITFlow API (Status: {response.status_code}). "
                 f"The API may be misconfigured or returning HTML instead of JSON. "
