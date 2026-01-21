@@ -10,6 +10,7 @@ Default hosted: https://algapsa.com
 from ..base import BaseProvider, ProviderError, AuthenticationError
 import requests
 import logging
+import json
 from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger('integrations')
@@ -61,8 +62,58 @@ class AlgaPSAProvider(BaseProvider):
             'x-api-key': api_key,
             'x-tenant-id': tenant_id,
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'User-Agent': 'HuduGlue/2.24 (PSA Integration Client)',
         }
+
+    def _safe_json(self, response):
+        """
+        Safely parse JSON response with better error handling.
+        Handles Alga PSA error format: {error: {code, message, details}}
+        """
+        # Check if response has content
+        if not response.content:
+            raise ProviderError(
+                f"Empty response from Alga PSA API (Status: {response.status_code}, "
+                f"URL: {response.url}). The API endpoint may not exist or returned no data. "
+                f"Please verify your Alga PSA base URL and tenant ID are correct."
+            )
+
+        # Try to parse JSON
+        try:
+            data = response.json()
+
+            # Check for Alga PSA error format
+            if isinstance(data, dict) and 'error' in data:
+                error_info = data['error']
+                error_message = error_info.get('message', 'Unknown error')
+                error_code = error_info.get('code', 'unknown')
+                error_details = error_info.get('details', {})
+
+                raise ProviderError(
+                    f"Alga PSA API error ({error_code}): {error_message}. "
+                    f"Details: {error_details}"
+                )
+
+            return data
+
+        except json.JSONDecodeError as e:
+            # Log the actual response content for debugging
+            content_preview = response.text[:500] if response.text else "(empty)"
+            logger.error(
+                f"Invalid JSON from Alga PSA API. "
+                f"Status: {response.status_code}, "
+                f"URL: {response.url}, "
+                f"Content preview: {content_preview}"
+            )
+            raise ProviderError(
+                f"Invalid JSON response from Alga PSA API (Status: {response.status_code}). "
+                f"Please verify:\n"
+                f"1. Your Alga PSA base URL is correct (e.g., https://algapsa.com)\n"
+                f"2. Your API key and tenant ID have the correct permissions\n"
+                f"3. The API endpoint exists on your Alga PSA version\n"
+                f"Response preview: {content_preview}"
+            )
 
     def test_connection(self) -> bool:
         """
@@ -91,6 +142,7 @@ class AlgaPSAProvider(BaseProvider):
 
         Endpoint: GET /api/v1/clients
         Response format: {data: [{client_id, client_name, ...}], pagination: {...}}
+        Supports pagination via page/limit query parameters.
 
         Args:
             updated_since: datetime to filter by last update (not currently supported by Alga PSA)
@@ -100,29 +152,45 @@ class AlgaPSAProvider(BaseProvider):
         """
         companies = []
         headers = self._get_auth_headers()
+        page = 1
+        page_size = 100
 
         try:
-            # Alga PSA uses /api/v1/clients endpoint
-            response = self.session.get(
-                f'{self.base_url}/api/v1/clients',
-                headers=headers,
-                timeout=30
-            )
-            response.raise_for_status()
+            while True:
+                # Alga PSA uses /api/v1/clients endpoint with pagination
+                response = self.session.get(
+                    f'{self.base_url}/api/v1/clients',
+                    headers=headers,
+                    params={'page': page, 'limit': page_size},
+                    timeout=30
+                )
+                response.raise_for_status()
 
-            result = response.json()
+                result = self._safe_json(response)
 
-            # Alga PSA wraps data in {data: [...]} format
-            client_list = result.get('data', [])
-            if not isinstance(client_list, list):
-                logger.warning(f"Unexpected response format from Alga PSA clients endpoint: {type(client_list)}")
-                return companies
+                # Alga PSA wraps data in {data: [...], pagination: {...}} format
+                client_list = result.get('data', [])
+                if not isinstance(client_list, list):
+                    logger.warning(f"Unexpected response format from Alga PSA clients endpoint: {type(client_list)}")
+                    break
 
-            for client_data in client_list:
-                try:
-                    companies.append(self.normalize_company(client_data))
-                except Exception as e:
-                    logger.error(f"Error normalizing Alga PSA client {client_data.get('client_id')}: {e}")
+                if not client_list:
+                    break  # No more data
+
+                for client_data in client_list:
+                    try:
+                        companies.append(self.normalize_company(client_data))
+                    except Exception as e:
+                        logger.error(f"Error normalizing Alga PSA client {client_data.get('client_id')}: {e}")
+
+                # Check pagination info
+                pagination = result.get('pagination', {})
+                has_next = pagination.get('hasNext', False)
+
+                if not has_next:
+                    break
+
+                page += 1
 
             logger.info(f"Alga PSA: Retrieved {len(companies)} clients")
 
@@ -154,7 +222,7 @@ class AlgaPSAProvider(BaseProvider):
             )
             response.raise_for_status()
 
-            result = response.json()
+            result = self._safe_json(response)
             client_data = result.get('data', result)  # Handle both wrapped and unwrapped responses
 
             return self.normalize_company(client_data)
@@ -170,6 +238,8 @@ class AlgaPSAProvider(BaseProvider):
         - GET /api/v1/contacts (all contacts)
         - GET /api/v1/clients/{id}/contacts (contacts for specific client)
 
+        Supports pagination via page/limit query parameters.
+
         Args:
             company_id: Optional client UUID to filter contacts
             updated_since: datetime to filter by last update (not currently supported)
@@ -179,6 +249,8 @@ class AlgaPSAProvider(BaseProvider):
         """
         contacts = []
         headers = self._get_auth_headers()
+        page = 1
+        page_size = 100
 
         # Use client-specific endpoint if company_id provided
         if company_id:
@@ -187,21 +259,39 @@ class AlgaPSAProvider(BaseProvider):
             url = f'{self.base_url}/api/v1/contacts'
 
         try:
-            response = self.session.get(url, headers=headers, timeout=30)
-            response.raise_for_status()
+            while True:
+                response = self.session.get(
+                    url,
+                    headers=headers,
+                    params={'page': page, 'limit': page_size},
+                    timeout=30
+                )
+                response.raise_for_status()
 
-            result = response.json()
-            contact_list = result.get('data', [])
+                result = self._safe_json(response)
+                contact_list = result.get('data', [])
 
-            if not isinstance(contact_list, list):
-                logger.warning(f"Unexpected response format from Alga PSA contacts endpoint: {type(contact_list)}")
-                return contacts
+                if not isinstance(contact_list, list):
+                    logger.warning(f"Unexpected response format from Alga PSA contacts endpoint: {type(contact_list)}")
+                    break
 
-            for contact_data in contact_list:
-                try:
-                    contacts.append(self.normalize_contact(contact_data))
-                except Exception as e:
-                    logger.error(f"Error normalizing Alga PSA contact {contact_data.get('contact_id')}: {e}")
+                if not contact_list:
+                    break
+
+                for contact_data in contact_list:
+                    try:
+                        contacts.append(self.normalize_contact(contact_data))
+                    except Exception as e:
+                        logger.error(f"Error normalizing Alga PSA contact {contact_data.get('contact_id')}: {e}")
+
+                # Check pagination
+                pagination = result.get('pagination', {})
+                has_next = pagination.get('hasNext', False)
+
+                if not has_next:
+                    break
+
+                page += 1
 
             logger.info(f"Alga PSA: Retrieved {len(contacts)} contacts")
 
@@ -217,6 +307,7 @@ class AlgaPSAProvider(BaseProvider):
 
         Endpoint: GET /api/v1/tickets
         Can filter by company_id and status using query parameters.
+        Supports pagination via page/limit query parameters.
 
         Args:
             company_id: Optional client UUID to filter tickets
@@ -228,34 +319,50 @@ class AlgaPSAProvider(BaseProvider):
         """
         tickets = []
         headers = self._get_auth_headers()
+        page = 1
+        page_size = 100
 
-        params = {}
+        params = {'page': page, 'limit': page_size}
         if company_id:
             params['company_id'] = company_id
         if status:
             params['status'] = status
 
         try:
-            response = self.session.get(
-                f'{self.base_url}/api/v1/tickets',
-                headers=headers,
-                params=params,
-                timeout=30
-            )
-            response.raise_for_status()
+            while True:
+                params['page'] = page
+                response = self.session.get(
+                    f'{self.base_url}/api/v1/tickets',
+                    headers=headers,
+                    params=params,
+                    timeout=30
+                )
+                response.raise_for_status()
 
-            result = response.json()
-            ticket_list = result.get('data', [])
+                result = self._safe_json(response)
+                ticket_list = result.get('data', [])
 
-            if not isinstance(ticket_list, list):
-                logger.warning(f"Unexpected response format from Alga PSA tickets endpoint: {type(ticket_list)}")
-                return tickets
+                if not isinstance(ticket_list, list):
+                    logger.warning(f"Unexpected response format from Alga PSA tickets endpoint: {type(ticket_list)}")
+                    break
 
-            for ticket_data in ticket_list:
-                try:
-                    tickets.append(self.normalize_ticket(ticket_data))
-                except Exception as e:
-                    logger.error(f"Error normalizing Alga PSA ticket {ticket_data.get('ticket_id')}: {e}")
+                if not ticket_list:
+                    break
+
+                for ticket_data in ticket_list:
+                    try:
+                        tickets.append(self.normalize_ticket(ticket_data))
+                    except Exception as e:
+                        logger.error(f"Error normalizing Alga PSA ticket {ticket_data.get('ticket_id')}: {e}")
+
+                # Check pagination
+                pagination = result.get('pagination', {})
+                has_next = pagination.get('hasNext', False)
+
+                if not has_next:
+                    break
+
+                page += 1
 
             logger.info(f"Alga PSA: Retrieved {len(tickets)} tickets")
 
