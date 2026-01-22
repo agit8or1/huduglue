@@ -163,6 +163,25 @@ info "Installing/updating Python packages..."
 pip install -r requirements.txt || error_exit "pip install failed"
 success "Dependencies installed"
 
+# Check and install Snyk CLI if missing
+info "Checking for Snyk CLI..."
+if command -v npm &> /dev/null; then
+    if ! command -v snyk &> /dev/null; then
+        info "Installing Snyk CLI for security scanning..."
+        sudo npm install -g snyk --silent || warning "Failed to install Snyk CLI (optional)"
+        if command -v snyk &> /dev/null; then
+            success "Snyk CLI installed"
+        else
+            warning "Snyk CLI not available - security scanning disabled"
+        fi
+    else
+        success "Snyk CLI already installed"
+    fi
+else
+    warning "npm not available - Snyk CLI cannot be installed"
+    warning "Install with: sudo apt-get install nodejs npm && sudo npm install -g snyk"
+fi
+
 echo ""
 echo -e "${YELLOW}Step 4: Database Migrations${NC}"
 echo "-----------------------------------"

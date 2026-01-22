@@ -460,6 +460,12 @@ if ! dpkg -l | grep -q libldap2-dev && ! dpkg -l | grep -q libldap-dev; then
     PACKAGES_TO_INSTALL+=("libldap2-dev" "libsasl2-dev")
 fi
 
+# Check for Node.js (needed for Snyk and other tools)
+if ! command -v node &> /dev/null; then
+    print_warning "Node.js not found (needed for Snyk security scanning)"
+    PACKAGES_TO_INSTALL+=("nodejs" "npm")
+fi
+
 # Install missing packages
 if [ ${#PACKAGES_TO_INSTALL[@]} -gt 0 ]; then
     print_info "Installing missing packages: ${PACKAGES_TO_INSTALL[*]}"
@@ -516,6 +522,24 @@ if [ ! -f "venv/bin/gunicorn" ]; then
     exit 1
 fi
 print_status "Python dependencies installed"
+
+# Install Snyk CLI for security scanning
+print_info "Installing Snyk CLI for security scanning..."
+if command -v npm &> /dev/null; then
+    if ! command -v snyk &> /dev/null; then
+        sudo npm install -g snyk --silent || print_warning "Failed to install Snyk CLI (optional)"
+        if command -v snyk &> /dev/null; then
+            print_status "Snyk CLI installed"
+        else
+            print_warning "Snyk CLI installation failed - security scanning will be unavailable"
+        fi
+    else
+        print_status "Snyk CLI already installed"
+    fi
+else
+    print_warning "npm not available - skipping Snyk CLI installation"
+    print_warning "Install with: sudo apt-get install nodejs npm && sudo npm install -g snyk"
+fi
 
 # Step 4: Generate secrets
 print_info "Step 4/11: Generating secure secrets..."
