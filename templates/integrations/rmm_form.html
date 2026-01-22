@@ -302,6 +302,50 @@
                         </div>
                     </div>
 
+                    <hr class="my-4">
+                    <h4 class="mb-3"><i class="fas fa-building"></i> Organization Import Settings</h4>
+                    <p class="text-muted mb-3">Automatically create separate organizations for each RMM site/client</p>
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                {{ form.import_organizations }}
+                                <label class="form-check-label" for="{{ form.import_organizations.id_for_label }}">
+                                    <strong>Automatically create organizations from RMM sites/clients</strong>
+                                </label>
+                                {% if form.import_organizations.errors %}
+                                <div class="invalid-feedback d-block">{{ form.import_organizations.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted d-block">
+                                    When enabled, HuduGlue will create a separate organization for each RMM site/client instead of grouping all devices under this connection's organization.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                {{ form.org_import_as_active }}
+                                <label class="form-check-label" for="{{ form.org_import_as_active.id_for_label }}">
+                                    Import organizations as Active
+                                </label>
+                                {% if form.org_import_as_active.errors %}
+                                <div class="invalid-feedback d-block">{{ form.org_import_as_active.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted d-block">Newly created organizations will be set to active by default</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.org_name_prefix.id_for_label }}" class="form-label">Organization Name Prefix</label>
+                            {{ form.org_name_prefix }}
+                            {% if form.org_name_prefix.errors %}
+                            <div class="invalid-feedback d-block">{{ form.org_name_prefix.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Optional prefix for imported organization names (e.g., "RMM-" → "RMM-Acme Corp")</small>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{% url 'integrations:integration_list' %}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Cancel
