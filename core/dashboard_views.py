@@ -103,9 +103,12 @@ def dashboard(request):
         organization=org
     ).select_related('user').order_by('-timestamp')[:15]
 
-    # Check if user has 2FA enabled
+    # Check if user has 2FA enabled or authenticated via Azure AD SSO
     has_2fa = False
-    if hasattr(request.user, 'totpdevice_set'):
+    if request.session.get('azure_ad_authenticated', False):
+        # Azure AD SSO users don't need 2FA (handled by Azure)
+        has_2fa = True
+    elif hasattr(request.user, 'totpdevice_set'):
         has_2fa = request.user.totpdevice_set.filter(confirmed=True).exists()
 
     return render(request, 'core/dashboard.html', {
