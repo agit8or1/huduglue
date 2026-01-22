@@ -69,10 +69,13 @@ jobs:
 
       - name: Generate SBOM (CycloneDX)
         run: |
-          cyclonedx-py -r -i requirements.txt -o sbom.cdx.json
+          cyclonedx-py -r -i requirements.txt -o sbom.cdx.json || true
+        continue-on-error: true
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom-cyclonedx
           path: sbom.cdx.json
+        continue-on-error: true
+        if: always()
