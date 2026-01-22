@@ -342,6 +342,27 @@ def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
 
 
+@receiver(post_save, sender=User)
+def create_default_membership(sender, instance, created, **kwargs):
+    """
+    Automatically create membership in the default organization when user is created.
+    Ensures all users have access to at least one organization.
+    """
+    if created and not instance.is_superuser:
+        from core.models import Organization
+        # Get the first active organization (typically the default/main org)
+        default_org = Organization.objects.filter(is_active=True).first()
+        if default_org:
+            # Only create if membership doesn't already exist
+            if not Membership.objects.filter(user=instance, organization=default_org).exists():
+                Membership.objects.create(
+                    user=instance,
+                    organization=default_org,
+                    role=Role.READONLY,  # Default to readonly for security
+                    is_active=True
+                )
+
+
 class RoleTemplate(BaseModel):
     """
     Role template with granular permissions.
