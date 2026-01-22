@@ -118,17 +118,16 @@ class RackDeviceForm(forms.ModelForm):
         organization = kwargs.pop('organization', None)
         super().__init__(*args, **kwargs)
 
-        # Filter assets by organization and rackmount capability
+        # Filter assets by organization
         if organization:
             from assets.models import Asset
-            # Only show rackmount assets
+            # Show all assets, prioritizing rackmount ones
             self.fields['asset'].queryset = Asset.objects.filter(
-                organization=organization,
-                is_rackmount=True
-            ).order_by('name')
-            self.fields['asset'].required = True
-            self.fields['asset'].help_text = 'Select a rackmount asset. Only assets marked as rackmount are shown.'
-            self.fields['asset'].empty_label = '-- Select a rackmount asset --'
+                organization=organization
+            ).order_by('-is_rackmount', 'name')
+            self.fields['asset'].required = False
+            self.fields['asset'].help_text = 'Optional: Link to an existing asset. Leave blank to create a label-only entry.'
+            self.fields['asset'].empty_label = '-- No Asset (Label Only) --'
 
 
 class SubnetForm(forms.ModelForm):
