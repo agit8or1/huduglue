@@ -358,7 +358,16 @@ def rack_device_create(request, rack_id):
             messages.success(request, f'Asset "{device.name}" added to rack.')
             return redirect('monitoring:rack_detail', pk=rack.pk)
     else:
-        form = RackDeviceForm(rack=rack, organization=org)
+        # Pre-populate start_unit if passed via query parameter
+        initial_data = {}
+        start_unit = request.GET.get('start_unit')
+        if start_unit:
+            try:
+                initial_data['start_unit'] = int(start_unit)
+            except (ValueError, TypeError):
+                pass
+
+        form = RackDeviceForm(rack=rack, organization=org, initial=initial_data)
 
     return render(request, 'monitoring/rack_device_form.html', {
         'form': form,

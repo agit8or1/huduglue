@@ -40,6 +40,14 @@
     border-bottom: none;
     margin-bottom: 0;
 }
+.rack-unit-empty {
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.rack-unit-empty:hover {
+    background: #495057 !important;
+    border-color: #6c757d !important;
+}
 [data-bs-theme="dark"] .rack-visual {
     background: #0d1117;
 }
@@ -133,12 +141,17 @@
                                         </div>
                                     </a>
                                     {% else %}
-                                    <div class="rack-unit"
-                                         data-bs-toggle="tooltip"
-                                         data-bs-placement="right"
-                                         title="U{{ unit.number }} - Available">
-                                        <span class="rack-unit-number">{{ unit.number }}</span>
-                                    </div>
+                                    <a href="{% url 'monitoring:rack_device_create' rack.pk %}?start_unit={{ unit.number }}" style="text-decoration: none; display: block;">
+                                        <div class="rack-unit rack-unit-empty"
+                                             data-bs-toggle="tooltip"
+                                             data-bs-placement="right"
+                                             title="U{{ unit.number }} - Click to assign asset">
+                                            <span class="rack-unit-number">{{ unit.number }}</span>
+                                            <span class="flex-fill text-end" style="font-size: 0.6rem; opacity: 0.5;">
+                                                <i class="fas fa-plus"></i>
+                                            </span>
+                                        </div>
+                                    </a>
                                     {% endif %}
                                     {% endfor %}
                                 </div>

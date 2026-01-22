@@ -134,6 +134,17 @@ class RackDeviceForm(forms.ModelForm):
 class SubnetForm(forms.ModelForm):
     """Form for subnet."""
 
+    # Override dns_servers to accept comma-separated input
+    dns_servers = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '8.8.8.8, 8.8.4.4'
+        }),
+        help_text='Enter DNS server IPs separated by commas',
+        label='DNS Servers'
+    )
+
     class Meta:
         model = Subnet
         fields = [
@@ -146,7 +157,6 @@ class SubnetForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'vlan': forms.Select(attrs={'class': 'form-select'}),
             'gateway': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '192.168.1.1'}),
-            'dns_servers': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '8.8.8.8, 8.8.4.4'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
@@ -159,6 +169,23 @@ class SubnetForm(forms.ModelForm):
             self.fields['vlan'].queryset = VLAN.objects.filter(organization=organization).order_by('vlan_id')
             self.fields['vlan'].required = False
             self.fields['vlan'].empty_label = '-- No VLAN --'
+
+        # Convert existing dns_servers list to comma-separated string for display
+        if self.instance and self.instance.pk and self.instance.dns_servers:
+            if isinstance(self.instance.dns_servers, list):
+                self.initial['dns_servers'] = ', '.join(self.instance.dns_servers)
+
+    def clean_dns_servers(self):
+        """Convert comma-separated DNS servers to list."""
+        dns_input = self.cleaned_data.get('dns_servers', '')
+
+        if not dns_input or not dns_input.strip():
+            return []
+
+        # Split by comma and clean up whitespace
+        dns_list = [ip.strip() for ip in dns_input.split(',') if ip.strip()]
+
+        return dns_list
 
 
 class VLANForm(forms.ModelForm):

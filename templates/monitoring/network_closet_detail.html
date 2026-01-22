@@ -40,6 +40,14 @@
     border-bottom: none;
     margin-bottom: 0;
 }
+.closet-unit-empty {
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.closet-unit-empty:hover {
+    background: #495057 !important;
+    border-color: #6c757d !important;
+}
 [data-bs-theme="dark"] .closet-visual {
     background: #0d1117;
 }
@@ -209,17 +217,23 @@
                     <div class="closet-visual">
                         {% for unit_num, device in unit_map.items reversed %}
                         {% if device %}
-                        <div class="closet-unit closet-device {% if device.units > 1 %}closet-device-multi{% endif %}"
-                             style="background-color: {{ device.color }};"
-                             title="{{ device.name }}">
-                            <span class="closet-unit-number">{{ unit_num }}</span>
-                            <span class="flex-grow-1 text-truncate">{{ device.name }}</span>
-                        </div>
+                        <a href="{% url 'monitoring:rack_device_edit' device.pk %}" style="text-decoration: none; display: block;">
+                            <div class="closet-unit closet-device {% if device.units > 1 %}closet-device-multi{% endif %}"
+                                 style="background-color: {{ device.color }};"
+                                 title="{{ device.name }} - Click to edit">
+                                <span class="closet-unit-number">{{ unit_num }}</span>
+                                <span class="flex-grow-1 text-truncate">{{ device.name }}</span>
+                            </div>
+                        </a>
                         {% else %}
-                        <div class="closet-unit">
-                            <span class="closet-unit-number">{{ unit_num }}</span>
-                            <span class="flex-grow-1"></span>
-                        </div>
+                        <a href="{% url 'monitoring:rack_device_create' closet.pk %}?start_unit={{ unit_num }}" style="text-decoration: none; display: block;">
+                            <div class="closet-unit closet-unit-empty">
+                                <span class="closet-unit-number">{{ unit_num }}</span>
+                                <span class="flex-grow-1 text-end" style="font-size: 0.6rem; opacity: 0.5;">
+                                    <i class="fas fa-plus"></i>
+                                </span>
+                            </div>
+                        </a>
                         {% endif %}
                         {% endfor %}
                     </div>
