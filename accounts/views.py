@@ -854,3 +854,159 @@ def user_delete(request, user_id):
     return render(request, 'accounts/user_confirm_delete.html', {
         'user_obj': user,
     })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def organization_merge(request):
+    """
+    Merge multiple organizations into one.
+    Handles reassignment of all related records.
+    """
+    from django.db import transaction
+    from assets.models import Asset
+    from core.models import Organization
+    
+    if request.method == 'POST':
+        # Get selected organizations
+        source_org_ids = request.POST.getlist('source_orgs')
+        target_org_id = request.POST.get('target_org')
+        
+        if not source_org_ids or not target_org_id:
+            messages.error(request, 'Please select organizations to merge.')
+            return redirect('accounts:organization_merge')
+        
+        if target_org_id in source_org_ids:
+            messages.error(request, 'Target organization cannot be in source list.')
+            return redirect('accounts:organization_merge')
+        
+        try:
+            target_org = Organization.objects.get(pk=target_org_id)
+            source_orgs = Organization.objects.filter(pk__in=source_org_ids)
+            
+            if not source_orgs.exists():
+                messages.error(request, 'No valid source organizations selected.')
+                return redirect('accounts:organization_merge')
+            
+            # Perform merge in transaction
+            with transaction.atomic():
+                merge_stats = {
+                    'assets': 0,
+                    'devices': 0,
+                    'contacts': 0,
+                    'documents': 0,
+                    'tickets': 0,
+                    'memberships': 0,
+                    'rmm_connections': 0,
+                    'psa_connections': 0,
+                }
+                
+                for source_org in source_orgs:
+                    # Move Assets
+                    assets_moved = Asset.objects.filter(organization=source_org).update(organization=target_org)
+                    merge_stats['assets'] += assets_moved
+                    
+                    # Move Devices (from assets app)
+                    try:
+                        from assets.models import Device
+                        devices_moved = Device.objects.filter(organization=source_org).update(organization=target_org)
+                        merge_stats['devices'] += devices_moved
+                    except:
+                        pass
+                    
+                    # Move Contacts
+                    try:
+                        from contacts.models import Contact
+                        contacts_moved = Contact.objects.filter(organization=source_org).update(organization=target_org)
+                        merge_stats['contacts'] += contacts_moved
+                    except:
+                        pass
+                    
+                    # Move Documents
+                    try:
+                        from docs.models import Document
+                        docs_moved = Document.objects.filter(organization=source_org).update(organization=target_org)
+                        merge_stats['documents'] += docs_moved
+                    except:
+                        pass
+                    
+                    # Move Tickets
+                    try:
+                        from tickets.models import Ticket
+                        tickets_moved = Ticket.objects.filter(organization=source_org).update(organization=target_org)
+                        merge_stats['tickets'] += tickets_moved
+                    except:
+                        pass
+                    
+                    # Move Memberships
+                    from accounts.models import Membership
+                    memberships_moved = Membership.objects.filter(organization=source_org).update(organization=target_org)
+                    merge_stats['memberships'] += memberships_moved
+                    
+                    # Move RMM Connections
+                    try:
+                        from integrations.models import RMMConnection
+                        rmm_moved = RMMConnection.objects.filter(organization=source_org).update(organization=target_org)
+                        merge_stats['rmm_connections'] += rmm_moved
+                    except:
+                        pass
+                    
+                    # Move PSA Connections
+                    try:
+                        from integrations.models import PSAConnection
+                        psa_moved = PSAConnection.objects.filter(organization=source_org).update(organization=target_org)
+                        merge_stats['psa_connections'] += psa_moved
+                    except:
+                        pass
+                    
+                    # Log merge operation
+                    AuditLog.objects.create(
+                        user=request.user,
+                        action='MERGE',
+                        resource_type='organization',
+                        resource_id=source_org.id,
+                        details=f"Merged organization '{source_org.name}' into '{target_org.name}'"
+                    )
+                    
+                    # Delete source organization
+                    source_org_name = source_org.name
+                    source_org.delete()
+                
+                # Log target organization update
+                AuditLog.objects.create(
+                    user=request.user,
+                    action='UPDATE',
+                    resource_type='organization',
+                    resource_id=target_org.id,
+                    details=f"Merged {len(source_orgs)} organizations into '{target_org.name}': {merge_stats}"
+                )
+                
+                # Build success message
+                stats_msg = []
+                for key, count in merge_stats.items():
+                    if count > 0:
+                        stats_msg.append(f"{count} {key.replace('_', ' ')}")
+                
+                messages.success(
+                    request,
+                    f"Successfully merged {len(source_orgs)} organization(s) into '{target_org.name}'. "
+                    f"Moved: {', '.join(stats_msg) if stats_msg else 'no records'}."
+                )
+                
+                return redirect('accounts:organization_detail', org_id=target_org.id)
+                
+        except Organization.DoesNotExist:
+            messages.error(request, 'Target organization not found.')
+            return redirect('accounts:organization_merge')
+        except Exception as e:
+            messages.error(request, f'Error merging organizations: {str(e)}')
+            logger.error(f"Organization merge error: {str(e)}", exc_info=True)
+            return redirect('accounts:organization_merge')
+    
+    # GET request - show merge form
+    from core.models import Organization
+    organizations = Organization.objects.filter(is_active=True).order_by('name')
+    
+    return render(request, 'accounts/organization_merge.html', {
+        'organizations': organizations,
+    })

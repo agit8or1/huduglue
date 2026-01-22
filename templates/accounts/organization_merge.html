@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Merge Organizations{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="fas fa-code-branch"></i> Merge Organizations</h1>
+            <p class="text-muted">Consolidate multiple organizations into one. All assets, contacts, and data will be moved to the target organization.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" id="mergeForm">
+                        {% csrf_token %}
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Warning:</strong> This action cannot be undone. All source organizations will be deleted after merging.
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Step 1: Select Target Organization (Keep This One)</strong></label>
+                            <select name="target_org" id="target_org" class="form-select" required>
+                                <option value="">-- Select organization to keep --</option>
+                                {% for org in organizations %}
+                                <option value="{{ org.id }}">{{ org.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">This organization will receive all data from the source organizations.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Step 2: Select Source Organizations (Will Be Merged & Deleted)</strong></label>
+                            <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                                {% for org in organizations %}
+                                <div class="form-check">
+                                    <input class="form-check-input source-org-checkbox" type="checkbox" name="source_orgs" value="{{ org.id }}" id="source_{{ org.id }}">
+                                    <label class="form-check-label" for="source_{{ org.id }}">
+                                        {{ org.name }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">Select all organizations to merge into the target organization.</small>
+                        </div>
+
+                        <div id="preview" class="alert alert-info d-none">
+                            <h6><i class="fas fa-info-circle"></i> Merge Preview</h6>
+                            <p class="mb-2"><strong>Target:</strong> <span id="preview-target">-</span></p>
+                            <p class="mb-0"><strong>Sources to merge:</strong> <span id="preview-sources">-</span></p>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6>What will be merged:</h6>
+                            <ul class="mb-0">
+                                <li>✅ All assets</li>
+                                <li>✅ All devices</li>
+                                <li>✅ All contacts</li>
+                                <li>✅ All documents</li>
+                                <li>✅ All tickets</li>
+                                <li>✅ All memberships</li>
+                                <li>✅ All integrations (RMM/PSA connections)</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'accounts:organization_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="submitBtn" disabled>
+                                <i class="fas fa-code-branch"></i> Merge Organizations
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5><i class="fas fa-question-circle"></i> How It Works</h5>
+                    <ol class="mb-0">
+                        <li class="mb-2"><strong>Select target:</strong> Choose the organization you want to keep.</li>
+                        <li class="mb-2"><strong>Select sources:</strong> Choose one or more organizations to merge into the target.</li>
+                        <li class="mb-2"><strong>Review preview:</strong> Confirm your selection.</li>
+                        <li class="mb-0"><strong>Merge:</strong> All data moves to target, source organizations deleted.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6><i class="fas fa-shield-alt"></i> Safety Features</h6>
+                    <ul class="mb-0 small">
+                        <li>All operations in database transaction</li>
+                        <li>Audit log created for each merge</li>
+                        <li>No data loss - everything preserved</li>
+                        <li>Duplicate detection for contacts</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const targetSelect = document.getElementById('target_org');
+    const sourceCheckboxes = document.querySelectorAll('.source-org-checkbox');
+    const submitBtn = document.getElementById('submitBtn');
+    const preview = document.getElementById('preview');
+    const previewTarget = document.getElementById('preview-target');
+    const previewSources = document.getElementById('preview-sources');
+
+    function updatePreview() {
+        const targetId = targetSelect.value;
+        const targetText = targetSelect.options[targetSelect.selectedIndex].text;
+        const checkedSources = Array.from(sourceCheckboxes).filter(cb => cb.checked && cb.value !== targetId);
+
+        // Disable checkboxes that match target
+        sourceCheckboxes.forEach(cb => {
+            if (cb.value === targetId) {
+                cb.checked = false;
+                cb.disabled = true;
+                cb.parentElement.classList.add('text-muted');
+            } else {
+                cb.disabled = false;
+                cb.parentElement.classList.remove('text-muted');
+            }
+        });
+
+        if (targetId && checkedSources.length > 0) {
+            preview.classList.remove('d-none');
+            previewTarget.textContent = targetText;
+            previewSources.textContent = checkedSources.map(cb => {
+                return cb.parentElement.querySelector('label').textContent.trim();
+            }).join(', ');
+            submitBtn.disabled = false;
+        } else {
+            preview.classList.add('d-none');
+            submitBtn.disabled = true;
+        }
+    }
+
+    targetSelect.addEventListener('change', updatePreview);
+    sourceCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updatePreview);
+    });
+
+    // Confirm before submit
+    document.getElementById('mergeForm').addEventListener('submit', function(e) {
+        const checkedSources = Array.from(sourceCheckboxes).filter(cb => cb.checked);
+        const targetText = targetSelect.options[targetSelect.selectedIndex].text;
+
+        if (!confirm(`Are you sure you want to merge ${checkedSources.length} organization(s) into "${targetText}"?\n\nThis action cannot be undone. Source organizations will be permanently deleted.`)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}
