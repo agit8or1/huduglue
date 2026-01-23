@@ -1005,8 +1005,9 @@ def organization_merge(request):
     
     # GET request - show merge form
     from core.models import Organization
-    organizations = Organization.objects.filter(is_active=True).order_by('name')
-    
+    # Show all organizations (active and inactive) to allow merging imported orgs
+    organizations = Organization.objects.all().order_by('name')
+
     return render(request, 'accounts/organization_merge.html', {
         'organizations': organizations,
     })

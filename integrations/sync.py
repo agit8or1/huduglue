@@ -40,6 +40,7 @@ class PSASync:
             'companies': {'created': 0, 'updated': 0, 'errors': 0},
             'contacts': {'created': 0, 'updated': 0, 'errors': 0},
             'tickets': {'created': 0, 'updated': 0, 'errors': 0},
+            'organizations': {'created': 0, 'updated': 0, 'errors': 0},
         }
 
     def sync_all(self):
@@ -181,12 +182,15 @@ class PSASync:
         """Create or update company."""
         external_id = company_data['external_id']
 
+        # Determine target organization (may import new org if enabled)
+        target_org = self._determine_target_organization(company_data)
+
         # Check if exists
         company, created = PSACompany.objects.update_or_create(
             connection=self.connection,
             external_id=external_id,
             defaults={
-                'organization': self.organization,
+                'organization': target_org,
                 'name': company_data['name'],
                 'phone': company_data.get('phone', ''),
                 'website': company_data.get('website', ''),
@@ -209,7 +213,7 @@ class PSASync:
             external_type='company',
             external_id=external_id,
             defaults={
-                'organization': self.organization,
+                'organization': target_org,
                 'local_type': 'psa_company',
                 'local_id': company.id,
                 'external_hash': data_hash,
@@ -217,6 +221,62 @@ class PSASync:
         )
 
         return company
+
+    def _determine_target_organization(self, company_data):
+        """
+        Determine which organization this PSA company should belong to.
+
+        If import_organizations is enabled, attempts to import/create organization
+        from PSA company data. Falls back to connection organization.
+
+        Args:
+            company_data: Normalized company data from provider
+
+        Returns:
+            Organization instance
+        """
+        if not self.connection.import_organizations:
+            # Organization import disabled - use connection's organization
+            return self.organization
+
+        # Import/create organization for this PSA company
+        try:
+            from .org_import import import_organization_from_psa, find_existing_organization_by_psa_id
+
+            # Check if organization already exists
+            external_id = company_data.get('external_id', '')
+            existing_org = find_existing_organization_by_psa_id(self.connection, external_id)
+
+            # Attempt to import/create organization
+            imported_org = import_organization_from_psa(self.connection, company_data)
+
+            if imported_org:
+                # Track if this was a create or update
+                if existing_org:
+                    if not hasattr(self.stats, 'organizations'):
+                        self.stats['organizations'] = {'created': 0, 'updated': 0, 'errors': 0}
+                    self.stats['organizations']['updated'] += 1
+                    logger.debug(f"Updated existing organization {imported_org.name} for company {company_data.get('name')}")
+                else:
+                    if not hasattr(self.stats, 'organizations'):
+                        self.stats['organizations'] = {'created': 0, 'updated': 0, 'errors': 0}
+                    self.stats['organizations']['created'] += 1
+                    logger.info(f"Created new organization {imported_org.name} for company {company_data.get('name')}")
+
+                logger.info(f"PSA company {company_data.get('name')} mapped to organization {imported_org.name}")
+                return imported_org
+            else:
+                # Import returned None - fallback to connection org
+                logger.warning(f"Failed to import organization for company {company_data.get('name')}, using connection org")
+                return self.organization
+
+        except Exception as e:
+            logger.error(f"Error importing organization for company {company_data.get('name')}: {e}")
+            if not hasattr(self.stats, 'organizations'):
+                self.stats['organizations'] = {'created': 0, 'updated': 0, 'errors': 0}
+            self.stats['organizations']['errors'] += 1
+            # On error, fallback to connection org
+            return self.organization
 
     def _upsert_contact(self, contact_data):
         """Create or update contact."""
