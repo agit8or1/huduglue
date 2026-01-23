@@ -46,6 +46,7 @@ class ITFlowProvider(BaseProvider):
         """
         Override to automatically prepend /api/v1 to all endpoints.
         ITFlow API is always mounted at /api/v1/.
+        Also adds api_key query parameter for authentication.
         """
         # Strip leading slash from endpoint
         endpoint = endpoint.lstrip('/')
@@ -56,6 +57,15 @@ class ITFlowProvider(BaseProvider):
 
         # Prepend /api/v1
         api_endpoint = f"/api/v1/{endpoint}"
+
+        # Add api_key query parameter for authentication
+        # ITFlow accepts both X-API-KEY header and ?api_key= query param
+        # Query param is more reliable with some security configurations
+        api_key = self.credentials.get('api_key', '')
+        if api_key:
+            # Add api_key to query parameters
+            separator = '&' if '?' in api_endpoint else '?'
+            api_endpoint = f"{api_endpoint}{separator}api_key={api_key}"
 
         logger.debug(f"ITFlow API request: {method} {self.base_url}{api_endpoint}")
 

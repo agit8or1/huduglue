@@ -336,7 +336,8 @@ class PSASync:
 
     def _hash_data(self, data):
         """Generate hash of data for change detection."""
-        data_str = json.dumps(data, sort_keys=True)
+        # Use default=str to handle datetime objects and other non-JSON-serializable types
+        data_str = json.dumps(data, sort_keys=True, default=str)
         return hashlib.sha256(data_str.encode()).hexdigest()
 
 

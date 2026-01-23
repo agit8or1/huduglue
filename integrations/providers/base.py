@@ -285,3 +285,44 @@ class BaseProvider:
         Normalize ticket data to standard format.
         """
         raise NotImplementedError("Subclass must implement normalize_ticket()")
+
+    # Utility methods
+
+    def _parse_datetime(self, datetime_str):
+        """
+        Parse datetime string from provider into timezone-aware datetime.
+        Handles various formats and returns None for empty/invalid values.
+
+        Args:
+            datetime_str: String datetime from provider API, or None
+
+        Returns:
+            Timezone-aware datetime object, or None if invalid/empty
+        """
+        from django.utils import timezone
+        from dateutil import parser as date_parser
+
+        if not datetime_str:
+            return None
+
+        # Handle already-parsed datetime objects
+        if isinstance(datetime_str, datetime):
+            # Make timezone-aware if naive
+            if timezone.is_naive(datetime_str):
+                return timezone.make_aware(datetime_str)
+            return datetime_str
+
+        # Try parsing string
+        try:
+            # Use dateutil parser for flexible parsing
+            dt = date_parser.parse(datetime_str)
+
+            # Make timezone-aware if naive
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt)
+
+            return dt
+
+        except (ValueError, TypeError, AttributeError) as e:
+            logger.warning(f"Failed to parse datetime '{datetime_str}': {e}")
+            return None
