@@ -169,6 +169,16 @@ if command -v npm &> /dev/null; then
     if ! command -v snyk &> /dev/null; then
         info "Installing Snyk CLI for security scanning..."
         sudo npm install -g snyk --silent || warning "Failed to install Snyk CLI (optional)"
+
+        # Create symlink if snyk is in NVM but not in system PATH
+        if ! command -v snyk &> /dev/null && [ -d "$HOME/.nvm/versions/node" ]; then
+            SNYK_PATH=$(find "$HOME/.nvm/versions/node/" -name snyk -type f 2>/dev/null | head -1)
+            if [ -n "$SNYK_PATH" ] && [ -f "$SNYK_PATH" ]; then
+                info "Creating system-wide symlink for Snyk CLI..."
+                sudo ln -sf "$SNYK_PATH" /usr/local/bin/snyk && success "Snyk CLI linked to /usr/local/bin/snyk"
+            fi
+        fi
+
         if command -v snyk &> /dev/null; then
             success "Snyk CLI installed"
         else
