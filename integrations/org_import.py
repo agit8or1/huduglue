@@ -9,6 +9,51 @@ import logging
 logger = logging.getLogger('integrations')
 
 
+def create_inherited_memberships(new_org, parent_org):
+    """
+    Create memberships on newly imported organization by inheriting
+    from parent organization's owners.
+
+    When an organization is imported from PSA/RMM, this function automatically
+    grants access to users who own the parent organization (the organization
+    that owns the PSA/RMM connection).
+
+    Args:
+        new_org: The newly created/imported Organization
+        parent_org: The parent Organization that owns the integration connection
+    """
+    from accounts.models import Membership
+
+    # Find all owner memberships in parent organization
+    parent_owners = Membership.objects.filter(
+        organization=parent_org,
+        role='owner',
+        is_active=True
+    )
+
+    created_count = 0
+    for parent_membership in parent_owners:
+        # Create owner membership on imported org if doesn't exist
+        membership, created = Membership.objects.get_or_create(
+            user=parent_membership.user,
+            organization=new_org,
+            defaults={
+                'role': 'owner',
+                'is_active': True,
+                'invited_by': parent_membership.user,
+            }
+        )
+
+        if created:
+            created_count += 1
+            logger.info(
+                f"Created owner membership for {parent_membership.user.username} "
+                f"on imported organization {new_org.name}"
+            )
+
+    return created_count
+
+
 def import_organization_from_psa(connection, company_data):
     """
     Import or update an organization from PSA company data.
@@ -107,6 +152,11 @@ def import_organization_from_psa(connection, company_data):
 
         logger.info(f"Created new organization {org.slug} from PSA company {company_name}")
 
+        # Create inherited memberships from parent organization
+        memberships_created = create_inherited_memberships(org, connection.organization)
+        if memberships_created > 0:
+            logger.info(f"Created {memberships_created} inherited memberships for {org.name}")
+
         AuditLog.objects.create(
             event_type='psa_org_created',
             description=f'Created organization {org.slug} from PSA: {company_name}',
@@ -114,6 +164,7 @@ def import_organization_from_psa(connection, company_data):
                 'psa_provider': connection.provider_type,
                 'psa_company_id': external_id,
                 'organization_id': org.id,
+                'memberships_created': memberships_created,
             }
         )
 
@@ -215,6 +266,11 @@ def import_organization_from_rmm(connection, site_data):
 
         logger.info(f"Created new organization {org.slug} from RMM site {site_name}")
 
+        # Create inherited memberships from parent organization
+        memberships_created = create_inherited_memberships(org, connection.organization)
+        if memberships_created > 0:
+            logger.info(f"Created {memberships_created} inherited memberships for {org.name}")
+
         AuditLog.objects.create(
             event_type='rmm_org_created',
             description=f'Created organization {org.slug} from RMM: {site_name}',
@@ -222,6 +278,7 @@ def import_organization_from_rmm(connection, site_data):
                 'rmm_provider': connection.provider_type,
                 'rmm_site_id': external_id,
                 'organization_id': org.id,
+                'memberships_created': memberships_created,
             }
         )
 
