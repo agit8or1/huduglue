@@ -285,6 +285,25 @@ class TacticalRMMProvider(BaseRMMProvider):
         # Parse last seen timestamp
         last_seen = self._parse_datetime(raw_data.get('last_seen'))
 
+        # Site/Client information for organization mapping
+        # Try to get site ID and name
+        site_id = str(raw_data.get('site', '')) if raw_data.get('site') else ''
+        site_name = raw_data.get('site_name', '')
+
+        # If we have a name but no ID, use name as ID (for organization mapping)
+        if site_name and not site_id:
+            from django.utils.text import slugify
+            site_id = slugify(site_name)
+
+        # Try to get client ID and name
+        client_id = str(raw_data.get('client', '')) if raw_data.get('client') else ''
+        client_name = raw_data.get('client_name', '')
+
+        # If we have a name but no ID, use name as ID (for organization mapping)
+        if client_name and not client_id:
+            from django.utils.text import slugify
+            client_id = slugify(client_name)
+
         return {
             'external_id': str(raw_data['agent_id']),
             'device_name': raw_data.get('hostname', ''),
@@ -300,10 +319,10 @@ class TacticalRMMProvider(BaseRMMProvider):
             'is_online': raw_data.get('online', False),
             'last_seen': last_seen,
             # Site/Client information for organization mapping
-            'site_name': raw_data.get('site_name', ''),
-            'site_id': str(raw_data.get('site', '')) if raw_data.get('site') else '',
-            'client_name': raw_data.get('client_name', ''),
-            'client_id': str(raw_data.get('client', '')) if raw_data.get('client') else '',
+            'site_name': site_name,
+            'site_id': site_id,
+            'client_name': client_name,
+            'client_id': client_id,
             'raw_data': raw_data,
         }
 

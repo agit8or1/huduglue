@@ -23,10 +23,16 @@ class Command(BaseCommand):
             default=10,
             help='Number of devices to check (default: 10)'
         )
+        parser.add_argument(
+            '--show-raw',
+            action='store_true',
+            help='Show raw API data for debugging'
+        )
 
     def handle(self, *args, **options):
         connection_id = options['connection_id']
         limit = options['limit']
+        show_raw = options.get('show_raw', False)
 
         try:
             connection = RMMConnection.objects.get(pk=connection_id)
@@ -76,6 +82,23 @@ class Command(BaseCommand):
 
                 self.stdout.write(f'\nDevice {i}: {device_name}')
                 self.stdout.write('-' * 80)
+
+                # Show raw API data if requested
+                if show_raw:
+                    raw_data = device.get('raw_data', {})
+                    self.stdout.write(self.style.WARNING('\n  RAW API DATA:'))
+                    import json
+                    # Show relevant fields from raw data
+                    relevant_fields = {
+                        'agent_id': raw_data.get('agent_id'),
+                        'hostname': raw_data.get('hostname'),
+                        'site': raw_data.get('site'),
+                        'site_name': raw_data.get('site_name'),
+                        'client': raw_data.get('client'),
+                        'client_name': raw_data.get('client_name'),
+                    }
+                    self.stdout.write(f'  {json.dumps(relevant_fields, indent=4)}')
+                    self.stdout.write('')
 
                 # Check for site/client data
                 has_site_data = bool(site_id or client_id)
@@ -150,10 +173,13 @@ class Command(BaseCommand):
                 self.stdout.write('1. RMM provider API doesn\'t return site/client fields')
                 self.stdout.write('2. Devices don\'t have site/client assignments in RMM')
                 self.stdout.write('3. Field names don\'t match what provider expects')
+                self.stdout.write('4. API endpoint needs different parameters')
                 self.stdout.write('\nNext steps:')
                 self.stdout.write('• Check RMM console - do devices have site/client assignments?')
+                self.stdout.write('• Run with --show-raw to see actual API response:')
+                self.stdout.write(f'  python manage.py debug_rmm_sync {connection_id} --show-raw --limit 3')
                 self.stdout.write('• Check API documentation for this RMM provider')
-                self.stdout.write(f'• Contact support with this debug output')
+                self.stdout.write(f'• Share output with support (including --show-raw output)')
             elif devices_without_site > 0:
                 self.stdout.write(self.style.WARNING(f'⚠ {devices_without_site}/{len(devices)} devices missing site/client data'))
                 self.stdout.write('\nThese devices will use the connection\'s organization:')
