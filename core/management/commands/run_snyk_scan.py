@@ -72,21 +72,32 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING('Scan cancelled before execution'))
                 return
 
-            # Find snyk binary (check nvm path first, then system path)
+            # Find snyk binary (check multiple locations)
             import os
             import shutil
 
-            snyk_path = shutil.which('snyk')
-            if not snyk_path:
-                # Try nvm path
-                nvm_node_path = os.path.expanduser('~/.nvm/versions/node')
-                if os.path.exists(nvm_node_path):
-                    # Find the latest node version
-                    node_versions = sorted([d for d in os.listdir(nvm_node_path) if d.startswith('v')])
-                    if node_versions:
-                        snyk_path = os.path.join(nvm_node_path, node_versions[-1], 'bin', 'snyk')
+            snyk_path = None
 
-            if not snyk_path or not os.path.exists(snyk_path):
+            # Check common locations in order of preference
+            possible_paths = [
+                '/usr/local/bin/snyk',  # System-wide symlink (created by install.sh)
+                shutil.which('snyk'),   # In PATH
+            ]
+
+            # Add NVM path
+            nvm_node_path = os.path.expanduser('~/.nvm/versions/node')
+            if os.path.exists(nvm_node_path):
+                node_versions = sorted([d for d in os.listdir(nvm_node_path) if d.startswith('v')])
+                if node_versions:
+                    possible_paths.append(os.path.join(nvm_node_path, node_versions[-1], 'bin', 'snyk'))
+
+            # Find first existing path
+            for path in possible_paths:
+                if path and os.path.exists(path):
+                    snyk_path = path
+                    break
+
+            if not snyk_path:
                 raise FileNotFoundError('Snyk CLI is not installed. Install with: npm install -g snyk')
 
             # Run Snyk test command
