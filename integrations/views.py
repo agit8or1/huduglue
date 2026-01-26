@@ -161,7 +161,7 @@ def integration_delete(request, pk):
 @login_required
 @require_admin
 def integration_test(request, pk):
-    """Test PSA connection (AJAX)."""
+    """Test PSA connection with diagnostic information (AJAX)."""
     org = get_request_organization(request)
     connection = get_object_or_404(PSAConnection, pk=pk, organization=org)
 
@@ -171,12 +171,63 @@ def integration_test(request, pk):
             success = provider.test_connection()
 
             if success:
-                return JsonResponse({'success': True, 'message': 'Connection successful'})
+                # Get diagnostic data - try to fetch a small sample
+                diagnostic_info = {
+                    'connection_ok': True,
+                    'provider': connection.get_provider_type_display(),
+                    'base_url': connection.base_url,
+                }
+
+                # Try to get sample counts
+                try:
+                    if connection.sync_companies:
+                        companies = provider.list_companies(page_size=1)
+                        diagnostic_info['companies_available'] = len(companies) > 0
+                        diagnostic_info['sample_company'] = companies[0]['name'] if companies else None
+
+                    if connection.sync_contacts:
+                        contacts = provider.list_contacts(page_size=1)
+                        diagnostic_info['contacts_available'] = len(contacts) > 0
+
+                    if connection.sync_tickets:
+                        tickets = provider.list_tickets(page_size=1)
+                        diagnostic_info['tickets_available'] = len(tickets) > 0
+                except Exception as e:
+                    diagnostic_info['fetch_warning'] = f'Could not fetch sample data: {str(e)}'
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Connection successful! Data is accessible.',
+                    'diagnostic': diagnostic_info
+                })
             else:
-                return JsonResponse({'success': False, 'message': 'Connection failed'}, status=400)
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Connection test failed. Please check your credentials and Base URL.',
+                    'diagnostic': {
+                        'connection_ok': False,
+                        'base_url': connection.base_url,
+                        'suggestion': 'Verify API credentials and Base URL format'
+                    }
+                }, status=400)
 
         except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+            error_msg = str(e)
+            suggestions = []
+
+            # Provide helpful suggestions based on error type
+            if 'authentication' in error_msg.lower() or '401' in error_msg:
+                suggestions.append('Check your API key or credentials')
+            elif '404' in error_msg or 'not found' in error_msg.lower():
+                suggestions.append('Verify Base URL is correct (should include your subdomain)')
+            elif 'connection' in error_msg.lower() or 'timeout' in error_msg.lower():
+                suggestions.append('Check network connectivity and firewall settings')
+
+            return JsonResponse({
+                'success': False,
+                'message': f'Connection error: {error_msg}',
+                'suggestions': suggestions
+            }, status=500)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 

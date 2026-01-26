@@ -209,6 +209,40 @@ class PSAConnectionForm(forms.ModelForm):
                 self.fields['alga_api_key'].initial = creds.get('api_key', '')
                 self.fields['alga_tenant_id'].initial = creds.get('tenant_id', '')
 
+    def clean_base_url(self):
+        """Validate and normalize base URL with provider-specific checks."""
+        base_url = self.cleaned_data.get('base_url', '').strip()
+
+        if not base_url:
+            raise forms.ValidationError('Base URL is required')
+
+        # Ensure it starts with http:// or https://
+        if not base_url.startswith(('http://', 'https://')):
+            base_url = f'https://{base_url}'
+
+        # Remove trailing slash
+        base_url = base_url.rstrip('/')
+
+        # Provider-specific URL validation
+        provider_type = self.data.get('provider_type')
+
+        if provider_type == 'syncro':
+            # Syncro must include subdomain
+            if not 'syncromsp.com' in base_url:
+                raise forms.ValidationError(
+                    'Syncro Base URL should end with syncromsp.com. '
+                    'Example: https://yourcompany.syncromsp.com'
+                )
+            # Check it has subdomain (should be at least yourcompany.syncromsp.com)
+            parts = base_url.replace('https://', '').replace('http://', '').split('.')
+            if len(parts) < 3:
+                raise forms.ValidationError(
+                    'Syncro Base URL must include your company subdomain. '
+                    'Correct format: https://yourcompany.syncromsp.com'
+                )
+
+        return base_url
+
     def clean(self):
         cleaned_data = super().clean()
         provider_type = cleaned_data.get('provider_type')

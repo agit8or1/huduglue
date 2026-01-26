@@ -121,10 +121,32 @@ class PasswordForm(forms.ModelForm):
 
         # Validate TOTP secret format if provided (for any password type)
         if plaintext_otp_secret:
-            # Verify it's valid base32
+            # Clean the secret (remove spaces, convert to uppercase)
             import re
-            if not re.match(r'^[A-Z2-7]+=*$', plaintext_otp_secret.replace(' ', '')):
-                self.add_error('plaintext_otp_secret', 'TOTP secret must be valid base32 format (A-Z, 2-7)')
+            clean_secret = plaintext_otp_secret.replace(' ', '').upper()
+
+            # Check if it's a full otpauth:// URI
+            if clean_secret.startswith('OTPAUTH://'):
+                self.add_error(
+                    'plaintext_otp_secret',
+                    'Please enter only the secret key, not the full otpauth:// URI. '
+                    'Look for "secret=" in the URI and copy only that value (e.g., JBSWY3DPEHPK3PXP)'
+                )
+            # Verify it's valid base32 (A-Z, 2-7, with optional padding =)
+            elif not re.match(r'^[A-Z2-7]+=*$', clean_secret):
+                self.add_error(
+                    'plaintext_otp_secret',
+                    'TOTP secret must be in Base32 format (letters A-Z and numbers 2-7). '
+                    'Example: JBSWY3DPEHPK3PXP. If you have a QR code, look for "Can\'t scan?" '
+                    'link to reveal the secret key.'
+                )
+            # Check minimum length (TOTP secrets are typically 16-32 characters)
+            elif len(clean_secret) < 16:
+                self.add_error(
+                    'plaintext_otp_secret',
+                    'TOTP secret seems too short. It should be at least 16 characters long. '
+                    'Make sure you copied the complete secret key.'
+                )
 
         # Check password against breach database
         if plaintext_password and getattr(settings, 'HIBP_CHECK_ON_SAVE', True):
