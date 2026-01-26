@@ -43,9 +43,44 @@ def run_fail2ban_command(command):
 
 
 def is_fail2ban_installed():
-    """Check if fail2ban is installed and accessible."""
+    """
+    Check if fail2ban is installed and accessible.
+
+    Returns:
+        tuple: (installed: bool, running: bool, sudo_configured: bool, error_message: str)
+    """
+    # Check if fail2ban package is installed
+    try:
+        result = subprocess.run(
+            ['dpkg', '-l', 'fail2ban'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        package_installed = result.returncode == 0 and 'ii' in result.stdout
+    except Exception:
+        package_installed = False
+
+    if not package_installed:
+        return False, False, False, 'fail2ban package not installed'
+
+    # Check if fail2ban service exists and is running
+    try:
+        result = subprocess.run(
+            ['systemctl', 'is-active', 'fail2ban'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        service_running = result.returncode == 0
+    except Exception:
+        service_running = False
+
+    # Check if sudo permissions are configured
     success, output, error = run_fail2ban_command(['ping'])
-    return success
+    sudo_configured = success
+
+    return package_installed, service_running, sudo_configured, ''
 
 
 @login_required
@@ -53,15 +88,51 @@ def is_fail2ban_installed():
 def fail2ban_status(request):
     """Fail2ban status and management page."""
 
-    # Get sudoers path for installation instructions
-    sudoers_path = settings.BASE_DIR / 'deploy' / 'huduglue-install-sudoers'
+    # Get sudoers paths for installation instructions
+    install_sudoers_path = settings.BASE_DIR / 'deploy' / 'huduglue-install-sudoers'
+    fail2ban_sudoers_path = settings.BASE_DIR / 'deploy' / 'huduglue-fail2ban-sudoers'
 
     # Check if fail2ban is installed
-    if not is_fail2ban_installed():
+    package_installed, service_running, sudo_configured, error_msg = is_fail2ban_installed()
+
+    if not package_installed:
         context = {
             'fail2ban_installed': False,
-            'sudoers_path': sudoers_path,
+            'fail2ban_running': False,
+            'sudo_configured': False,
+            'install_sudoers_path': install_sudoers_path,
+            'fail2ban_sudoers_path': fail2ban_sudoers_path,
         }
+        return render(request, 'core/fail2ban_status.html', context)
+
+    # If installed but sudo not configured, show configuration instructions
+    if not sudo_configured:
+        context = {
+            'fail2ban_installed': True,
+            'fail2ban_running': service_running,
+            'sudo_configured': False,
+            'install_sudoers_path': install_sudoers_path,
+            'fail2ban_sudoers_path': fail2ban_sudoers_path,
+        }
+        messages.warning(
+            request,
+            f'Fail2ban is installed but sudo access not configured. Run: sudo cp {fail2ban_sudoers_path} /etc/sudoers.d/huduglue-fail2ban && sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban'
+        )
+        return render(request, 'core/fail2ban_status.html', context)
+
+    # If not running, show warning
+    if not service_running:
+        context = {
+            'fail2ban_installed': True,
+            'fail2ban_running': False,
+            'sudo_configured': True,
+            'install_sudoers_path': install_sudoers_path,
+            'fail2ban_sudoers_path': fail2ban_sudoers_path,
+        }
+        messages.warning(
+            request,
+            'Fail2ban is installed but not running. Start it with: sudo systemctl start fail2ban'
+        )
         return render(request, 'core/fail2ban_status.html', context)
 
     # Get fail2ban status
@@ -72,6 +143,9 @@ def fail2ban_status(request):
         context = {
             'fail2ban_installed': True,
             'fail2ban_running': False,
+            'sudo_configured': True,
+            'install_sudoers_path': install_sudoers_path,
+            'fail2ban_sudoers_path': fail2ban_sudoers_path,
         }
         return render(request, 'core/fail2ban_status.html', context)
 
@@ -123,9 +197,12 @@ def fail2ban_status(request):
     context = {
         'fail2ban_installed': True,
         'fail2ban_running': True,
+        'sudo_configured': True,
         'jails': jails,
         'total_currently_banned': total_currently_banned,
         'total_all_time_banned': total_all_time_banned,
+        'install_sudoers_path': install_sudoers_path,
+        'fail2ban_sudoers_path': fail2ban_sudoers_path,
     }
 
     return render(request, 'core/fail2ban_status.html', context)
