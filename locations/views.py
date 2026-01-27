@@ -710,3 +710,91 @@ def floor_plan_import(request):
         'form': form,
         'locations': locations,
     })
+
+
+@login_required
+def location_map_data(request):
+    """Return JSON data for location map (organization-specific)."""
+    organization = request.current_organization
+
+    if not organization:
+        return JsonResponse({'error': 'No organization selected'}, status=400)
+
+    # Get all locations for this organization with coordinates
+    locations = Location.objects.filter(
+        organization=organization,
+        latitude__isnull=False,
+        longitude__isnull=False
+    ).values('id', 'name', 'street_address', 'city', 'state', 'postal_code',
+             'latitude', 'longitude', 'location_type', 'status', 'is_primary')
+
+    # Build GeoJSON feature collection
+    features = []
+    for loc in locations:
+        features.append({
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [float(loc['longitude']), float(loc['latitude'])]
+            },
+            'properties': {
+                'id': loc['id'],
+                'name': loc['name'],
+                'address': f"{loc['street_address']}, {loc['city']}, {loc['state']} {loc['postal_code']}",
+                'location_type': loc['location_type'],
+                'status': loc['status'],
+                'is_primary': loc['is_primary'],
+                'url': f"/locations/{loc['id']}/"
+            }
+        })
+
+    return JsonResponse({
+        'type': 'FeatureCollection',
+        'features': features
+    })
+
+
+@login_required
+def global_location_map_data(request):
+    """Return JSON data for global location map (all organizations, superuser only)."""
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    from core.models import Organization
+
+    # Get all locations with coordinates across all organizations
+    locations = Location.objects.filter(
+        latitude__isnull=False,
+        longitude__isnull=False
+    ).select_related('organization').values(
+        'id', 'name', 'street_address', 'city', 'state', 'postal_code',
+        'latitude', 'longitude', 'location_type', 'status', 'is_primary',
+        'organization__id', 'organization__name'
+    )
+
+    # Build GeoJSON feature collection
+    features = []
+    for loc in locations:
+        features.append({
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [float(loc['longitude']), float(loc['latitude'])]
+            },
+            'properties': {
+                'id': loc['id'],
+                'name': loc['name'],
+                'address': f"{loc['street_address']}, {loc['city']}, {loc['state']} {loc['postal_code']}",
+                'location_type': loc['location_type'],
+                'status': loc['status'],
+                'is_primary': loc['is_primary'],
+                'organization_id': loc['organization__id'],
+                'organization_name': loc['organization__name'],
+                'url': f"/locations/{loc['id']}/"
+            }
+        })
+
+    return JsonResponse({
+        'type': 'FeatureCollection',
+        'features': features
+    })

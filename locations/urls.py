@@ -25,4 +25,8 @@ urlpatterns = [
     path('<int:location_id>/refresh-property-data/', views.refresh_property_data, name='refresh_property_data'),
     path('<int:location_id>/refresh-satellite-image/', views.refresh_satellite_image, name='refresh_satellite_image'),
     path('<int:location_id>/import-property-from-url/', views.import_property_from_url, name='import_property_from_url'),
+
+    # Map data endpoints
+    path('map-data/', views.location_map_data, name='location_map_data'),
+    path('global-map-data/', views.global_location_map_data, name='global_location_map_data'),
 ]

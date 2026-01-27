@@ -80,6 +80,21 @@
     </div>
 </div>
 
+<!-- Location Map -->
+<div class="card mb-3">
+    <div class="card-header py-1 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 small"><i class="fas fa-map-marked-alt"></i> Location Map</h6>
+        <a href="{% url 'locations:location_list' %}" class="btn btn-sm btn-link py-0">View All</a>
+    </div>
+    <div class="card-body p-0">
+        <div id="location-map" style="height: 350px; width: 100%;"></div>
+        <div id="map-message" class="text-center py-5 text-muted" style="display: none;">
+            <i class="fas fa-map-marker-alt fa-2x mb-2"></i><br>
+            <span id="map-message-text">Loading map...</span>
+        </div>
+    </div>
+</div>
+
 <div class="row g-2">
     <!-- Recent Items -->
     <div class="col-md-4">
@@ -266,4 +281,102 @@
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<script>
+// Initialize location map
+document.addEventListener('DOMContentLoaded', function() {
+    const mapDiv = document.getElementById('location-map');
+    const messageDiv = document.getElementById('map-message');
+    const messageText = document.getElementById('map-message-text');
+
+    // Fetch location data
+    fetch('{% url "locations:location_map_data" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.features && data.features.length > 0) {
+                // Hide message, show map
+                messageDiv.style.display = 'none';
+                mapDiv.style.display = 'block';
+
+                // Initialize map
+                const map = L.map('location-map').setView([39.8283, -98.5795], 4); // Center of USA
+
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19
+                }).addTo(map);
+
+                // Define marker colors based on status
+                function getMarkerColor(status, is_primary) {
+                    if (is_primary) return '#ffc107'; // Yellow/gold for HQ
+                    switch(status) {
+                        case 'active': return '#28a745'; // Green
+                        case 'inactive': return '#6c757d'; // Gray
+                        case 'planned': return '#17a2b8'; // Blue
+                        case 'closed': return '#dc3545'; // Red
+                        default: return '#007bff'; // Default blue
+                    }
+                }
+
+                // Create custom marker icons
+                function createCustomIcon(color) {
+                    return L.divIcon({
+                        className: 'custom-map-marker',
+                        html: `<div style="background-color: ${color}; width: 25px; height: 25px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><div style="transform: rotate(45deg); margin-top: 4px; margin-left: 7px;"><i class="fas fa-building" style="font-size: 10px; color: #fff;"></i></div></div>`,
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    });
+                }
+
+                // Add markers for each location
+                const markers = [];
+                data.features.forEach(feature => {
+                    const coord = feature.geometry.coordinates;
+                    const props = feature.properties;
+                    const color = getMarkerColor(props.status, props.is_primary);
+
+                    const marker = L.marker([coord[1], coord[0]], {
+                        icon: createCustomIcon(color)
+                    }).addTo(map);
+
+                    // Create popup content
+                    const popupContent = `
+                        <div style="min-width: 200px;">
+                            <h6 class="mb-1">
+                                ${props.is_primary ? '<i class="fas fa-star text-warning"></i> ' : ''}
+                                <strong>${props.name}</strong>
+                            </h6>
+                            <p class="mb-1 small">${props.address}</p>
+                            <p class="mb-1"><span class="badge bg-secondary">${props.location_type}</span> <span class="badge bg-${props.status === 'active' ? 'success' : 'secondary'}">${props.status}</span></p>
+                            <a href="${props.url}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> View Details</a>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                    markers.push(marker);
+                });
+
+                // Fit bounds to show all markers
+                if (markers.length > 0) {
+                    const group = L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+            } else {
+                // No locations with coordinates
+                messageText.textContent = 'No locations with coordinates. Add locations with addresses to see them on the map.';
+                messageDiv.style.display = 'block';
+                mapDiv.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading map data:', error);
+            messageText.textContent = 'Unable to load map. Please try again later.';
+            messageDiv.style.display = 'block';
+            mapDiv.style.display = 'none';
+        });
+});
+</script>
+{% endblock %}
 {% endblock %}

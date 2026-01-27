@@ -166,6 +166,25 @@
     </div>
 </div>
 
+<!-- Global Location Map -->
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-map-marked-alt"></i> Global Location Map</h5>
+                <span class="text-muted small">All Organizations</span>
+            </div>
+            <div class="card-body p-0">
+                <div id="global-location-map" style="height: 500px; width: 100%;"></div>
+                <div id="global-map-message" class="text-center py-5 text-muted" style="display: none;">
+                    <i class="fas fa-map-marker-alt fa-3x mb-3"></i><br>
+                    <span id="global-map-message-text">Loading map...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Process Stats -->
 <div class="row mb-3">
     <div class="col-md-6">
@@ -291,4 +310,149 @@
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<script>
+// Initialize global location map
+document.addEventListener('DOMContentLoaded', function() {
+    const mapDiv = document.getElementById('global-location-map');
+    const messageDiv = document.getElementById('global-map-message');
+    const messageText = document.getElementById('global-map-message-text');
+
+    // Fetch global location data
+    fetch('{% url "locations:global_location_map_data" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.features && data.features.length > 0) {
+                // Hide message, show map
+                messageDiv.style.display = 'none';
+                mapDiv.style.display = 'block';
+
+                // Initialize map
+                const map = L.map('global-location-map').setView([39.8283, -98.5795], 4); // Center of USA
+
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19
+                }).addTo(map);
+
+                // Create organization color map
+                const orgColors = {};
+                const colorPalette = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d', '#e83e8c', '#fd7e14', '#20c997', '#6f42c1'];
+                let colorIndex = 0;
+
+                // Assign colors to organizations
+                data.features.forEach(feature => {
+                    const orgId = feature.properties.organization_id;
+                    if (!orgColors[orgId]) {
+                        orgColors[orgId] = colorPalette[colorIndex % colorPalette.length];
+                        colorIndex++;
+                    }
+                });
+
+                // Define marker colors based on organization
+                function getMarkerColor(orgId, status, is_primary) {
+                    if (is_primary) return '#ffc107'; // Yellow/gold for HQ
+                    if (status === 'inactive' || status === 'closed') return '#6c757d'; // Gray for inactive
+                    return orgColors[orgId] || '#007bff';
+                }
+
+                // Create custom marker icons
+                function createCustomIcon(color) {
+                    return L.divIcon({
+                        className: 'custom-map-marker',
+                        html: `<div style="background-color: ${color}; width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid #fff; box-shadow: 0 3px 6px rgba(0,0,0,0.4);"><div style="transform: rotate(45deg); margin-top: 4px; margin-left: 7px;"><i class="fas fa-building" style="font-size: 11px; color: #fff;"></i></div></div>`,
+                        iconSize: [28, 42],
+                        iconAnchor: [14, 42],
+                        popupAnchor: [1, -34]
+                    });
+                }
+
+                // Add markers for each location
+                const markers = [];
+                data.features.forEach(feature => {
+                    const coord = feature.geometry.coordinates;
+                    const props = feature.properties;
+                    const color = getMarkerColor(props.organization_id, props.status, props.is_primary);
+
+                    const marker = L.marker([coord[1], coord[0]], {
+                        icon: createCustomIcon(color)
+                    }).addTo(map);
+
+                    // Create popup content
+                    const popupContent = `
+                        <div style="min-width: 250px;">
+                            <div class="mb-2">
+                                <span class="badge" style="background-color: ${orgColors[props.organization_id] || '#007bff'};">${props.organization_name}</span>
+                            </div>
+                            <h6 class="mb-1">
+                                ${props.is_primary ? '<i class="fas fa-star text-warning"></i> ' : ''}
+                                <strong>${props.name}</strong>
+                            </h6>
+                            <p class="mb-1 small">${props.address}</p>
+                            <p class="mb-2">
+                                <span class="badge bg-secondary">${props.location_type}</span>
+                                <span class="badge bg-${props.status === 'active' ? 'success' : 'secondary'}">${props.status}</span>
+                            </p>
+                            <a href="${props.url}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> View Details</a>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                    markers.push(marker);
+                });
+
+                // Fit bounds to show all markers
+                if (markers.length > 0) {
+                    const group = L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+
+                // Create legend for organizations
+                const legend = L.control({position: 'bottomright'});
+                legend.onAdd = function(map) {
+                    const div = L.DomUtil.create('div', 'map-legend');
+                    div.style.backgroundColor = 'white';
+                    div.style.padding = '10px';
+                    div.style.border = '2px solid rgba(0,0,0,0.2)';
+                    div.style.borderRadius = '5px';
+                    div.style.maxHeight = '200px';
+                    div.style.overflowY = 'auto';
+                    div.innerHTML = '<strong>Organizations</strong><br>';
+
+                    // Get unique organizations
+                    const orgs = {};
+                    data.features.forEach(feature => {
+                        const orgId = feature.properties.organization_id;
+                        const orgName = feature.properties.organization_name;
+                        if (!orgs[orgId]) {
+                            orgs[orgId] = orgName;
+                        }
+                    });
+
+                    // Add legend items
+                    Object.keys(orgs).forEach(orgId => {
+                        div.innerHTML += `<div><span style="display: inline-block; width: 12px; height: 12px; background-color: ${orgColors[orgId]}; border: 1px solid #fff; margin-right: 5px;"></span>${orgs[orgId]}</div>`;
+                    });
+
+                    return div;
+                };
+                legend.addTo(map);
+
+            } else {
+                // No locations with coordinates
+                messageText.textContent = 'No locations with coordinates found across all organizations.';
+                messageDiv.style.display = 'block';
+                mapDiv.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading global map data:', error);
+            messageText.textContent = 'Unable to load map. Please try again later.';
+            messageDiv.style.display = 'block';
+            mapDiv.style.display = 'none';
+        });
+});
+</script>
+{% endblock %}
 {% endblock %}
