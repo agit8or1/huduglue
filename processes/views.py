@@ -25,18 +25,30 @@ def is_superuser(user):
 
 @login_required
 def process_list(request):
-    """List all processes (org + global)"""
+    """List all processes (org + global) or all processes across all orgs in global view"""
     org = get_request_organization(request)
-    if not org:
+
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = request.is_staff_user if hasattr(request, 'is_staff_user') else False
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: show all processes across all organizations
+        processes = Process.objects.filter(
+            is_published=True,
+            is_archived=False
+        ).select_related('organization', 'created_by').prefetch_related('tags')
+    elif not org:
+        # No org and not in global view - need org context
         messages.error(request, 'Organization context required.')
         return redirect('accounts:organization_list')
-
-    # Get org processes + global processes
-    processes = Process.objects.filter(
-        Q(organization=org) | Q(is_global=True),
-        is_published=True,
-        is_archived=False
-    ).select_related('created_by').prefetch_related('tags')
+    else:
+        # Organization view: get org processes + global processes
+        processes = Process.objects.filter(
+            Q(organization=org) | Q(is_global=True),
+            is_published=True,
+            is_archived=False
+        ).select_related('created_by').prefetch_related('tags')
 
     # Filter by category
     category = request.GET.get('category')
@@ -55,6 +67,7 @@ def process_list(request):
         'current_organization': org,
         'categories': Process.CATEGORY_CHOICES,
         'selected_category': category,
+        'in_global_view': in_global_view,
     })
 
 

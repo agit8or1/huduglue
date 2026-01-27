@@ -21,9 +21,19 @@ from .forms import (
 
 @login_required
 def website_monitor_list(request):
-    """List all website monitors."""
+    """List all website monitors in current organization or all monitors in global view."""
     org = get_request_organization(request)
-    monitors = WebsiteMonitor.objects.filter(organization=org)
+
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = request.is_staff_user if hasattr(request, 'is_staff_user') else False
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: show all monitors across all organizations
+        monitors = WebsiteMonitor.objects.all().select_related('organization')
+    else:
+        # Organization view: show only monitors for current org
+        monitors = WebsiteMonitor.objects.filter(organization=org)
 
     # Filter by status
     status_filter = request.GET.get('status')
@@ -42,6 +52,7 @@ def website_monitor_list(request):
         'monitors': monitors,
         'status_filter': status_filter,
         'query': query,
+        'in_global_view': in_global_view,
     })
 
 

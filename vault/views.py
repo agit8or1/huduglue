@@ -18,13 +18,24 @@ from .encryption import EncryptionError
 @login_required
 def password_list(request):
     """
-    List all passwords in current organization.
+    List all passwords in current organization, or all passwords if in global view mode.
     """
     org = get_request_organization(request)
-    passwords = Password.objects.for_organization(org).prefetch_related('tags')
+
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = request.is_staff_user if hasattr(request, 'is_staff_user') else False
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: show all passwords across all organizations
+        passwords = Password.objects.all().select_related('organization').prefetch_related('tags')
+    else:
+        # Organization view: show only passwords for current org
+        passwords = Password.objects.for_organization(org).prefetch_related('tags')
 
     return render(request, 'vault/password_list.html', {
         'passwords': passwords,
+        'in_global_view': in_global_view,
     })
 
 

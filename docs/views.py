@@ -18,18 +18,32 @@ import os
 def document_list(request):
     """
     List all documents in current organization (NOT including global KB) with filtering.
+    In global view mode, shows all documents across all organizations.
     """
     from django.db.models import Q
     org = get_request_organization(request)
 
-    # Get org-specific docs only (exclude templates)
-    documents = Document.objects.filter(
-        organization=org,
-        is_published=True,
-        is_archived=False,
-        is_global=False,  # Exclude global KB articles
-        is_template=False  # Exclude templates
-    ).prefetch_related('tags', 'category')
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = request.is_staff_user if hasattr(request, 'is_staff_user') else False
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: show all documents across all organizations
+        documents = Document.objects.filter(
+            is_published=True,
+            is_archived=False,
+            is_global=False,  # Exclude global KB articles
+            is_template=False  # Exclude templates
+        ).select_related('organization').prefetch_related('tags', 'category')
+    else:
+        # Organization view: show only docs for current org
+        documents = Document.objects.filter(
+            organization=org,
+            is_published=True,
+            is_archived=False,
+            is_global=False,  # Exclude global KB articles
+            is_template=False  # Exclude templates
+        ).prefetch_related('tags', 'category')
 
     # Filter by category
     category_id = request.GET.get('category')
@@ -51,9 +65,14 @@ def document_list(request):
     documents = documents.order_by('-updated_at')
 
     # Get all categories and tags for filters
-    categories = DocumentCategory.objects.filter(organization=org).order_by('order', 'name')
-    from core.models import Tag
-    tags = Tag.objects.filter(organization=org).order_by('name')
+    if in_global_view:
+        categories = DocumentCategory.objects.all().order_by('organization__name', 'order', 'name')
+        from core.models import Tag
+        tags = Tag.objects.all().order_by('organization__name', 'name')
+    else:
+        categories = DocumentCategory.objects.filter(organization=org).order_by('order', 'name')
+        from core.models import Tag
+        tags = Tag.objects.filter(organization=org).order_by('name')
 
     # Check if user has write permission
     has_write_permission = False
@@ -74,6 +93,7 @@ def document_list(request):
         'selected_tag': tag_id,
         'query': query,
         'has_write_permission': has_write_permission,
+        'in_global_view': in_global_view,
     })
 
 

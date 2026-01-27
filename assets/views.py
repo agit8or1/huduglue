@@ -14,9 +14,22 @@ from .forms import AssetForm, ContactForm
 def asset_list(request):
     """
     List all assets in current organization with filtering.
+    In global view mode, shows all assets across all organizations.
     """
     org = get_request_organization(request)
-    assets = Asset.objects.for_organization(org).prefetch_related('tags').select_related('primary_contact', 'equipment_model__vendor')
+
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = request.is_staff_user if hasattr(request, 'is_staff_user') else False
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: show all assets across all organizations
+        assets = Asset.objects.all().select_related('organization').prefetch_related('tags').select_related('primary_contact', 'equipment_model__vendor')
+        all_assets = Asset.objects.all()
+    else:
+        # Organization view: show only assets for current org
+        assets = Asset.objects.for_organization(org).prefetch_related('tags').select_related('primary_contact', 'equipment_model__vendor')
+        all_assets = Asset.objects.for_organization(org)
 
     # Apply filters
     filter_type = request.GET.get('type', '')
@@ -39,7 +52,6 @@ def asset_list(request):
         assets = assets.filter(custom_fields__location__icontains=filter_location)
 
     # Get unique values for filter dropdowns
-    all_assets = Asset.objects.for_organization(org)
     manufacturers = all_assets.exclude(manufacturer='').values_list('manufacturer', flat=True).distinct().order_by('manufacturer')
     asset_types = Asset.ASSET_TYPES
 
@@ -62,6 +74,7 @@ def asset_list(request):
         'filter_manufacturer': filter_manufacturer,
         'filter_status': filter_status,
         'filter_location': filter_location,
+        'in_global_view': in_global_view,
     })
 
 
@@ -200,13 +213,24 @@ def asset_edit(request, pk):
 @login_required
 def contact_list(request):
     """
-    List all contacts.
+    List all contacts in current organization or all contacts in global view.
     """
     org = get_request_organization(request)
-    contacts = Contact.objects.for_organization(org)
+
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = request.is_staff_user if hasattr(request, 'is_staff_user') else False
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: show all contacts across all organizations
+        contacts = Contact.objects.all().select_related('organization')
+    else:
+        # Organization view: show only contacts for current org
+        contacts = Contact.objects.for_organization(org)
 
     return render(request, 'assets/contact_list.html', {
         'contacts': contacts,
+        'in_global_view': in_global_view,
     })
 
 
