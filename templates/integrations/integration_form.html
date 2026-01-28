@@ -472,6 +472,38 @@
                         <small class="form-text text-muted">How often to sync data (default: 60 minutes)</small>
                     </div>
 
+                    <hr class="my-4">
+                    <h4 class="mb-3">Organization Import Settings</h4>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.import_organizations }}
+                            <label class="form-check-label" for="{{ form.import_organizations.id_for_label }}">
+                                Import Organizations
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">Automatically create HuduGlue organizations from PSA companies</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.org_import_as_active }}
+                            <label class="form-check-label" for="{{ form.org_import_as_active.id_for_label }}">
+                                Import Organizations as Active
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">New organizations will be active by default</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.org_name_prefix.id_for_label }}" class="form-label">Organization Name Prefix (Optional)</label>
+                        {{ form.org_name_prefix }}
+                        {% if form.org_name_prefix.errors %}
+                        <div class="invalid-feedback d-block">{{ form.org_name_prefix.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Add a prefix to imported organization names (e.g., "Client: ", "PSA-")</small>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{% url 'integrations:integration_list' %}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Cancel
