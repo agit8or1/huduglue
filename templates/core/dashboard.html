@@ -428,7 +428,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageDiv.style.display = 'none';
                 mapDiv.style.display = 'block';
 
-                // Initialize map
+                // Initialize map (remove existing instance if present)
+                if (map) {
+                    map.remove();
+                    map = null;
+                }
                 map = L.map('location-map').setView([39.8283, -98.5795], 4); // Center of USA
 
                 // Add OpenStreetMap tiles
