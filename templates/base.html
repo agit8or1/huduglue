@@ -429,13 +429,35 @@
 
     <!-- Global Tooltip Initialization -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            {% if tooltips_enabled %}
-            // Initialize all Bootstrap tooltips when tooltips are enabled
+        {% if tooltips_enabled %}
+        // Initialize Bootstrap tooltips with a small delay to ensure all page elements are ready
+        function initTooltips() {
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-            {% endif %}
-        });
+            tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+                // Dispose existing tooltip if present to avoid duplicates
+                const existingTooltip = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+                if (existingTooltip) {
+                    existingTooltip.dispose();
+                }
+                // Create new tooltip
+                new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    boundary: 'window'
+                });
+            });
+        }
+
+        // Initialize on DOMContentLoaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Small delay to ensure Bootstrap is fully loaded
+                setTimeout(initTooltips, 100);
+            });
+        } else {
+            // DOM already loaded
+            setTimeout(initTooltips, 100);
+        }
+        {% endif %}
     </script>
 
     {% block extra_js %}{% endblock %}
