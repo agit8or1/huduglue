@@ -40,13 +40,13 @@
                             <i class="fas fa-box"></i> Assets
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'assets:asset_list' %}"><i class="fas fa-box"></i> All Assets</a></li>
+                            <li><a class="dropdown-item" href="{% url 'assets:asset_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="View and manage all assets"><i class="fas fa-box"></i> All Assets</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Infrastructure</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'monitoring:rack_list' %}"><i class="fas fa-server"></i> Racks</a></li>
-                            <li><a class="dropdown-item" href="{% url 'monitoring:network_closet_list' %}"><i class="fas fa-network-wired"></i> Network Closets</a></li>
-                            <li><a class="dropdown-item" href="{% url 'monitoring:subnet_list' %}"><i class="fas fa-sitemap"></i> IPAM</a></li>
-                            <li><a class="dropdown-item" href="{% url 'monitoring:vlan_list' %}"><i class="fas fa-layer-group"></i> VLANs</a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:rack_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage server racks and equipment placement"><i class="fas fa-server"></i> Racks</a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:network_closet_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="View network closets and wiring infrastructure"><i class="fas fa-network-wired"></i> Network Closets</a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:subnet_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="IP address management and subnet tracking"><i class="fas fa-sitemap"></i> IPAM</a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:vlan_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage VLANs and network segmentation"><i class="fas fa-layer-group"></i> VLANs</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -54,10 +54,10 @@
                             <i class="fas fa-key"></i> Vault
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'vault:password_list' %}"><i class="fas fa-key"></i> Passwords</a></li>
-                            <li><a class="dropdown-item" href="{% url 'vault:personal_vault_list' %}"><i class="fas fa-sticky-note"></i> My Vault</a></li>
+                            <li><a class="dropdown-item" href="{% url 'vault:password_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Encrypted password storage for the organization"><i class="fas fa-key"></i> Passwords</a></li>
+                            <li><a class="dropdown-item" href="{% url 'vault:personal_vault_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Your private password vault (not accessible by admins)"><i class="fas fa-sticky-note"></i> My Vault</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'core:secure_note_inbox' %}"><i class="fas fa-lock"></i> Secure Notes</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:secure_note_inbox' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Send encrypted ephemeral messages"><i class="fas fa-lock"></i> Secure Notes</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -65,13 +65,13 @@
                             <i class="fas fa-file-alt"></i> Docs
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'docs:document_list' %}"><i class="fas fa-file-alt"></i> Documents</a></li>
-                            <li><a class="dropdown-item" href="{% url 'docs:diagram_list' %}"><i class="fas fa-project-diagram"></i> Diagrams</a></li>
-                            <li><a class="dropdown-item" href="{% url 'locations:floor_plan_import' %}"><i class="fas fa-file-upload"></i> Import Floor Plans</a></li>
+                            <li><a class="dropdown-item" href="{% url 'docs:document_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Knowledge base and documentation"><i class="fas fa-file-alt"></i> Documents</a></li>
+                            <li><a class="dropdown-item" href="{% url 'docs:diagram_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Network diagrams and visual documentation"><i class="fas fa-project-diagram"></i> Diagrams</a></li>
+                            <li><a class="dropdown-item" href="{% url 'locations:floor_plan_import' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Import floor plans from MagicPlan or upload images"><i class="fas fa-file-upload"></i> Import Floor Plans</a></li>
                         </ul>
                     </li>
                     {% if workflows_enabled %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'processes:process_list' %}"><i class="fas fa-tasks"></i> Workflows</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'processes:process_list' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Process automation and workflow templates"><i class="fas fa-tasks"></i> Workflows</a></li>
                     {% endif %}
                     {% if monitoring_enabled %}
                     <li class="nav-item dropdown">
@@ -79,8 +79,8 @@
                             <i class="fas fa-heartbeat"></i> Monitoring
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'monitoring:website_monitor_list' %}"><i class="fas fa-globe"></i> Website Monitors</a></li>
-                            <li><a class="dropdown-item" href="{% url 'monitoring:expiration_list' %}"><i class="fas fa-calendar-times"></i> Expirations</a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:website_monitor_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Website uptime and SSL certificate monitoring"><i class="fas fa-globe"></i> Website Monitors</a></li>
+                            <li><a class="dropdown-item" href="{% url 'monitoring:expiration_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Track SSL certificates, domains, and credential expirations"><i class="fas fa-calendar-times"></i> Expirations</a></li>
                         </ul>
                     </li>
                     {% endif %}
@@ -92,26 +92,26 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><h6 class="dropdown-header">System</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'core:settings_general' %}"><i class="fas fa-sliders-h"></i> Settings</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:system_status' %}"><i class="fas fa-heartbeat"></i> System Status</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:system_updates' %}"><i class="fas fa-sync-alt"></i> System Updates</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:settings_general' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="System settings and configuration"><i class="fas fa-sliders-h"></i> Settings</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:system_status' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Health monitoring and scheduled tasks"><i class="fas fa-heartbeat"></i> System Status</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:system_updates' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Check for and apply system updates"><i class="fas fa-sync-alt"></i> System Updates</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header text-danger">Security</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'core:security_dashboard' %}"><i class="fas fa-shield-alt"></i> Security Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:snyk_scans' %}"><i class="fas fa-bug"></i> Vulnerability Scans</a></li>
-                            <li><a class="dropdown-item" href="{% url 'core:settings_snyk' %}"><i class="fas fa-cog"></i> Scan Configuration</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:security_dashboard' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Security overview and vulnerability status"><i class="fas fa-shield-alt"></i> Security Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:snyk_scans' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="View Snyk vulnerability scan history"><i class="fas fa-bug"></i> Vulnerability Scans</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:settings_snyk' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Configure security scanning settings"><i class="fas fa-cog"></i> Scan Configuration</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Management</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:organization_list' %}"><i class="fas fa-building"></i> Organizations</a></li>
-                            <li><a class="dropdown-item" href="{% url 'locations:location_list' %}"><i class="fas fa-map-marker-alt"></i> Locations</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:access_management' %}"><i class="fas fa-users-cog"></i> Access Management</a></li>
-                            <li><a class="dropdown-item" href="{% url 'integrations:integration_list' %}"><i class="fas fa-plug"></i> Integrations</a></li>
-                            <li><a class="dropdown-item" href="{% url 'imports:import_list' %}"><i class="fas fa-download"></i> Import Data</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:organization_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage organizations and tenants"><i class="fas fa-building"></i> Organizations</a></li>
+                            <li><a class="dropdown-item" href="{% url 'locations:location_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Physical locations and addresses"><i class="fas fa-map-marker-alt"></i> Locations</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:access_management' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="User management, roles, and permissions"><i class="fas fa-users-cog"></i> Access Management</a></li>
+                            <li><a class="dropdown-item" href="{% url 'integrations:integration_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="PSA and RMM integrations"><i class="fas fa-plug"></i> Integrations</a></li>
+                            <li><a class="dropdown-item" href="{% url 'imports:import_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Import data from CSV or other sources"><i class="fas fa-download"></i> Import Data</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Global Views</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}"><i class="fas fa-globe"></i> Global Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Cross-organization overview (staff only)"><i class="fas fa-globe"></i> Global Dashboard</a></li>
                             {% if workflows_enabled %}
-                            <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}"><i class="fas fa-tasks"></i> Global Workflows</a></li>
+                            <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Global workflow templates for all organizations"><i class="fas fa-tasks"></i> Global Workflows</a></li>
                             {% endif %}
                         </ul>
                     </li>
@@ -122,14 +122,14 @@
                     <!-- Global KB Link -->
                     {% if global_kb_enabled %}
                         {% if is_staff_user or user.is_superuser %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'docs:global_kb_list' %}"><i class="fas fa-book"></i> Global KB</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'docs:global_kb_list' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Staff-only knowledge base shared across all organizations"><i class="fas fa-book"></i> Global KB</a></li>
                         {% endif %}
                     {% endif %}
                     <!-- Search Form -->
                     <li class="nav-item">
                         <form class="d-flex mx-2" action="{% url 'core:search' %}" method="get">
-                            <input class="form-control form-control-sm me-1" type="search" name="q" placeholder="Search..." aria-label="Search" style="width: 180px;">
-                            <button class="btn btn-outline-light btn-sm" type="submit"><i class="fas fa-search"></i></button>
+                            <input class="form-control form-control-sm me-1" type="search" name="q" placeholder="Search..." aria-label="Search" style="width: 180px;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Search across passwords, assets, documents, and more">
+                            <button class="btn btn-outline-light btn-sm" type="submit" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Search"><i class="fas fa-search"></i></button>
                         </form>
                     </li>
                     <!-- Theme Toggle -->
@@ -189,15 +189,15 @@
                             {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="View and edit your user profile"><i class="fas fa-user"></i> Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'core:about' %}"><i class="fas fa-info-circle"></i> About</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reportBugModal"><i class="fas fa-bug"></i> Report Bug</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:about' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="System information and version details"><i class="fas fa-info-circle"></i> About</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reportBugModal" title="Report an issue to GitHub"><i class="fas fa-bug"></i> Report Bug</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="post" action="{% url 'logout' %}" style="margin: 0;">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item" style="border: none; background: none; width: 100%; text-align: left; cursor: pointer;">
+                                    <button type="submit" class="dropdown-item" style="border: none; background: none; width: 100%; text-align: left; cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="left" title="Sign out of your account">
                                         <i class="fas fa-sign-out-alt"></i> Logout
                                     </button>
                                 </form>
