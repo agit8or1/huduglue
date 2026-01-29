@@ -270,6 +270,7 @@ Complete feature documentation for HuduGlue - Self-hosted IT documentation platf
 
 ### Integration Features
 - **Automated Device Sync** - Scheduled synchronization via systemd timers with configurable intervals
+- **Device Location Mapping** - Display RMM devices with location data on interactive map with toggle controls, color-coded status markers, and device details
 - **Asset Mapping** - Automatic linking of RMM devices to asset records by serial number/hostname
 - **Alert Management** - Import and track RMM alerts with severity levels and status
 - **Software Inventory** - Track installed software per device with version tracking

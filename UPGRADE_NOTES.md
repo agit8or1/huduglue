@@ -1,5 +1,40 @@
 # HuduGlue Upgrade Notes
 
+## 🗺️ v2.25.0 - RMM Device Location Mapping
+
+### What's New:
+RMM devices with location data now display on the dashboard location map with status-based markers.
+
+### Features Added:
+- **Device Map Layer** - Toggle to show/hide RMM devices on location map
+- **Status Markers** - Green for online devices, red for offline
+- **Device Popups** - Click markers to see device details
+- **GeoJSON API** - Organization and global device location endpoints
+- **Auto Location Parsing** - Extracts coordinates from location, gps_location, or coordinates fields
+
+### Database Changes:
+- Added `latitude` and `longitude` fields to RMMDevice model
+- Created index on lat/lon fields for query performance
+
+### Upgrade:
+```bash
+cd /home/administrator
+git pull origin main
+python manage.py migrate  # Runs migration 0006_add_device_location_fields
+sudo systemctl restart huduglue-gunicorn.service
+```
+
+### Requirements:
+Your RMM must provide location data in format: `"lat,lon"` (e.g., `"-32.238923,101.393939"`)
+
+### Usage:
+1. Update to v2.25.0 and run migration
+2. Sync your RMM connection to import device locations
+3. Go to Dashboard → Location Map
+4. Click "Show Devices" button to display device layer
+
+---
+
 ## 🚨 v2.24.127 - HOTFIX: Critical Template Syntax Error
 
 ### What's Fixed:

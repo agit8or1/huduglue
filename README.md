@@ -1,6 +1,6 @@
 # HuduGlue 🐕
 
-[![Version 2.24.159](https://img.shields.io/badge/version-2.24.159-brightgreen)](https://github.com/agit8or1/huduglue)
+[![Version 2.25.0](https://img.shields.io/badge/version-2.25.0-brightgreen)](https://github.com/agit8or1/huduglue)
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-green)](https://github.com/agit8or1/huduglue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Django 6.0](https://img.shields.io/badge/django-6.0-blue)](https://www.djangoproject.com/)
@@ -177,9 +177,10 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 
 ## 🆕 What's New
 
-### Latest Release - v2.24.159 (January 2026)
+### Latest Release - v2.25.0 (January 2026)
 
 **Recent Highlights:**
+- **RMM Device Location Mapping** - Display devices with location data on interactive map with status-based markers
 - **Workflow Automation** - One-click launch with automatic assignment, complete audit logging, PSA ticket integration
 - **Execution Tracking** - Full history view with filtering, color-coded status badges, progress bars
 - **Auto-Update System** - One-click web updates with real-time progress (20-30 seconds, no SSH required)
@@ -472,7 +473,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- **Version**: 2.24.159
+- **Version**: 2.25.0
 - **Release Date**: January 2026
 - **Status**: Production Ready
 - **Maintained**: Yes

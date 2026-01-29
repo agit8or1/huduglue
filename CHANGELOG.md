@@ -5,6 +5,39 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.25.0] - 2026-01-29
+
+### ✨ New Features
+
+**RMM Device Location Mapping:**
+- **Device Map Layer** - Display RMM devices with location data on the dashboard location map
+- **Toggle Control** - Show/hide device layer with button in map controls
+- **Status-Based Markers** - Green markers for online devices, red for offline
+- **Device Popups** - Click markers to view device name, type, manufacturer, model, status, and last seen
+- **GeoJSON API** - Organization-specific and global device location endpoints
+- **Auto Location Parsing** - Extracts coordinates from location, gps_location, or coordinates fields in RMM raw_data
+
+### 🔧 Technical Changes
+
+**Database:**
+- Added `latitude` and `longitude` DecimalField(10,7) to RMMDevice model
+- Created index on lat/lon fields for query performance
+- Migration: `0006_add_device_location_fields`
+
+**Backend:**
+- New API endpoints: `/integrations/rmm/device-map-data/` and `/integrations/rmm/global-device-map-data/`
+- Location parser in RMMBase provider with format validation
+- Automatic coordinate extraction during device sync
+
+**Frontend:**
+- Device toggle button in dashboard map controls
+- Leaflet marker integration with custom styling
+- AJAX device layer loading with popup binding
+
+**Requirements:**
+- RMM must provide location in `"lat,lon"` format (e.g., `"-32.238923,101.393939"`)
+- Supports location, gps_location, or coordinates fields from RMM APIs
+
 ## [2.24.186] - 2026-01-19
 
 ### ✨ Improvements
