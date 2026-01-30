@@ -503,14 +503,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Add drag event listeners to Leaflet's drag handler
                     map.on('dragstart', function(e) {
                         console.log('✅ DRAG START EVENT FIRED!');
+                        // Get map container and panes
+                        const container = map.getContainer();
+                        const mapPane = map.getPane('mapPane');
+                        const tilePane = map.getPane('tilePane');
+
+                        console.log('Map container:', container);
+                        console.log('Map pane:', mapPane);
+                        console.log('Map pane style:', window.getComputedStyle(mapPane));
+                        console.log('Map pane transform at start:', mapPane.style.transform);
+                        console.log('Tile pane:', tilePane);
                     });
 
                     map.on('drag', function(e) {
                         console.log('✅ DRAGGING...');
+                        // Check if the map pane transform is being updated
+                        const mapPane = map.getPane('mapPane');
+                        if (mapPane) {
+                            console.log('Map pane transform:', mapPane.style.transform);
+                        }
                     });
 
                     map.on('dragend', function(e) {
                         console.log('✅ DRAG END EVENT FIRED!');
+                        const mapPane = map.getPane('mapPane');
+                        if (mapPane) {
+                            console.log('Map pane transform at end:', mapPane.style.transform);
+                        }
                     });
 
                     // Check if touchZoom is interfering
