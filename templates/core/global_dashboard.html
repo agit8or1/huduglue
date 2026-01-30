@@ -170,37 +170,37 @@
 <div class="row mb-3">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center position-relative">
                 <h5 class="mb-0"><i class="fas fa-map-marked-alt"></i> Global Location Map</h5>
-                <span class="text-muted small">All Organizations</span>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary me-2" id="global-map-settings-btn" title="Map Settings" style="display: none;">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                    <span class="text-muted small">All Organizations</span>
+                </div>
+                <!-- Map Settings Panel -->
+                <div id="global-map-settings-panel" class="card shadow-sm position-absolute" style="display: none; top: 100%; right: 0; min-width: 250px; z-index: 10000; margin-top: 5px;">
+                    <div class="card-body p-3">
+                        <h6 class="mb-3"><i class="fas fa-map"></i> Map Settings</h6>
+                        <div class="mb-3">
+                            <label for="global-map-zoom-slider" class="form-label small mb-1">Zoom Level: <span id="global-zoom-level-display">{{ map_default_zoom }}</span></label>
+                            <input type="range" class="form-range" id="global-map-zoom-slider" min="1" max="18" value="{{ map_default_zoom }}">
+                            <small class="text-muted">1=World, 18=Street</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="global-map-dragging-toggle" {% if map_dragging_enabled %}checked{% endif %}>
+                            <label class="form-check-label small" for="global-map-dragging-toggle">
+                                Enable Dragging
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-0" style="position: relative;">
+            <div class="card-body p-0">
                 <div id="global-location-map" style="height: 500px; width: 100%;"></div>
                 <div id="global-map-message" class="text-center py-5 text-muted" style="display: none;">
                     <i class="fas fa-map-marker-alt fa-3x mb-3"></i><br>
                     <span id="global-map-message-text">Loading map...</span>
-                </div>
-                <!-- Map Controls -->
-                <div id="global-map-controls" style="position: absolute; top: 10px; right: 10px; z-index: 9999; display: none; pointer-events: auto;">
-                    <button class="btn btn-sm btn-light shadow-sm" id="global-map-settings-btn" title="Map Settings" style="pointer-events: auto; cursor: pointer;">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                    <div id="global-map-settings-panel" class="card shadow-sm" style="display: none; position: absolute; top: 35px; right: 0; min-width: 250px; z-index: 10000; pointer-events: auto;">
-                        <div class="card-body p-3">
-                            <h6 class="mb-3"><i class="fas fa-map"></i> Map Settings</h6>
-                            <div class="mb-3">
-                                <label for="global-map-zoom-slider" class="form-label small mb-1">Zoom Level: <span id="global-zoom-level-display">{{ map_default_zoom }}</span></label>
-                                <input type="range" class="form-range" id="global-map-zoom-slider" min="1" max="18" value="{{ map_default_zoom }}">
-                                <small class="text-muted">1=World, 18=Street</small>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="global-map-dragging-toggle" {% if map_dragging_enabled %}checked{% endif %}>
-                                <label class="form-check-label small" for="global-map-dragging-toggle">
-                                    Enable Dragging
-                                </label>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -449,26 +449,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     map.fitBounds(group.getBounds().pad(0.1));
                 }
 
-                // Show map controls
-                const mapControlsDiv = document.getElementById('global-map-controls');
-                mapControlsDiv.style.display = 'block';
-
-                // Prevent Leaflet from handling ANY events on controls
-                L.DomEvent.disableClickPropagation(mapControlsDiv);
-                L.DomEvent.disableScrollPropagation(mapControlsDiv);
-
-                // Map settings controls
+                // Show map settings button (now in card header)
                 const settingsBtn = document.getElementById('global-map-settings-btn');
                 const settingsPanel = document.getElementById('global-map-settings-panel');
                 const zoomSlider = document.getElementById('global-map-zoom-slider');
                 const zoomDisplay = document.getElementById('global-zoom-level-display');
                 const draggingToggle = document.getElementById('global-map-dragging-toggle');
 
-                console.log('Global map controls initialized:', {
+                // Show the settings button
+                settingsBtn.style.display = 'inline-block';
+
+                console.log('Global map controls initialized (in header):', {
                     settingsBtn: settingsBtn,
                     settingsPanel: settingsPanel,
-                    visible: mapControlsDiv.style.display,
-                    zIndex: window.getComputedStyle(mapControlsDiv).zIndex
+                    buttonVisible: settingsBtn.style.display
                 });
 
                 // Load saved preferences from localStorage, or use server defaults

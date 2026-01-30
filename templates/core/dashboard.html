@@ -84,25 +84,16 @@
 <div class="card mb-3">
     <div class="card-header py-1 d-flex justify-content-between align-items-center">
         <h6 class="mb-0 small"><i class="fas fa-map-marked-alt"></i> Location Map</h6>
-        <div>
+        <div class="position-relative">
             <button id="toggle-devices" class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Show or hide RMM devices with location data on the map">
                 <i class="fas fa-laptop"></i> <span id="device-toggle-text">Show Devices</span>
             </button>
-            <a href="{% url 'locations:location_list' %}" class="btn btn-sm btn-link py-0" data-bs-toggle="tooltip" data-bs-placement="top" title="View and manage all physical locations">View All</a>
-        </div>
-    </div>
-    <div class="card-body p-0" style="position: relative;">
-        <div id="location-map" style="height: 350px; width: 100%;"></div>
-        <div id="map-message" class="text-center py-5 text-muted" style="display: none;">
-            <i class="fas fa-map-marker-alt fa-2x mb-2"></i><br>
-            <span id="map-message-text">Loading map...</span>
-        </div>
-        <!-- Map Controls -->
-        <div id="map-controls" style="position: absolute; top: 10px; right: 10px; z-index: 9999; display: none; pointer-events: auto;">
-            <button class="btn btn-sm btn-light shadow-sm" id="map-settings-btn" title="Map Settings" style="pointer-events: auto; cursor: pointer;">
-                <i class="fas fa-cog"></i>
+            <button class="btn btn-sm btn-outline-secondary me-2" id="map-settings-btn" title="Map Settings" style="display: none;">
+                <i class="fas fa-cog"></i> Settings
             </button>
-            <div id="map-settings-panel" class="card shadow-sm" style="display: none; position: absolute; top: 35px; right: 0; min-width: 250px; z-index: 10000; pointer-events: auto;">
+            <a href="{% url 'locations:location_list' %}" class="btn btn-sm btn-link py-0" data-bs-toggle="tooltip" data-bs-placement="top" title="View and manage all physical locations">View All</a>
+            <!-- Map Settings Panel -->
+            <div id="map-settings-panel" class="card shadow-sm position-absolute" style="display: none; top: 100%; right: 0; min-width: 250px; z-index: 10000; margin-top: 5px;">
                 <div class="card-body p-3">
                     <h6 class="mb-3"><i class="fas fa-map"></i> Map Settings</h6>
                     <div class="mb-3">
@@ -118,6 +109,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div id="location-map" style="height: 350px; width: 100%;"></div>
+        <div id="map-message" class="text-center py-5 text-muted" style="display: none;">
+            <i class="fas fa-map-marker-alt fa-2x mb-2"></i><br>
+            <span id="map-message-text">Loading map...</span>
         </div>
     </div>
 </div>
@@ -509,26 +507,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     map.fitBounds(group.getBounds().pad(0.1));
                 }
 
-                // Show map controls
-                const mapControlsDiv = document.getElementById('map-controls');
-                mapControlsDiv.style.display = 'block';
-
-                // Prevent Leaflet from handling ANY events on controls
-                L.DomEvent.disableClickPropagation(mapControlsDiv);
-                L.DomEvent.disableScrollPropagation(mapControlsDiv);
-
-                // Map settings controls
+                // Show map settings button (now in card header)
                 const settingsBtn = document.getElementById('map-settings-btn');
                 const settingsPanel = document.getElementById('map-settings-panel');
                 const zoomSlider = document.getElementById('map-zoom-slider');
                 const zoomDisplay = document.getElementById('zoom-level-display');
                 const draggingToggle = document.getElementById('map-dragging-toggle');
 
-                console.log('Map controls initialized:', {
+                // Show the settings button
+                settingsBtn.style.display = 'inline-block';
+
+                console.log('Map controls initialized (in header):', {
                     settingsBtn: settingsBtn,
                     settingsPanel: settingsPanel,
-                    visible: mapControlsDiv.style.display,
-                    zIndex: window.getComputedStyle(mapControlsDiv).zIndex
+                    buttonVisible: settingsBtn.style.display
                 });
 
                 // Load saved preferences from localStorage, or use server defaults
