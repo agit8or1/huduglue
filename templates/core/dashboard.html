@@ -510,8 +510,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show the dragging toggle button
                     draggingToggleBtn.style.display = 'inline-block';
 
-                    // Check if dragging is currently enabled
-                    let draggingEnabled = {{ map_dragging_enabled|lower }};
+                    // Check if dragging is currently enabled from map state
+                    let draggingEnabled = map.dragging.enabled();
+                    console.log('Initial dragging state:', draggingEnabled);
 
                     // Update button state
                     function updateDraggingButton() {
@@ -523,6 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             'btn btn-sm btn-outline-secondary me-2';
 
                         draggingToggleBtn.innerHTML = iconHtml + ' <span id="dragging-toggle-text">' + textHtml + '</span>';
+                        console.log('Button updated - dragging is now:', draggingEnabled);
                     }
 
                     updateDraggingButton();
@@ -531,14 +533,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     draggingToggleBtn.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
+                        console.log('Dragging toggle clicked, current state:', draggingEnabled);
                         draggingEnabled = !draggingEnabled;
                         if (draggingEnabled) {
                             map.dragging.enable();
+                            console.log('Map dragging enabled');
                         } else {
                             map.dragging.disable();
+                            console.log('Map dragging disabled');
                         }
                         updateDraggingButton();
                     });
+
+                    console.log('Dragging toggle button initialized');
                 }
 
                 // Setup satellite view toggle button
