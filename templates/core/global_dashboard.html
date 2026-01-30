@@ -497,7 +497,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Test: Add a mousedown listener to see if events are reaching the map
                     document.getElementById('global-location-map').addEventListener('mousedown', function(e) {
                         console.log('Mousedown on map container detected!');
+                        console.log('Is dragging currently enabled?', map.dragging.enabled());
                     });
+
+                    // Add drag event listeners to Leaflet's drag handler
+                    map.on('dragstart', function(e) {
+                        console.log('✅ DRAG START EVENT FIRED!');
+                    });
+
+                    map.on('drag', function(e) {
+                        console.log('✅ DRAGGING...');
+                    });
+
+                    map.on('dragend', function(e) {
+                        console.log('✅ DRAG END EVENT FIRED!');
+                    });
+
+                    // Check if touchZoom is interfering
+                    console.log('Touch zoom enabled:', map.touchZoom.enabled());
+                    console.log('Scroll wheel zoom enabled:', map.scrollWheelZoom.enabled());
+                    console.log('Box zoom enabled:', map.boxZoom.enabled());
+                    console.log('Keyboard enabled:', map.keyboard.enabled());
 
                     console.log('Dragging toggle button initialized');
                     console.log('Map object:', map);
