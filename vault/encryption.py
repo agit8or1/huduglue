@@ -22,13 +22,30 @@ def get_master_key():
     if not key_b64:
         raise EncryptionError("APP_MASTER_KEY not configured")
 
+    # Add padding if needed for base64 decoding
+    # Base64 strings must be a multiple of 4 characters
+    key_b64 = key_b64.strip()  # Remove any whitespace
+    padding_needed = len(key_b64) % 4
+    if padding_needed:
+        key_b64 += '=' * (4 - padding_needed)
+
     try:
         key = base64.b64decode(key_b64)
     except Exception as e:
-        raise EncryptionError(f"Invalid APP_MASTER_KEY format: {e}")
+        # Provide helpful error message without exposing the actual key
+        raise EncryptionError(
+            f"Invalid APP_MASTER_KEY format: {e}\n"
+            f"Key length: {len(settings.APP_MASTER_KEY)} characters\n"
+            f"The APP_MASTER_KEY must be a valid base64-encoded string.\n"
+            f"To regenerate: python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+        )
 
     if len(key) != 32:
-        raise EncryptionError(f"APP_MASTER_KEY must be 32 bytes, got {len(key)}")
+        raise EncryptionError(
+            f"APP_MASTER_KEY must decode to 32 bytes, got {len(key)} bytes.\n"
+            f"Current key length: {len(settings.APP_MASTER_KEY)} characters\n"
+            f"To regenerate: python3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+        )
 
     return key
 
