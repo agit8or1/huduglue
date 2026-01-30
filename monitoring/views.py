@@ -62,6 +62,11 @@ def website_monitor_create(request):
     """Create website monitor."""
     org = get_request_organization(request)
 
+    # Require organization context for creating website monitors
+    if not org:
+        messages.error(request, 'Organization context required to create website monitors.')
+        return redirect('accounts:organization_list')
+
     if request.method == 'POST':
         form = WebsiteMonitorForm(request.POST, organization=org)
         if form.is_valid():
@@ -168,6 +173,11 @@ def expiration_create(request):
     """Create expiration."""
     org = get_request_organization(request)
 
+    # Require organization context for creating expirations
+    if not org:
+        messages.error(request, 'Organization context required to create expirations.')
+        return redirect('accounts:organization_list')
+
     if request.method == 'POST':
         form = ExpirationForm(request.POST, organization=org)
         if form.is_valid():
@@ -246,6 +256,11 @@ def rack_list(request):
 def rack_create(request):
     """Create rack."""
     org = get_request_organization(request)
+
+    # Require organization context for creating racks
+    if not org:
+        messages.error(request, 'Organization context required to create racks.')
+        return redirect('accounts:organization_list')
 
     if request.method == 'POST':
         form = RackForm(request.POST, organization=org)
@@ -461,6 +476,11 @@ def subnet_create(request):
     """Create subnet."""
     org = get_request_organization(request)
 
+    # Require organization context for creating subnets
+    if not org:
+        messages.error(request, 'Organization context required to create subnets.')
+        return redirect('accounts:organization_list')
+
     if request.method == 'POST':
         form = SubnetForm(request.POST, organization=org)
         if form.is_valid():
@@ -653,6 +673,11 @@ def network_closet_list(request):
 def network_closet_create(request):
     """Create network closet."""
     org = get_request_organization(request)
+
+    # Require organization context for creating network closets
+    if not org:
+        messages.error(request, 'Organization context required to create network closets.')
+        return redirect('accounts:organization_list')
 
     if request.method == 'POST':
         form = RackForm(request.POST, organization=org)
