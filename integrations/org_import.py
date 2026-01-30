@@ -4,6 +4,7 @@ Organization import utilities for PSA/RMM integrations
 from django.utils.text import slugify
 from core.models import Organization
 from audit.models import AuditLog
+from integrations.models import ExternalObjectMap
 import logging
 
 logger = logging.getLogger('integrations')
@@ -94,23 +95,19 @@ def import_organization_from_psa(connection, company_data):
     if org:
         # Update existing organization
         org.name = display_name
-
-        # Update custom fields to track PSA linkage
-        if not org.custom_fields:
-            org.custom_fields = {}
-        org.custom_fields['psa_provider'] = connection.provider_type
-        org.custom_fields['psa_company_id'] = external_id
-        org.custom_fields['psa_connection_id'] = connection.id
-
-        # Update optional fields from PSA
-        if 'phone' in company_data and company_data['phone']:
-            org.custom_fields['psa_phone'] = company_data['phone']
-        if 'address' in company_data and company_data['address']:
-            org.custom_fields['psa_address'] = company_data['address']
-        if 'website' in company_data and company_data['website']:
-            org.custom_fields['psa_website'] = company_data['website']
-
         org.save()
+
+        # Update ExternalObjectMap
+        ExternalObjectMap.objects.update_or_create(
+            connection=connection,
+            external_type='company',
+            external_id=str(external_id),
+            defaults={
+                'organization': org,
+                'local_type': 'organization',
+                'local_id': org.id,
+            }
+        )
 
         logger.info(f"Updated organization {org.slug} from PSA company {company_name}")
 
@@ -139,15 +136,6 @@ def import_organization_from_psa(connection, company_data):
             name=display_name,
             slug=slug,
             is_active=connection.org_import_as_active,
-            custom_fields={
-                'psa_provider': connection.provider_type,
-                'psa_company_id': external_id,
-                'psa_connection_id': connection.id,
-                'psa_phone': company_data.get('phone', ''),
-                'psa_address': company_data.get('address', ''),
-                'psa_website': company_data.get('website', ''),
-                'imported_from_psa': True,
-            }
         )
 
         logger.info(f"Created new organization {org.slug} from PSA company {company_name}")
@@ -156,6 +144,16 @@ def import_organization_from_psa(connection, company_data):
         memberships_created = create_inherited_memberships(org, connection.organization)
         if memberships_created > 0:
             logger.info(f"Created {memberships_created} inherited memberships for {org.name}")
+
+        # Create ExternalObjectMap to track this organization
+        ExternalObjectMap.objects.create(
+            connection=connection,
+            external_type='company',
+            external_id=str(external_id),
+            organization=org,
+            local_type='organization',
+            local_id=org.id,
+        )
 
         AuditLog.objects.create(
             event_type='psa_org_created',
@@ -211,21 +209,19 @@ def import_organization_from_rmm(connection, site_data):
     if org:
         # Update existing organization
         org.name = display_name
-
-        # Update custom fields to track RMM linkage
-        if not org.custom_fields:
-            org.custom_fields = {}
-        org.custom_fields['rmm_provider'] = connection.provider_type
-        org.custom_fields['rmm_site_id'] = external_id
-        org.custom_fields['rmm_connection_id'] = connection.id
-
-        # Update optional fields from RMM
-        if 'description' in site_data and site_data['description']:
-            org.custom_fields['rmm_description'] = site_data['description']
-        if 'contact' in site_data and site_data['contact']:
-            org.custom_fields['rmm_contact'] = site_data['contact']
-
         org.save()
+
+        # Update ExternalObjectMap
+        ExternalObjectMap.objects.update_or_create(
+            connection=connection,
+            external_type='site',
+            external_id=str(external_id),
+            defaults={
+                'organization': org,
+                'local_type': 'organization',
+                'local_id': org.id,
+            }
+        )
 
         logger.info(f"Updated organization {org.slug} from RMM site {site_name}")
 
@@ -254,14 +250,6 @@ def import_organization_from_rmm(connection, site_data):
             name=display_name,
             slug=slug,
             is_active=connection.org_import_as_active,
-            custom_fields={
-                'rmm_provider': connection.provider_type,
-                'rmm_site_id': external_id,
-                'rmm_connection_id': connection.id,
-                'rmm_description': site_data.get('description', ''),
-                'rmm_contact': site_data.get('contact', ''),
-                'imported_from_rmm': True,
-            }
         )
 
         logger.info(f"Created new organization {org.slug} from RMM site {site_name}")
@@ -270,6 +258,16 @@ def import_organization_from_rmm(connection, site_data):
         memberships_created = create_inherited_memberships(org, connection.organization)
         if memberships_created > 0:
             logger.info(f"Created {memberships_created} inherited memberships for {org.name}")
+
+        # Create ExternalObjectMap to track this organization
+        ExternalObjectMap.objects.create(
+            connection=connection,
+            external_type='site',
+            external_id=str(external_id),
+            organization=org,
+            local_type='organization',
+            local_id=org.id,
+        )
 
         AuditLog.objects.create(
             event_type='rmm_org_created',
@@ -289,38 +287,60 @@ def find_existing_organization_by_psa_id(connection, external_id):
     """
     Find existing organization by PSA company ID.
 
-    Searches custom_fields for psa_company_id matching the external_id
-    and psa_connection_id matching the connection.
+    Searches ExternalObjectMap for matching PSA company ID.
 
     Returns:
         Organization instance or None
     """
-    # Search for organizations with matching PSA company ID
-    orgs = Organization.objects.filter(
-        custom_fields__psa_company_id=str(external_id),
-        custom_fields__psa_connection_id=connection.id
-    )
+    # Search for ExternalObjectMap with matching PSA company ID
+    mapping = ExternalObjectMap.objects.filter(
+        connection=connection,
+        external_type='company',
+        external_id=str(external_id),
+        local_type='organization'
+    ).first()
 
-    return orgs.first()
+    if mapping:
+        # Get the organization by local_id
+        try:
+            return Organization.objects.get(id=mapping.local_id)
+        except Organization.DoesNotExist:
+            # Orphaned mapping, delete it
+            logger.warning(f"Found orphaned ExternalObjectMap for organization ID {mapping.local_id}, deleting")
+            mapping.delete()
+            return None
+
+    return None
 
 
 def find_existing_organization_by_rmm_id(connection, external_id):
     """
     Find existing organization by RMM site ID.
 
-    Searches custom_fields for rmm_site_id matching the external_id
-    and rmm_connection_id matching the connection.
+    Searches ExternalObjectMap for matching RMM site ID.
 
     Returns:
         Organization instance or None
     """
-    # Search for organizations with matching RMM site ID
-    orgs = Organization.objects.filter(
-        custom_fields__rmm_site_id=str(external_id),
-        custom_fields__rmm_connection_id=connection.id
-    )
+    # Search for ExternalObjectMap with matching RMM site ID
+    mapping = ExternalObjectMap.objects.filter(
+        connection=connection,
+        external_type='site',
+        external_id=str(external_id),
+        local_type='organization'
+    ).first()
 
-    return orgs.first()
+    if mapping:
+        # Get the organization by local_id
+        try:
+            return Organization.objects.get(id=mapping.local_id)
+        except Organization.DoesNotExist:
+            # Orphaned mapping, delete it
+            logger.warning(f"Found orphaned ExternalObjectMap for organization ID {mapping.local_id}, deleting")
+            mapping.delete()
+            return None
+
+    return None
 
 
 def bulk_import_organizations_from_psa(connection, companies_data):
