@@ -303,6 +303,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleButton = document.getElementById('toggle-devices');
     const toggleText = document.getElementById('device-toggle-text');
 
+    // Prevent duplicate initialization
+    if (mapDiv._mapInitialized) {
+        console.warn('⚠️ Map already initialized, skipping duplicate initialization');
+        return;
+    }
+    mapDiv._mapInitialized = true;
+
     let map = null;
     let deviceLayer = null;
     let showDevices = false;
@@ -438,14 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (map) {
                     map.remove();
                     map = null;
-                }
-
-                // Additional check: Leaflet marks initialized containers with _leaflet_id
-                // Remove any Leaflet-specific properties from the container
-                if (mapDiv._leaflet_id) {
-                    console.warn('⚠️ Map container already has _leaflet_id:', mapDiv._leaflet_id);
-                    console.warn('⚠️ Deleting old Leaflet ID - this might cause issues');
-                    delete mapDiv._leaflet_id;
                 }
 
                 console.log('Creating new Leaflet map on element:', mapDiv);

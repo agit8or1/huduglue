@@ -326,6 +326,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapDiv = document.getElementById('global-location-map');
     const messageDiv = document.getElementById('global-map-message');
     const messageText = document.getElementById('global-map-message-text');
+
+    // Prevent duplicate initialization
+    if (mapDiv._mapInitialized) {
+        console.warn('⚠️ Map already initialized, skipping duplicate initialization');
+        return;
+    }
+    mapDiv._mapInitialized = true;
+
     let map = null;
 
     // Fetch global location data
