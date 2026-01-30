@@ -334,6 +334,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     map.remove();
                     map = null;
                 }
+
+                // Additional check: Leaflet marks initialized containers with _leaflet_id
+                // Remove any Leaflet-specific properties from the container
+                if (mapDiv._leaflet_id) {
+                    delete mapDiv._leaflet_id;
+                }
+
                 map = L.map('global-location-map').setView([39.8283, -98.5795], 4); // Center of USA
 
                 // Add OpenStreetMap tiles
