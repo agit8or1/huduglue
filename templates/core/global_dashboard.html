@@ -181,11 +181,11 @@
                     <span id="global-map-message-text">Loading map...</span>
                 </div>
                 <!-- Map Controls -->
-                <div id="global-map-controls" style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: none;">
-                    <button class="btn btn-sm btn-light shadow-sm" id="global-map-settings-btn" title="Map Settings">
+                <div id="global-map-controls" style="position: absolute; top: 10px; right: 10px; z-index: 9999; display: none; pointer-events: auto;">
+                    <button class="btn btn-sm btn-light shadow-sm" id="global-map-settings-btn" title="Map Settings" style="pointer-events: auto; cursor: pointer;">
                         <i class="fas fa-cog"></i>
                     </button>
-                    <div id="global-map-settings-panel" class="card shadow-sm" style="display: none; position: absolute; top: 35px; right: 0; min-width: 250px;">
+                    <div id="global-map-settings-panel" class="card shadow-sm" style="display: none; position: absolute; top: 35px; right: 0; min-width: 250px; z-index: 10000; pointer-events: auto;">
                         <div class="card-body p-3">
                             <h6 class="mb-3"><i class="fas fa-map"></i> Map Settings</h6>
                             <div class="mb-3">
@@ -453,8 +453,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const mapControlsDiv = document.getElementById('global-map-controls');
                 mapControlsDiv.style.display = 'block';
 
-                // Prevent Leaflet from handling clicks on controls
+                // Prevent Leaflet from handling ANY events on controls
                 L.DomEvent.disableClickPropagation(mapControlsDiv);
+                L.DomEvent.disableScrollPropagation(mapControlsDiv);
 
                 // Map settings controls
                 const settingsBtn = document.getElementById('global-map-settings-btn');
@@ -463,7 +464,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const zoomDisplay = document.getElementById('global-zoom-level-display');
                 const draggingToggle = document.getElementById('global-map-dragging-toggle');
 
-                console.log('Global map controls initialized:', {settingsBtn, settingsPanel, zoomSlider});
+                console.log('Global map controls initialized:', {
+                    settingsBtn: settingsBtn,
+                    settingsPanel: settingsPanel,
+                    visible: mapControlsDiv.style.display,
+                    zIndex: window.getComputedStyle(mapControlsDiv).zIndex
+                });
 
                 // Load saved preferences from localStorage, or use server defaults
                 const savedZoom = localStorage.getItem('globalMapDefaultZoom');
