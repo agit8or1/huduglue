@@ -240,6 +240,9 @@ class SecureNote(BaseModel):
     require_password = models.BooleanField(default=False, help_text='Require password to decrypt')
     access_password = models.CharField(max_length=255, blank=True, help_text='Hashed password for access')
 
+    # Phase 3: Advanced features (Issue #47)
+    max_views = models.PositiveIntegerField(null=True, blank=True, help_text='Maximum number of views before auto-expiring')
+
     # Tracking
     read_by = models.ManyToManyField(User, related_name='read_secure_notes', blank=True)
     read_count = models.PositiveIntegerField(default=0)
@@ -1081,3 +1084,44 @@ class FirewallLog(models.Model):
 
     def __str__(self):
         return f"Blocked {self.ip_address} ({self.get_block_reason_display()}) at {self.timestamp}"
+
+
+class SecureNoteAccessLog(BaseModel):
+    """
+    Access log for secure notes (Issue #47 Phase 3).
+    Tracks who accessed link-only notes, when, and from where.
+    """
+    secure_note = models.ForeignKey(
+        SecureNote,
+        on_delete=models.CASCADE,
+        related_name='access_logs'
+    )
+    
+    # Access details
+    accessed_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    
+    # Geographic info (optional, can be populated via IP lookup)
+    country = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    
+    # User info (if authenticated)
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='secure_note_accesses'
+    )
+    
+    class Meta:
+        db_table = 'secure_note_access_logs'
+        ordering = ['-accessed_at']
+        indexes = [
+            models.Index(fields=['secure_note', '-accessed_at']),
+            models.Index(fields=['-accessed_at']),
+        ]
+    
+    def __str__(self):
+        return f"Access to {self.secure_note.title} at {self.accessed_at}"

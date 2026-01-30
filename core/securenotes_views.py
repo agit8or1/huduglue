@@ -115,6 +115,7 @@ def secure_note_create(request):
         access_password = request.POST.get('access_password', '')
         link_only = request.POST.get('link_only') == 'on'
         label = request.POST.get('label', '')
+        max_views = request.POST.get('max_views', '')
 
         # Validation
         if not title or not content:
@@ -140,6 +141,13 @@ def secure_note_create(request):
                     hours = int(expires_hours)
                     from datetime import timedelta
                     note.expires_at = timezone.now() + timedelta(hours=hours)
+                except ValueError:
+                    pass
+
+            # Set max_views if provided (Phase 3)
+            if max_views:
+                try:
+                    note.max_views = int(max_views)
                 except ValueError:
                     pass
 
@@ -222,10 +230,86 @@ def secure_note_link_created(request, pk):
     })
 
 
+@login_required
+def secure_note_links_dashboard(request):
+    """
+    Management dashboard for link-only secret notes (Issue #47 Phase 2).
+    Shows all active secret links created by the user with filtering and management.
+    """
+    # Get all link-only notes created by user
+    notes = SecureNote.objects.filter(
+        sender=request.user,
+        link_only=True,
+        is_deleted=False
+    ).order_by('-created_at')
+
+    # Filter by label if provided
+    label_filter = request.GET.get('label', '')
+    if label_filter:
+        notes = notes.filter(label__icontains=label_filter)
+
+    # Filter by status
+    status_filter = request.GET.get('status', 'all')
+    if status_filter == 'active':
+        notes = notes.filter(expires_at__gt=timezone.now()) | notes.filter(expires_at__isnull=True)
+    elif status_filter == 'expired':
+        notes = notes.filter(expires_at__lt=timezone.now())
+
+    # Get all unique labels for filter dropdown
+    all_labels = SecureNote.objects.filter(
+        sender=request.user,
+        link_only=True,
+        is_deleted=False,
+        label__isnull=False
+    ).exclude(label='').values_list('label', flat=True).distinct()
+
+    return render(request, 'core/secure_note_links_dashboard.html', {
+        'notes': notes,
+        'all_labels': all_labels,
+        'label_filter': label_filter,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def secure_note_analytics(request, pk):
+    """
+    View detailed analytics and access logs for a secret link (Issue #47 Phase 3).
+    Only the sender can view analytics.
+    """
+    note = get_object_or_404(SecureNote, pk=pk, sender=request.user)
+
+    if not note.link_only:
+        messages.error(request, 'Analytics are only available for link-only notes.')
+        return redirect('core:secure_note_sent')
+
+    # Get all access logs for this note
+    from .models import SecureNoteAccessLog
+    access_logs = SecureNoteAccessLog.objects.filter(
+        secure_note=note
+    ).order_by('-accessed_at')
+
+    # Calculate statistics
+    total_views = access_logs.count()
+    unique_ips = access_logs.values('ip_address').distinct().count()
+    authenticated_views = access_logs.exclude(user__isnull=True).count()
+    anonymous_views = access_logs.filter(user__isnull=True).count()
+
+    return render(request, 'core/secure_note_analytics.html', {
+        'note': note,
+        'access_logs': access_logs,
+        'total_views': total_views,
+        'unique_ips': unique_ips,
+        'authenticated_views': authenticated_views,
+        'anonymous_views': anonymous_views,
+    })
+
+
 def secure_note_view_link(request, token):
     """
-    View secure note via unique access token (Issue #47 Phase 1).
+    View secure note via unique access token (Issue #47 Phase 1, 3).
     No login required - anyone with the link can access.
+    Phase 3: Adds access logging and max views checking.
     """
     note = get_object_or_404(SecureNote, access_token=token, link_only=True)
 
@@ -239,6 +323,11 @@ def secure_note_view_link(request, token):
         messages.error(request, 'This secret link has expired.')
         return render(request, 'core/secure_note_expired.html')
 
+    # Phase 3: Check if max views reached
+    if note.max_views and note.read_count >= note.max_views:
+        messages.error(request, 'This secret link has reached its maximum view limit.')
+        return render(request, 'core/secure_note_expired.html')
+
     # Check password if required
     if note.require_password:
         if request.method == 'POST':
@@ -250,12 +339,29 @@ def secure_note_view_link(request, token):
         else:
             return render(request, 'core/secure_note_password.html', {'note': note, 'is_link_access': True})
 
+    # Phase 3: Log access
+    from .models import SecureNoteAccessLog
+    def get_client_ip(request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    SecureNoteAccessLog.objects.create(
+        secure_note=note,
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')[:255],
+        user=request.user if request.user.is_authenticated else None
+    )
+
     # Mark as read (increment counter, but no user to track)
     note.read_count += 1
     note.save(update_fields=['read_count'])
 
-    # Delete if read_once is enabled
-    if note.read_once:
+    # Delete if read_once is enabled OR max_views reached
+    if note.read_once or (note.max_views and note.read_count >= note.max_views):
         note.is_deleted = True
         note.save(update_fields=['is_deleted'])
 

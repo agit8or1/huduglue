@@ -69,6 +69,12 @@
                         </div>
                     </div>
 
+                    <div class="mb-3" id="max_views_field" style="display: none;">
+                        <label class="form-label">Maximum Views <span class="badge bg-warning">Phase 3</span></label>
+                        <input type="number" name="max_views" class="form-control" min="1" placeholder="e.g., 5">
+                        <small class="text-muted">Link will expire after this many views (leave empty for unlimited)</small>
+                    </div>
+
                     <div class="mb-3">
                         <div class="form-check">
                             <input type="checkbox" name="require_password" class="form-check-input" id="require_password">
@@ -118,15 +124,18 @@ document.getElementById('require_password').addEventListener('change', function(
 document.getElementById('link_only').addEventListener('change', function() {
     const recipientsField = document.getElementById('recipients_field');
     const recipientsSelect = document.getElementById('recipients_select');
+    const maxViewsField = document.getElementById('max_views_field');
 
     if (this.checked) {
-        // Link-only mode: hide recipients and make it optional
+        // Link-only mode: hide recipients and make it optional, show max_views
         recipientsField.style.display = 'none';
         recipientsSelect.removeAttribute('required');
+        maxViewsField.style.display = 'block';
     } else {
-        // Normal mode: show recipients and make it required
+        // Normal mode: show recipients and make it required, hide max_views
         recipientsField.style.display = 'block';
         recipientsSelect.setAttribute('required', 'required');
+        maxViewsField.style.display = 'none';
     }
 });
 </script>

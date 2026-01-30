@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Secret Links Dashboard - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-link"></i> Secret Links Dashboard <span class="badge bg-success">Phase 2</span></h2>
+    <a href="{% url 'core:secure_note_create' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Create New Secret Link
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Filter by Label</label>
+                <select name="label" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Labels</option>
+                    {% for label in all_labels %}
+                    <option value="{{ label }}" {% if label == label_filter %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <a href="{% url 'core:secure_note_links_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> Clear Filters
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Secret Links List -->
+{% if notes %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Label</th>
+                        <th>Created</th>
+                        <th>Expires</th>
+                        <th>Views</th>
+                        <th>Max Views</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for note in notes %}
+                    <tr>
+                        <td>
+                            <strong>{{ note.title }}</strong>
+                            {% if note.require_password %}
+                            <i class="fas fa-key text-warning ms-1" title="Password protected"></i>
+                            {% endif %}
+                            {% if note.read_once %}
+                            <i class="fas fa-fire text-danger ms-1" title="Read once"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if note.label %}
+                            <span class="badge bg-info">{{ note.label }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ note.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% if note.expires_at %}
+                            {{ note.expires_at|date:"M d, Y H:i" }}
+                            {% if note.is_expired %}
+                            <span class="badge bg-danger ms-1">Expired</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">Never</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ note.read_count }}</span>
+                        </td>
+                        <td>
+                            {% if note.max_views %}
+                            <span class="badge bg-warning">{{ note.max_views }}</span>
+                            {% if note.read_count >= note.max_views %}
+                            <i class="fas fa-exclamation-triangle text-danger ms-1" title="Max views reached"></i>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">∞</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if note.is_expired %}
+                            <span class="badge bg-danger">Expired</span>
+                            {% elif note.max_views and note.read_count >= note.max_views %}
+                            <span class="badge bg-danger">Max Views Reached</span>
+                            {% else %}
+                            <span class="badge bg-success">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="copyLink('{{ request.scheme }}://{{ request.get_host }}{% url 'core:secure_note_view_link' note.access_token %}')" title="Copy Link">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <a href="{% url 'core:secure_note_analytics' note.pk %}" class="btn btn-outline-info" title="View Analytics">
+                                    <i class="fas fa-chart-line"></i>
+                                </a>
+                                <a href="{% url 'core:secure_note_detail' note.pk %}" class="btn btn-outline-secondary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'core:secure_note_delete' note.pk %}" class="btn btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> No secret links found. <a href="{% url 'core:secure_note_create' %}">Create your first secret link</a>
+</div>
+{% endif %}
+
+<!-- Stats Card -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Total Links</h5>
+                <h2>{{ notes.count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Active Links</h5>
+                <h2>{{ notes|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5>Total Views</h5>
+                <h2>{% for note in notes %}{{ note.read_count|add:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5>Unique Labels</h5>
+                <h2>{{ all_labels|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        // Show success feedback
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-primary');
+
+        setTimeout(function() {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+        }, 2000);
+    }, function(err) {
+        alert('Failed to copy link: ' + err);
+    });
+}
+</script>
+{% endblock %}
