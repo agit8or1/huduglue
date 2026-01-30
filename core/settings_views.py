@@ -1961,3 +1961,129 @@ def vault_import(request):
     """
     from vault.views import bitwarden_import
     return bitwarden_import(request)
+
+
+# ============================================================================
+# API Key Validation Endpoints
+# ============================================================================
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def validate_anthropic_key(request):
+    """Validate Anthropic API key via AJAX."""
+    from django.http import JsonResponse
+    from .services.api_key_validator import APIKeyValidator
+    import json
+
+    try:
+        data = json.loads(request.body)
+        api_key = data.get('api_key', '')
+
+        success, message, details = APIKeyValidator.validate_anthropic(api_key)
+
+        return JsonResponse({
+            'success': success,
+            'message': message,
+            'details': details
+        })
+
+    except Exception as e:
+        logger.error(f"Error validating Anthropic key: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Validation error: {str(e)}',
+            'details': {}
+        }, status=500)
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def validate_google_maps_key(request):
+    """Validate Google Maps API key via AJAX."""
+    from django.http import JsonResponse
+    from .services.api_key_validator import APIKeyValidator
+    import json
+
+    try:
+        data = json.loads(request.body)
+        api_key = data.get('api_key', '')
+
+        success, message, details = APIKeyValidator.validate_google_maps(api_key)
+
+        return JsonResponse({
+            'success': success,
+            'message': message,
+            'details': details
+        })
+
+    except Exception as e:
+        logger.error(f"Error validating Google Maps key: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Validation error: {str(e)}',
+            'details': {}
+        }, status=500)
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def validate_twilio_credentials(request):
+    """Validate Twilio credentials via AJAX."""
+    from django.http import JsonResponse
+    from .services.api_key_validator import APIKeyValidator
+    import json
+
+    try:
+        data = json.loads(request.body)
+        account_sid = data.get('account_sid', '')
+        auth_token = data.get('auth_token', '')
+
+        success, message, details = APIKeyValidator.validate_twilio(account_sid, auth_token)
+
+        return JsonResponse({
+            'success': success,
+            'message': message,
+            'details': details
+        })
+
+    except Exception as e:
+        logger.error(f"Error validating Twilio credentials: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Validation error: {str(e)}',
+            'details': {}
+        }, status=500)
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def validate_vonage_credentials(request):
+    """Validate Vonage credentials via AJAX."""
+    from django.http import JsonResponse
+    from .services.api_key_validator import APIKeyValidator
+    import json
+
+    try:
+        data = json.loads(request.body)
+        api_key = data.get('api_key', '')
+        api_secret = data.get('api_secret', '')
+
+        success, message, details = APIKeyValidator.validate_vonage(api_key, api_secret)
+
+        return JsonResponse({
+            'success': success,
+            'message': message,
+            'details': details
+        })
+
+    except Exception as e:
+        logger.error(f"Error validating Vonage credentials: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Validation error: {str(e)}',
+            'details': {}
+        }, status=500)

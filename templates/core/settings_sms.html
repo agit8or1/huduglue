@@ -66,6 +66,13 @@
                     </div>
 
                     <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary" id="test-sms-btn" onclick="testSMSCredentials()">
+                            <i class="fas fa-vial"></i> Test SMS Credentials
+                        </button>
+                        <div id="sms-test-result" class="mt-2" style="display: none;"></div>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="sms_from_number" class="form-label">From Phone Number</label>
                         <input type="tel" class="form-control" id="sms_from_number" name="sms_from_number" value="{{ settings.sms_from_number }}" placeholder="+15551234567" pattern="\+[0-9]{1,15}">
                         <div class="form-text">Your provider's phone number in E.164 format (e.g., +15551234567)</div>
@@ -108,4 +115,86 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function testSMSCredentials() {
+    const provider = document.getElementById('sms_provider').value;
+    const accountSid = document.getElementById('sms_account_sid').value;
+    const authToken = document.getElementById('sms_auth_token').value;
+    const btn = document.getElementById('test-sms-btn');
+    const resultDiv = document.getElementById('sms-test-result');
+
+    if (!accountSid || !authToken) {
+        resultDiv.innerHTML = '<div class="alert alert-warning small mb-0"><i class="fas fa-exclamation-circle"></i> Please enter both Account SID/API Key and Auth Token/Secret</div>';
+        resultDiv.style.display = 'block';
+        return;
+    }
+
+    // Show loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    resultDiv.innerHTML = '<div class="alert alert-info small mb-0"><i class="fas fa-spinner fa-spin"></i> Testing SMS credentials...</div>';
+    resultDiv.style.display = 'block';
+
+    let validationUrl = '';
+    let requestBody = {};
+
+    // Determine which validation endpoint to use based on provider
+    if (provider === 'twilio') {
+        validationUrl = '{% url "core:validate_twilio_credentials" %}';
+        requestBody = {
+            account_sid: accountSid,
+            auth_token: authToken
+        };
+    } else if (provider === 'vonage') {
+        validationUrl = '{% url "core:validate_vonage_credentials" %}';
+        requestBody = {
+            api_key: accountSid,
+            api_secret: authToken
+        };
+    } else {
+        resultDiv.innerHTML = `<div class="alert alert-info small mb-0"><i class="fas fa-info-circle"></i> Automatic validation not yet available for ${provider}. Please test by sending a message.</div>`;
+        resultDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test SMS Credentials';
+        return;
+    }
+
+    // Call validation endpoint
+    fetch(validationUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(requestBody)
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test SMS Credentials';
+
+        if (data.success) {
+            let detailsHtml = '';
+            if (data.details.account_status) {
+                detailsHtml = ` (Account: ${data.details.account_status})`;
+            } else if (data.details.balance) {
+                detailsHtml = ` (Balance: ${data.details.balance})`;
+            }
+            resultDiv.innerHTML = `<div class="alert alert-success small mb-0"><i class="fas fa-check-circle"></i> ${data.message}${detailsHtml}</div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger small mb-0"><i class="fas fa-times-circle"></i> ${data.message}</div>`;
+        }
+        resultDiv.style.display = 'block';
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test SMS Credentials';
+        resultDiv.innerHTML = `<div class="alert alert-danger small mb-0"><i class="fas fa-times-circle"></i> Error: ${error.message}</div>`;
+        resultDiv.style.display = 'block';
+    });
+}
+</script>
 {% endblock %}

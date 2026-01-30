@@ -33,9 +33,15 @@
 
                     <div class="mb-3">
                         <label for="anthropic_api_key" class="form-label">Anthropic API Key</label>
-                        <input type="password" class="form-control font-monospace" id="anthropic_api_key" name="anthropic_api_key" value="{{ current_anthropic_key }}" placeholder="sk-ant-api03-...">
+                        <div class="input-group">
+                            <input type="password" class="form-control font-monospace" id="anthropic_api_key" name="anthropic_api_key" value="{{ current_anthropic_key }}" placeholder="sk-ant-api03-...">
+                            <button type="button" class="btn btn-outline-secondary" id="test-anthropic-btn" onclick="testAnthropicKey()">
+                                <i class="fas fa-vial"></i> Test
+                            </button>
+                        </div>
+                        <div id="anthropic-test-result" class="mt-2" style="display: none;"></div>
                         <div class="form-text">
-                            Required for AI floor plan generation. Get your API key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>
+                            Required for AI floor plan generation and documentation. Get your API key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>
                         </div>
                     </div>
 
@@ -58,7 +64,13 @@
 
                     <div class="mb-3">
                         <label for="google_maps_api_key" class="form-label">Google Maps API Key</label>
-                        <input type="password" class="form-control font-monospace" id="google_maps_api_key" name="google_maps_api_key" value="{{ current_google_maps_key }}" placeholder="AIza...">
+                        <div class="input-group">
+                            <input type="password" class="form-control font-monospace" id="google_maps_api_key" name="google_maps_api_key" value="{{ current_google_maps_key }}" placeholder="AIza...">
+                            <button type="button" class="btn btn-outline-secondary" id="test-googlemaps-btn" onclick="testGoogleMapsKey()">
+                                <i class="fas fa-vial"></i> Test
+                            </button>
+                        </div>
+                        <div id="googlemaps-test-result" class="mt-2" style="display: none;"></div>
                         <div class="form-text">
                             Optional. Used for geocoding addresses and fetching satellite imagery.
                         </div>
@@ -277,6 +289,99 @@
 </style>
 
 <script>
+// API Key Testing Functions
+function testAnthropicKey() {
+    const apiKey = document.getElementById('anthropic_api_key').value;
+    const btn = document.getElementById('test-anthropic-btn');
+    const resultDiv = document.getElementById('anthropic-test-result');
+
+    if (!apiKey) {
+        resultDiv.innerHTML = '<div class="alert alert-warning small mb-0"><i class="fas fa-exclamation-circle"></i> Please enter an API key first</div>';
+        resultDiv.style.display = 'block';
+        return;
+    }
+
+    // Show loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    resultDiv.innerHTML = '<div class="alert alert-info small mb-0"><i class="fas fa-spinner fa-spin"></i> Testing API key...</div>';
+    resultDiv.style.display = 'block';
+
+    // Call validation endpoint
+    fetch('{% url "core:validate_anthropic_key" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ api_key: apiKey })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test';
+
+        if (data.success) {
+            resultDiv.innerHTML = `<div class="alert alert-success small mb-0"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger small mb-0"><i class="fas fa-times-circle"></i> ${data.message}</div>`;
+        }
+        resultDiv.style.display = 'block';
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test';
+        resultDiv.innerHTML = `<div class="alert alert-danger small mb-0"><i class="fas fa-times-circle"></i> Error: ${error.message}</div>`;
+        resultDiv.style.display = 'block';
+    });
+}
+
+function testGoogleMapsKey() {
+    const apiKey = document.getElementById('google_maps_api_key').value;
+    const btn = document.getElementById('test-googlemaps-btn');
+    const resultDiv = document.getElementById('googlemaps-test-result');
+
+    if (!apiKey) {
+        resultDiv.innerHTML = '<div class="alert alert-warning small mb-0"><i class="fas fa-exclamation-circle"></i> Please enter an API key first</div>';
+        resultDiv.style.display = 'block';
+        return;
+    }
+
+    // Show loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    resultDiv.innerHTML = '<div class="alert alert-info small mb-0"><i class="fas fa-spinner fa-spin"></i> Testing API key...</div>';
+    resultDiv.style.display = 'block';
+
+    // Call validation endpoint
+    fetch('{% url "core:validate_google_maps_key" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ api_key: apiKey })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test';
+
+        if (data.success) {
+            resultDiv.innerHTML = `<div class="alert alert-success small mb-0"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger small mb-0"><i class="fas fa-times-circle"></i> ${data.message}</div>`;
+        }
+        resultDiv.style.display = 'block';
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test';
+        resultDiv.innerHTML = `<div class="alert alert-danger small mb-0"><i class="fas fa-times-circle"></i> Error: ${error.message}</div>`;
+        resultDiv.style.display = 'block';
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
     const overlay = document.getElementById('restartOverlay');

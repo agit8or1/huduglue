@@ -85,6 +85,13 @@ urlpatterns = [
     path('settings/data-export/', settings_views.settings_data_export, name='settings_data_export'),
     path('settings/data-export/export/', settings_views.export_data, name='export_data'),
     path('settings/vault-import/', settings_views.vault_import, name='vault_import'),
+
+    # API Key Validation
+    path('settings/validate/anthropic/', settings_views.validate_anthropic_key, name='validate_anthropic_key'),
+    path('settings/validate/google-maps/', settings_views.validate_google_maps_key, name='validate_google_maps_key'),
+    path('settings/validate/twilio/', settings_views.validate_twilio_credentials, name='validate_twilio_credentials'),
+    path('settings/validate/vonage/', settings_views.validate_vonage_credentials, name='validate_vonage_credentials'),
+
     path('settings/restart-app/', settings_views.restart_application, name='restart_application'),
     path('settings/system-status/', settings_views.system_status, name='system_status'),
     path('settings/maintenance/', settings_views.maintenance, name='maintenance'),
