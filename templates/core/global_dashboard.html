@@ -459,15 +459,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const zoomDisplay = document.getElementById('global-zoom-level-display');
                 const draggingToggle = document.getElementById('global-map-dragging-toggle');
 
-                // Load saved preferences from localStorage
+                // Load saved preferences from localStorage, or use server defaults
                 const savedZoom = localStorage.getItem('globalMapDefaultZoom');
                 const savedDragging = localStorage.getItem('globalMapDraggingEnabled');
 
+                // Initialize zoom (use saved or current map zoom)
+                const initialZoom = savedZoom ? parseInt(savedZoom) : map.getZoom();
+                zoomSlider.value = initialZoom;
+                zoomDisplay.textContent = initialZoom;
                 if (savedZoom) {
-                    zoomSlider.value = savedZoom;
-                    zoomDisplay.textContent = savedZoom;
-                    map.setZoom(parseInt(savedZoom));
+                    map.setZoom(initialZoom);
                 }
+
+                // Initialize dragging (use saved or server default)
                 if (savedDragging !== null) {
                     const draggingEnabled = savedDragging === 'true';
                     draggingToggle.checked = draggingEnabled;
@@ -476,17 +480,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         map.dragging.disable();
                     }
+                } else {
+                    // No saved preference, use current state from server config
+                    draggingToggle.checked = {{ map_dragging_enabled|lower }};
                 }
 
                 // Toggle settings panel
                 settingsBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+                    const isVisible = settingsPanel.style.display === 'block';
+                    settingsPanel.style.display = isVisible ? 'none' : 'block';
                 });
 
                 // Close panel when clicking outside
                 document.addEventListener('click', function(e) {
-                    if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
+                    if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
                         settingsPanel.style.display = 'none';
                     }
                 });
@@ -514,9 +522,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const legend = L.control({position: 'bottomright'});
                 legend.onAdd = function(map) {
                     const div = L.DomUtil.create('div', 'map-legend');
-                    div.style.backgroundColor = 'white';
+                    // Use theme-aware colors for better dark mode support
+                    const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                    div.style.backgroundColor = isDarkMode ? '#2b3035' : 'white';
+                    div.style.color = isDarkMode ? '#dee2e6' : '#212529';
                     div.style.padding = '10px';
-                    div.style.border = '2px solid rgba(0,0,0,0.2)';
+                    div.style.border = isDarkMode ? '2px solid rgba(255,255,255,0.2)' : '2px solid rgba(0,0,0,0.2)';
                     div.style.borderRadius = '5px';
                     div.style.maxHeight = '200px';
                     div.style.overflowY = 'auto';
