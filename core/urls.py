@@ -70,6 +70,7 @@ urlpatterns = [
     path('settings/security/', settings_views.settings_security, name='settings_security'),
     path('settings/features/', settings_views.settings_features, name='settings_features'),
     path('settings/smtp/', settings_views.settings_smtp, name='settings_smtp'),
+    path('settings/smtp/test/', settings_views.test_smtp_email, name='test_smtp_email'),
     path('settings/sms/', settings_views.settings_sms, name='settings_sms'),
     path('settings/scheduler/', settings_views.settings_scheduler, name='settings_scheduler'),
     path('settings/directory/', settings_views.settings_directory, name='settings_directory'),

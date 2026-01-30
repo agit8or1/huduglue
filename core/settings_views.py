@@ -287,6 +287,95 @@ def settings_smtp(request):
 
 @login_required
 @user_passes_test(is_superuser)
+@require_POST
+def test_smtp_email(request):
+    """
+    Send a test email to verify SMTP configuration (Issue #58).
+    """
+    from django.core.mail import send_mail
+    from django.core.mail import get_connection
+    from django.core.mail.backends.smtp import EmailBackend
+
+    test_email = request.POST.get('test_email', '').strip()
+
+    if not test_email:
+        messages.error(request, 'Please provide an email address for the test.')
+        return redirect('core:settings_smtp')
+
+    # Get SMTP settings
+    settings = SystemSetting.get_settings()
+
+    if not settings.smtp_enabled:
+        messages.error(request, 'SMTP is not enabled. Please enable and configure SMTP settings first.')
+        return redirect('core:settings_smtp')
+
+    # Decrypt password if set
+    smtp_password = ''
+    if settings.smtp_password:
+        try:
+            from vault.encryption import decrypt
+            smtp_password = decrypt(settings.smtp_password)
+        except Exception as e:
+            logger.error(f"Failed to decrypt SMTP password: {e}")
+            messages.error(request, 'Failed to decrypt SMTP password.')
+            return redirect('core:settings_smtp')
+
+    try:
+        # Configure email backend
+        connection = get_connection(
+            backend='django.core.mail.backends.smtp.EmailBackend',
+            host=settings.smtp_host,
+            port=settings.smtp_port,
+            username=settings.smtp_username,
+            password=smtp_password,
+            use_tls=settings.smtp_use_tls,
+            use_ssl=settings.smtp_use_ssl,
+            timeout=10,
+        )
+
+        # Send test email
+        subject = 'HuduGlue SMTP Test Email'
+        message = f"""This is a test email from HuduGlue.
+
+Your SMTP configuration is working correctly!
+
+Configuration Details:
+- SMTP Host: {settings.smtp_host}
+- SMTP Port: {settings.smtp_port}
+- Use TLS: {'Yes' if settings.smtp_use_tls else 'No'}
+- Use SSL: {'Yes' if settings.smtp_use_ssl else 'No'}
+- From Address: {settings.smtp_from_email}
+- From Name: {settings.smtp_from_name}
+
+This email was sent at: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')} UTC
+
+---
+HuduGlue - IT Documentation Platform
+"""
+
+        from_email = f'{settings.smtp_from_name} <{settings.smtp_from_email}>' if settings.smtp_from_name else settings.smtp_from_email
+
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=[test_email],
+            connection=connection,
+            fail_silently=False,
+        )
+
+        messages.success(request, f'Test email sent successfully to {test_email}. Please check your inbox.')
+        logger.info(f"Test email sent to {test_email} by {request.user.username}")
+
+    except Exception as e:
+        logger.error(f"Failed to send test email: {e}")
+        messages.error(request, f'Failed to send test email: {str(e)}')
+
+    return redirect('core:settings_smtp')
+
+
+@login_required
+@user_passes_test(is_superuser)
 def settings_scheduler(request):
     """Task scheduler settings - manage scheduled tasks."""
     # Ensure default tasks exist
