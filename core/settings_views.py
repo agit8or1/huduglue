@@ -1107,15 +1107,22 @@ def snyk_scan_detail(request, scan_id):
     """View details of a specific Snyk scan."""
     from core.models import SnykScan
     from django.shortcuts import get_object_or_404
-    
+
     scan = get_object_or_404(SnykScan, id=scan_id)
-    
+
     # Parse vulnerabilities for display
     vulnerabilities = scan.vulnerabilities.get('vulnerabilities', [])
-    
+
+    # Check if there are any fixable vulnerabilities
+    has_fixable_vulns = any(
+        vuln.get('fixedIn') or vuln.get('upgradePath')
+        for vuln in vulnerabilities
+    )
+
     return render(request, 'core/snyk_scan_detail.html', {
         'scan': scan,
         'vulnerabilities': vulnerabilities,
+        'has_fixable_vulns': has_fixable_vulns,
         'current_tab': 'snyk',
     })
 
@@ -1282,6 +1289,132 @@ def apply_snyk_remediation(request):
             'success': False,
             'message': str(e)
         })
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def fix_all_snyk_vulnerabilities(request):
+    """Apply fixes for all fixable Snyk vulnerabilities in batch."""
+    from django.http import JsonResponse
+    import subprocess
+    import os
+    import re
+    import json
+
+    vulnerabilities_json = request.POST.get('vulnerabilities')
+
+    if not vulnerabilities_json:
+        return JsonResponse({
+            'success': False,
+            'message': 'No vulnerabilities provided'
+        })
+
+    try:
+        vulnerabilities = json.loads(vulnerabilities_json)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid vulnerabilities data'
+        })
+
+    if not vulnerabilities or not isinstance(vulnerabilities, list):
+        return JsonResponse({
+            'success': False,
+            'message': 'Vulnerabilities must be a non-empty list'
+        })
+
+    # Get virtualenv path
+    venv_path = '/home/administrator/venv'
+    pip_path = os.path.join(venv_path, 'bin', 'pip')
+
+    if not os.path.exists(pip_path):
+        return JsonResponse({
+            'success': False,
+            'message': 'Virtual environment not found'
+        })
+
+    results = []
+
+    for vuln in vulnerabilities:
+        package = vuln.get('package')
+        version = vuln.get('version')
+
+        if not package or not version:
+            results.append({
+                'success': False,
+                'package': package or 'Unknown',
+                'message': 'Missing package or version'
+            })
+            continue
+
+        # Validate package name (prevent command injection)
+        if not re.match(r'^[a-zA-Z0-9_\-\.]+$', package):
+            results.append({
+                'success': False,
+                'package': package,
+                'message': 'Invalid package name'
+            })
+            continue
+
+        # Validate version (prevent command injection)
+        if not re.match(r'^[a-zA-Z0-9_\-\.]+$', version):
+            results.append({
+                'success': False,
+                'package': package,
+                'message': 'Invalid version format'
+            })
+            continue
+
+        try:
+            # Run pip install with specific version
+            cmd = [pip_path, 'install', f'{package}=={version}']
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60,  # 1 minute per package
+                cwd='/home/administrator'
+            )
+
+            # Check if successful
+            if result.returncode == 0:
+                results.append({
+                    'success': True,
+                    'package': package,
+                    'message': f'Upgraded to {version}'
+                })
+            else:
+                results.append({
+                    'success': False,
+                    'package': package,
+                    'message': f'Failed: {result.stderr[:200]}'
+                })
+
+        except subprocess.TimeoutExpired:
+            results.append({
+                'success': False,
+                'package': package,
+                'message': 'Upgrade timed out'
+            })
+        except Exception as e:
+            results.append({
+                'success': False,
+                'package': package,
+                'message': str(e)
+            })
+
+    # Count successes
+    success_count = sum(1 for r in results if r['success'])
+
+    return JsonResponse({
+        'success': True,
+        'message': f'Processed {len(vulnerabilities)} vulnerabilities',
+        'results': results,
+        'success_count': success_count,
+        'total_count': len(vulnerabilities)
+    })
 
 
 @login_required

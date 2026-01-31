@@ -19,9 +19,16 @@
                 <h5 class="mb-0">
                     <i class="fas fa-shield-alt"></i> Scan Details: {{ scan.scan_id }}
                 </h5>
-                <a href="{% url 'core:snyk_scans' %}" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to History
-                </a>
+                <div class="btn-group">
+                    {% if has_fixable_vulns %}
+                    <button type="button" class="btn btn-sm btn-success" id="fixAllBtn">
+                        <i class="fas fa-wrench"></i> Fix All Vulnerabilities
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'core:snyk_scans' %}" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to History
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <!-- Scan Summary -->
@@ -494,6 +501,84 @@ $(document).ready(function() {
                 btn.prop('disabled', false);
                 btn.html(originalHtml);
                 alert('Error restarting application: ' + error);
+            }
+        });
+    });
+
+    // Handle Fix All button
+    $('#fixAllBtn').on('click', function() {
+        const btn = $(this);
+        const originalHtml = btn.html();
+
+        if (!confirm('This will upgrade all packages with available fixes. Are you sure you want to continue?')) {
+            return;
+        }
+
+        // Collect all fixable vulnerabilities
+        const fixableVulns = [];
+        $('.remediate-btn').each(function() {
+            const package = $(this).data('package');
+            const fixVersion = $(this).data('fix-version');
+            if (package && fixVersion) {
+                fixableVulns.push({
+                    package: package,
+                    version: fixVersion
+                });
+            }
+        });
+
+        if (fixableVulns.length === 0) {
+            alert('No fixable vulnerabilities found.');
+            return;
+        }
+
+        // Disable button
+        btn.prop('disabled', true);
+        btn.html('<i class="fas fa-spinner fa-spin"></i> Fixing ' + fixableVulns.length + ' vulnerabilities...');
+
+        // Send AJAX request to fix all
+        $.ajax({
+            url: '{% url "core:fix_all_snyk_vulnerabilities" %}',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: {
+                vulnerabilities: JSON.stringify(fixableVulns),
+                scan_id: '{{ scan.scan_id }}'
+            },
+            success: function(response) {
+                btn.prop('disabled', false);
+                btn.html(originalHtml);
+
+                if (response.success) {
+                    const successCount = response.results.filter(r => r.success).length;
+                    const failCount = response.results.filter(r => !r.success).length;
+
+                    let message = `Successfully fixed ${successCount} out of ${fixableVulns.length} vulnerabilities.\n\n`;
+
+                    if (failCount > 0) {
+                        message += `Failed: ${failCount}\n\n`;
+                        response.results.filter(r => !r.success).forEach(r => {
+                            message += `- ${r.package}: ${r.message}\n`;
+                        });
+                    }
+
+                    message += '\n\nWould you like to restart the application now?';
+
+                    if (confirm(message)) {
+                        $('#restartAppBtn').click();
+                    } else {
+                        alert('Please restart the application and run a new scan to verify the fixes.');
+                    }
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                btn.prop('disabled', false);
+                btn.html(originalHtml);
+                alert('Error fixing vulnerabilities: ' + error);
             }
         });
     });
