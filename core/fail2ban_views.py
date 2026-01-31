@@ -319,6 +319,105 @@ def fail2ban_check_ip(request):
 @login_required
 @user_passes_test(is_superuser)
 @require_POST
+def fail2ban_start(request):
+    """Start fail2ban service."""
+    try:
+        # Enable fail2ban
+        result = subprocess.run(
+            ['sudo', 'systemctl', 'enable', 'fail2ban'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        # Start fail2ban
+        result = subprocess.run(
+            ['sudo', 'systemctl', 'start', 'fail2ban'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode == 0:
+            messages.success(request, 'Fail2ban started successfully!')
+            logger.info(f"User {request.user.username} started fail2ban service")
+        else:
+            messages.error(request, f'Failed to start fail2ban: {result.stderr[:200]}')
+            logger.error(f"Failed to start fail2ban: {result.stderr}")
+
+    except subprocess.TimeoutExpired:
+        messages.error(request, 'Start command timed out.')
+        logger.error("Fail2ban start timed out")
+    except Exception as e:
+        messages.error(request, f'Failed to start fail2ban: {str(e)[:200]}')
+        logger.error(f"Fail2ban start failed: {e}")
+
+    return redirect('core:fail2ban_status')
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def fail2ban_install_sudoers(request):
+    """Automatically install fail2ban sudoers configuration."""
+    import os
+
+    try:
+        # Get the source path for fail2ban sudoers
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        source_path = os.path.join(base_dir, 'deploy', 'huduglue-fail2ban-sudoers')
+        dest_path = '/etc/sudoers.d/huduglue-fail2ban'
+
+        if not os.path.exists(source_path):
+            messages.error(request, 'Fail2ban sudoers source file not found.')
+            logger.error(f"fail2ban sudoers source file not found at {source_path}")
+            return redirect('core:fail2ban_status')
+
+        # Try to install the sudoers file
+        result = subprocess.run(
+            ['sudo', 'cp', source_path, dest_path],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode != 0:
+            messages.error(
+                request,
+                f'Failed to install fail2ban sudoers. Make sure base install sudoers is configured: sudo cp {settings.BASE_DIR}/deploy/huduglue-install-sudoers /etc/sudoers.d/huduglue-install && sudo chmod 0440 /etc/sudoers.d/huduglue-install'
+            )
+            logger.error(f"Failed to copy fail2ban sudoers: {result.stderr}")
+            return redirect('core:fail2ban_status')
+
+        # Set correct permissions
+        result = subprocess.run(
+            ['sudo', 'chmod', '0440', dest_path],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode != 0:
+            messages.error(request, f'Failed to set fail2ban sudoers permissions: {result.stderr[:200]}')
+            logger.error(f"Failed to chmod fail2ban sudoers: {result.stderr}")
+            return redirect('core:fail2ban_status')
+
+        messages.success(request, 'Fail2ban sudoers configuration installed successfully! Refresh the page.')
+        logger.info(f"User {request.user.username} successfully installed fail2ban sudoers configuration")
+
+    except subprocess.TimeoutExpired:
+        messages.error(request, 'Installation timed out.')
+        logger.error("Fail2ban sudoers installation timed out")
+    except Exception as e:
+        messages.error(request, f'Installation failed: {str(e)[:200]}')
+        logger.error(f"Fail2ban sudoers installation failed: {e}")
+
+    return redirect('core:fail2ban_status')
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
 def fail2ban_install(request):
     """Automatically install and configure fail2ban."""
     import os

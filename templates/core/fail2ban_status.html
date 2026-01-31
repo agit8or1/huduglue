@@ -30,7 +30,7 @@
         <div class="alert alert-warning mb-4">
             <h6 class="mb-2"><i class="fas fa-key"></i> Prerequisite: One-Time Sudo Setup</h6>
             <p class="mb-2">Before automatic installation, run this one command to grant HuduGlue permission:</p>
-            <pre class="bg-dark text-white p-2 mb-0 rounded"><code>sudo cp {{ sudoers_path }} /etc/sudoers.d/huduglue-install && sudo chmod 0440 /etc/sudoers.d/huduglue-install</code></pre>
+            <pre class="bg-dark text-white p-2 mb-0 rounded"><code>sudo cp {{ install_sudoers_path }} /etc/sudoers.d/huduglue-install && sudo chmod 0440 /etc/sudoers.d/huduglue-install</code></pre>
         </div>
 
         <div class="text-center mb-4">
@@ -76,15 +76,91 @@ document.getElementById('installForm').addEventListener('submit', function(e) {
 });
 </script>
 
+{% elif not sudo_configured %}
+<!-- Fail2ban Installed but Sudo Not Configured -->
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Sudo Access Required</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle"></i> Fail2ban is installed but HuduGlue needs sudo permissions to manage it.
+        </div>
+
+        <div class="text-center mb-4">
+            <form method="post" action="{% url 'core:fail2ban_install_sudoers' %}" id="installSudoersForm">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-lg" id="installSudoersBtn">
+                    <i class="fas fa-key"></i> Auto-Install Sudo Access
+                </button>
+            </form>
+            <p class="text-muted mt-2 mb-0">
+                <small>Click to automatically configure sudo permissions for fail2ban management.</small>
+            </p>
+        </div>
+
+        <div class="alert alert-light">
+            <h6 class="mb-2"><i class="fas fa-info-circle"></i> What This Does:</h6>
+            <p class="mb-2">This will run the following commands automatically:</p>
+            <pre class="bg-dark text-white p-2 mb-0 rounded"><code>sudo cp {{ fail2ban_sudoers_path }} /etc/sudoers.d/huduglue-fail2ban
+sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban</code></pre>
+            <p class="mb-0 mt-2"><small><strong>Note:</strong> This requires that the base install sudoers file is already configured.</small></p>
+        </div>
+
+        <div class="card bg-light mt-3">
+            <div class="card-body">
+                <h6><i class="fas fa-shield-alt"></i> Permissions Granted:</h6>
+                <ul class="mb-0">
+                    <li>View fail2ban status</li>
+                    <li>Unban IP addresses</li>
+                    <li>Check if IPs are banned</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('installSudoersForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('installSudoersBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
+});
+</script>
+
 {% elif not fail2ban_running %}
 <!-- Fail2ban Not Running -->
-<div class="alert alert-danger">
-    <h4><i class="fas fa-times-circle"></i> Fail2ban Not Running</h4>
-    <p>Fail2ban is installed but not currently running.</p>
-    <p class="mb-0">To start fail2ban:</p>
-    <pre class="bg-dark text-white p-3 mt-2"><code>sudo systemctl start fail2ban
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="fas fa-times-circle"></i> Fail2ban Not Running</h5>
+    </div>
+    <div class="card-body">
+        <p>Fail2ban is installed but not currently running.</p>
+
+        <div class="text-center mb-3">
+            <form method="post" action="{% url 'core:fail2ban_start' %}" id="startFail2banForm">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-lg" id="startFail2banBtn">
+                    <i class="fas fa-play"></i> Start Fail2ban
+                </button>
+            </form>
+        </div>
+
+        <div class="alert alert-light">
+            <h6 class="mb-2"><i class="fas fa-terminal"></i> Manual Commands:</h6>
+            <pre class="bg-dark text-white p-2 mb-0 rounded"><code>sudo systemctl start fail2ban
 sudo systemctl enable fail2ban</code></pre>
+        </div>
+    </div>
 </div>
+
+<script>
+document.getElementById('startFail2banForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('startFail2banBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+});
+</script>
 
 {% else %}
 <!-- Statistics Cards -->
