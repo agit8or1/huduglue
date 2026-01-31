@@ -1023,6 +1023,128 @@ def settings_snyk(request):
 
 @login_required
 @user_passes_test(is_superuser)
+def check_snyk_version(request):
+    """Check current and latest Snyk CLI version."""
+    from django.http import JsonResponse
+    import subprocess
+    import re
+
+    try:
+        # Check current installed version
+        try:
+            result = subprocess.run(
+                ['snyk', '--version'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                # Parse version from output (e.g., "1.1234.0")
+                version_match = re.search(r'(\d+\.\d+\.\d+)', result.stdout)
+                current_version = version_match.group(1) if version_match else result.stdout.strip()
+            else:
+                current_version = None
+        except FileNotFoundError:
+            current_version = None
+        except Exception:
+            current_version = None
+
+        # Check latest version from npm
+        try:
+            result = subprocess.run(
+                ['npm', 'view', 'snyk', 'version'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0:
+                latest_version = result.stdout.strip()
+            else:
+                latest_version = None
+        except Exception:
+            latest_version = None
+
+        # Determine if update is available
+        update_available = False
+        if current_version and latest_version:
+            try:
+                from packaging import version
+                update_available = version.parse(latest_version) > version.parse(current_version)
+            except:
+                # Fallback to string comparison if packaging module not available
+                update_available = latest_version != current_version
+
+        return JsonResponse({
+            'success': True,
+            'current_version': current_version,
+            'latest_version': latest_version,
+            'update_available': update_available
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+
+@login_required
+@user_passes_test(is_superuser)
+@require_POST
+def upgrade_snyk_cli(request):
+    """Upgrade Snyk CLI to the latest version."""
+    from django.http import JsonResponse
+    import subprocess
+
+    try:
+        # Run npm install -g snyk@latest
+        result = subprocess.run(
+            ['npm', 'install', '-g', 'snyk@latest'],
+            capture_output=True,
+            text=True,
+            timeout=120  # 2 minute timeout
+        )
+
+        if result.returncode == 0:
+            # Get new version
+            version_result = subprocess.run(
+                ['snyk', '--version'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            import re
+            version_match = re.search(r'(\d+\.\d+\.\d+)', version_result.stdout)
+            new_version = version_match.group(1) if version_match else 'latest'
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Snyk CLI upgraded successfully',
+                'new_version': new_version,
+                'output': result.stdout + result.stderr
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Failed to upgrade Snyk CLI',
+                'output': result.stdout + result.stderr
+            })
+
+    except subprocess.TimeoutExpired:
+        return JsonResponse({
+            'success': False,
+            'message': 'Upgrade timed out after 2 minutes'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+
+@login_required
+@user_passes_test(is_superuser)
 def test_snyk_connection(request):
     """Test Snyk API connection."""
     import requests
