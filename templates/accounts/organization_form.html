@@ -95,6 +95,16 @@
                         {% if form.country.errors %}<div class="invalid-feedback d-block">{{ form.country.errors }}</div>{% endif %}
                     </div>
 
+                    <!-- Auto-create Location (Issue #56) -->
+                    <div class="mb-3 form-check">
+                        {{ form.auto_create_location }}
+                        <label class="form-check-label" for="{{ form.auto_create_location.id_for_label }}">
+                            {{ form.auto_create_location.label }}
+                        </label>
+                        {% if form.auto_create_location.errors %}<div class="invalid-feedback d-block">{{ form.auto_create_location.errors }}</div>{% endif %}
+                        <small class="form-text text-muted d-block">{{ form.auto_create_location.help_text }}</small>
+                    </div>
+
                     <!-- Contact Information -->
                     <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-phone"></i> Contact Information</h5>
                     <div class="row">
