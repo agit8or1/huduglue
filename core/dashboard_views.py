@@ -24,6 +24,7 @@ def dashboard(request):
     Routes to global dashboard if superuser and no org context.
     """
     org = get_request_organization(request)
+    system_settings = SystemSetting.get_settings()
 
     # If superuser and explicitly accessing dashboard without org context, show global dashboard
     if request.user.is_superuser and not org:
