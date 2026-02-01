@@ -109,20 +109,6 @@ def settings_general(request):
 
     settings = SystemSetting.get_settings()
 
-    # Read current values from .env file for map settings
-    env_path = django_settings.BASE_DIR / '.env'
-    env_values = {}
-    if env_path.exists():
-        with open(env_path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if '=' in line and not line.startswith('#'):
-                    key, value = line.split('=', 1)
-                    env_values[key] = value
-
-    map_default_zoom = env_values.get('MAP_DEFAULT_ZOOM', '4')
-    map_dragging_enabled = env_values.get('MAP_DRAGGING_ENABLED', 'true').lower() == 'true'
-
     if request.method == 'POST':
         # Update general settings
         settings.site_name = request.POST.get('site_name', settings.site_name)
@@ -142,40 +128,12 @@ def settings_general(request):
         # Issue #59: UI/UX Settings
         settings.stay_on_page_after_org_switch = request.POST.get('stay_on_page_after_org_switch') == 'on'
 
+        # Issue #57: Map Settings
+        settings.map_default_zoom = int(request.POST.get('map_default_zoom', 4))
+        settings.map_dragging_enabled = request.POST.get('map_dragging_enabled') == 'on'
+
         settings.updated_by = request.user
         settings.save()
-
-        # Update map settings in .env
-        map_default_zoom_new = request.POST.get('map_default_zoom', '4')
-        map_dragging_enabled_new = 'true' if request.POST.get('map_dragging_enabled') == 'on' else 'false'
-
-        # Read all lines from .env
-        lines = []
-        if env_path.exists():
-            with open(env_path, 'r') as f:
-                lines = f.readlines()
-
-        # Update or add the keys
-        keys_to_update = {
-            'MAP_DEFAULT_ZOOM': map_default_zoom_new,
-            'MAP_DRAGGING_ENABLED': map_dragging_enabled_new,
-        }
-
-        for key, value in keys_to_update.items():
-            found = False
-            for i, line in enumerate(lines):
-                if line.strip().startswith(f'{key}='):
-                    lines[i] = f'{key}={value}\n'
-                    found = True
-                    break
-            if not found:
-                # Add new key
-                lines.append(f'{key}={value}\n')
-
-        # Write back to .env
-        env_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(env_path, 'w') as f:
-            f.writelines(lines)
 
         messages.success(request, 'General settings updated successfully.')
         return redirect('core:settings_general')
@@ -188,8 +146,6 @@ def settings_general(request):
         'settings': settings,
         'timezone_choices': timezone_choices,
         'current_tab': 'general',
-        'map_default_zoom': map_default_zoom,
-        'map_dragging_enabled': map_dragging_enabled,
     })
 
 

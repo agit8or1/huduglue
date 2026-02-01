@@ -438,6 +438,10 @@ class SystemSetting(models.Model):
     # UI/UX Settings (Issue #59)
     stay_on_page_after_org_switch = models.BooleanField(default=True, help_text='Stay on current page when switching organizations instead of redirecting to dashboard')
 
+    # Map Settings (Issue #57)
+    map_default_zoom = models.PositiveIntegerField(default=4, help_text='Default zoom level for dashboard maps (1-18)')
+    map_dragging_enabled = models.BooleanField(default=True, help_text='Enable map dragging by default (can be toggled per-map)')
+
     # Metadata
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='system_settings_updates')

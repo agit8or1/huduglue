@@ -9,6 +9,7 @@ from django.db.models import Count, Q
 from django.conf import settings
 from datetime import timedelta
 from core.middleware import get_request_organization
+from core.models import SystemSetting
 from vault.models import Password
 from assets.models import Asset
 from docs.models import Document
@@ -124,8 +125,8 @@ def dashboard(request):
         'monitors_active': monitors_active,
         'activity_feed': activity_feed,
         'has_2fa': has_2fa,
-        'map_default_zoom': settings.MAP_DEFAULT_ZOOM,
-        'map_dragging_enabled': settings.MAP_DRAGGING_ENABLED,
+        'map_default_zoom': system_settings.map_default_zoom,
+        'map_dragging_enabled': system_settings.map_dragging_enabled,
     })
 
 
@@ -212,6 +213,6 @@ def global_dashboard(request):
         'process_stats': process_stats,
         'total_attachments': total_attachments,
         'total_storage': total_storage,
-        'map_default_zoom': settings.MAP_DEFAULT_ZOOM,
-        'map_dragging_enabled': settings.MAP_DRAGGING_ENABLED,
+        'map_default_zoom': SystemSetting.get_settings().map_default_zoom,
+        'map_dragging_enabled': SystemSetting.get_settings().map_dragging_enabled,
     })
