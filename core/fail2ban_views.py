@@ -321,21 +321,30 @@ def fail2ban_check_ip(request):
 @require_POST
 def fail2ban_start(request):
     """Start fail2ban service."""
+    import os
+
     try:
+        # Set up environment with system paths
+        env = os.environ.copy()
+        system_paths = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        env['PATH'] = system_paths
+
         # Enable fail2ban
         result = subprocess.run(
-            ['sudo', 'systemctl', 'enable', 'fail2ban'],
+            ['/usr/bin/sudo', '/bin/systemctl', 'enable', 'fail2ban'],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
+            env=env
         )
 
         # Start fail2ban
         result = subprocess.run(
-            ['sudo', 'systemctl', 'start', 'fail2ban'],
+            ['/usr/bin/sudo', '/bin/systemctl', 'start', 'fail2ban'],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
+            env=env
         )
 
         if result.returncode == 0:
@@ -348,6 +357,9 @@ def fail2ban_start(request):
     except subprocess.TimeoutExpired:
         messages.error(request, 'Start command timed out.')
         logger.error("Fail2ban start timed out")
+    except FileNotFoundError as e:
+        messages.error(request, f'Required system commands not found: {str(e)}')
+        logger.error(f"System commands not found: {e}")
     except Exception as e:
         messages.error(request, f'Failed to start fail2ban: {str(e)[:200]}')
         logger.error(f"Fail2ban start failed: {e}")
@@ -363,6 +375,11 @@ def fail2ban_install_sudoers(request):
     import os
 
     try:
+        # Set up environment with system paths
+        env = os.environ.copy()
+        system_paths = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        env['PATH'] = system_paths
+
         # Get the source path for fail2ban sudoers
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         source_path = os.path.join(base_dir, 'deploy', 'huduglue-fail2ban-sudoers')
@@ -375,10 +392,11 @@ def fail2ban_install_sudoers(request):
 
         # Try to install the sudoers file
         result = subprocess.run(
-            ['sudo', 'cp', source_path, dest_path],
+            ['/usr/bin/sudo', '/bin/cp', source_path, dest_path],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
+            env=env
         )
 
         if result.returncode != 0:
@@ -391,10 +409,11 @@ def fail2ban_install_sudoers(request):
 
         # Set correct permissions
         result = subprocess.run(
-            ['sudo', 'chmod', '0440', dest_path],
+            ['/usr/bin/sudo', '/bin/chmod', '0440', dest_path],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
+            env=env
         )
 
         if result.returncode != 0:
@@ -408,6 +427,9 @@ def fail2ban_install_sudoers(request):
     except subprocess.TimeoutExpired:
         messages.error(request, 'Installation timed out.')
         logger.error("Fail2ban sudoers installation timed out")
+    except FileNotFoundError as e:
+        messages.error(request, f'Required system commands not found: {str(e)}')
+        logger.error(f"System commands not found: {e}")
     except Exception as e:
         messages.error(request, f'Installation failed: {str(e)[:200]}')
         logger.error(f"Fail2ban sudoers installation failed: {e}")
@@ -423,12 +445,18 @@ def fail2ban_install(request):
     import os
 
     try:
+        # Set up environment with system paths for utilities
+        env = os.environ.copy()
+        system_paths = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        env['PATH'] = system_paths
+
         # Check sudo access first
         test_result = subprocess.run(
-            ['sudo', '-n', 'apt-get', '--version'],
+            ['/usr/bin/sudo', '-n', '/usr/bin/apt-get', '--version'],
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=5,
+            env=env
         )
 
         if test_result.returncode != 0:
@@ -442,19 +470,21 @@ def fail2ban_install(request):
         # Step 1: Update package list
         logger.info("Updating apt package list...")
         result = subprocess.run(
-            ['sudo', 'apt-get', 'update'],
+            ['/usr/bin/sudo', '/usr/bin/apt-get', 'update'],
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
+            env=env
         )
 
         # Step 2: Install fail2ban
         logger.info("Installing fail2ban package...")
         result = subprocess.run(
-            ['sudo', 'apt-get', 'install', '-y', 'fail2ban'],
+            ['/usr/bin/sudo', '/usr/bin/apt-get', 'install', '-y', 'fail2ban'],
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120,
+            env=env
         )
 
         if result.returncode != 0:
@@ -464,8 +494,8 @@ def fail2ban_install(request):
 
         # Step 3: Enable and start service
         logger.info("Enabling and starting fail2ban service...")
-        subprocess.run(['sudo', 'systemctl', 'enable', 'fail2ban'], timeout=10, check=False)
-        subprocess.run(['sudo', 'systemctl', 'start', 'fail2ban'], timeout=10, check=False)
+        subprocess.run(['/usr/bin/sudo', '/bin/systemctl', 'enable', 'fail2ban'], timeout=10, check=False, env=env)
+        subprocess.run(['/usr/bin/sudo', '/bin/systemctl', 'start', 'fail2ban'], timeout=10, check=False, env=env)
 
         # Step 4: Configure sudoers for fail2ban-client access
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -474,8 +504,8 @@ def fail2ban_install(request):
 
         if os.path.exists(source_path):
             logger.info("Installing fail2ban sudoers configuration...")
-            subprocess.run(['sudo', 'cp', source_path, dest_path], timeout=10, check=False)
-            subprocess.run(['sudo', 'chmod', '0440', dest_path], timeout=10, check=False)
+            subprocess.run(['/usr/bin/sudo', '/bin/cp', source_path, dest_path], timeout=10, check=False, env=env)
+            subprocess.run(['/usr/bin/sudo', '/bin/chmod', '0440', dest_path], timeout=10, check=False, env=env)
         else:
             logger.warning("fail2ban sudoers source file not found")
 
@@ -485,9 +515,9 @@ def fail2ban_install(request):
     except subprocess.TimeoutExpired:
         messages.error(request, 'Installation timed out. The package manager may be locked by another process.')
         logger.error("Fail2ban installation timed out")
-    except FileNotFoundError:
-        messages.error(request, 'Required system commands not found. Please ensure sudo and apt-get are available.')
-        logger.error("sudo or apt-get not found")
+    except FileNotFoundError as e:
+        messages.error(request, f'Required system commands not found: {str(e)}. Please ensure sudo and apt-get are available.')
+        logger.error(f"sudo or apt-get not found: {e}")
     except Exception as e:
         messages.error(request, f'Installation failed: {str(e)[:200]}')
         logger.error(f"Fail2ban installation failed with exception: {e}")

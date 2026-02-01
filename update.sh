@@ -163,33 +163,54 @@ info "Installing/updating Python packages..."
 pip install -r requirements.txt || error_exit "pip install failed"
 success "Dependencies installed"
 
-# Check and install Snyk CLI if missing
+# Migrate from old system-wide Snyk to nvm-based installation
+info "Checking for old system-wide Snyk installation..."
+if [ -d "/usr/local/lib/node_modules/snyk" ] && [ -d "$HOME/.nvm" ]; then
+    warning "Found old system-wide Snyk installation - migrating to nvm-based installation..."
+
+    # Remove system-wide symlink if exists
+    if [ -L "/usr/local/bin/snyk" ]; then
+        info "Removing old Snyk symlink..."
+        sudo rm -f /usr/local/bin/snyk || warning "Failed to remove symlink (non-critical)"
+    fi
+
+    # Uninstall system-wide Snyk
+    info "Removing old system-wide Snyk installation..."
+    sudo npm uninstall -g snyk 2>/dev/null || warning "Failed to uninstall system Snyk (non-critical)"
+
+    # Remove directory if it still exists
+    if [ -d "/usr/local/lib/node_modules/snyk" ]; then
+        sudo rm -rf /usr/local/lib/node_modules/snyk 2>/dev/null || warning "Failed to remove Snyk directory (non-critical)"
+    fi
+
+    success "Old Snyk installation cleaned up - will use nvm-based installation"
+elif [ -d "/usr/local/lib/node_modules/snyk" ] && [ ! -d "$HOME/.nvm" ]; then
+    info "Found system-wide Snyk installation (kept - no nvm detected)"
+else
+    success "No migration needed"
+fi
+
+# Check and install Snyk CLI if missing (now managed via web interface)
 info "Checking for Snyk CLI..."
-if command -v npm &> /dev/null; then
-    if ! command -v snyk &> /dev/null; then
-        info "Installing Snyk CLI for security scanning..."
-        sudo npm install -g snyk --silent || warning "Failed to install Snyk CLI (optional)"
-
-        # Create symlink if snyk is in NVM but not in system PATH
-        if ! command -v snyk &> /dev/null && [ -d "$HOME/.nvm/versions/node" ]; then
-            SNYK_PATH=$(find "$HOME/.nvm/versions/node/" -name snyk -type f 2>/dev/null | head -1)
-            if [ -n "$SNYK_PATH" ] && [ -f "$SNYK_PATH" ]; then
-                info "Creating system-wide symlink for Snyk CLI..."
-                sudo ln -sf "$SNYK_PATH" /usr/local/bin/snyk && success "Snyk CLI linked to /usr/local/bin/snyk"
-            fi
-        fi
-
-        if command -v snyk &> /dev/null; then
-            success "Snyk CLI installed"
-        else
-            warning "Snyk CLI not available - security scanning disabled"
-        fi
+if command -v snyk &> /dev/null; then
+    SNYK_VERSION=$(snyk --version 2>/dev/null || echo "unknown")
+    success "Snyk CLI installed (version: $SNYK_VERSION)"
+    info "  • Manage Snyk via Settings → Snyk Security in the web interface"
+    info "  • Use 'Install All Dependencies' button for automatic setup"
+elif [ -d "$HOME/.nvm" ]; then
+    # Check if snyk exists in nvm but isn't in PATH
+    SNYK_NVM_PATH=$(find "$HOME/.nvm/versions/node/" -name snyk -type f 2>/dev/null | head -1)
+    if [ -n "$SNYK_NVM_PATH" ]; then
+        success "Snyk CLI found in nvm (available in web interface)"
+        info "  • Snyk CLI will be available when running via web interface"
     else
-        success "Snyk CLI already installed"
+        warning "Snyk CLI not installed"
+        info "  • Install via Settings → Snyk Security → 'Install All Dependencies'"
     fi
 else
-    warning "npm not available - Snyk CLI cannot be installed"
-    warning "Install with: sudo apt-get install nodejs npm && sudo npm install -g snyk"
+    warning "Snyk CLI not available"
+    info "  • Install Node.js and Snyk via Settings → Snyk Security"
+    info "  • Click 'Install All Dependencies' for automatic setup"
 fi
 
 echo ""
