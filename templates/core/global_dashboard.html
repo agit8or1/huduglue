@@ -447,10 +447,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     markers.push(marker);
                 });
 
-                // Fit bounds to show all markers
+                // Center map on markers but respect default zoom level
                 if (markers.length > 0) {
                     const group = L.featureGroup(markers);
-                    map.fitBounds(group.getBounds().pad(0.1));
+                    const bounds = group.getBounds();
+
+                    // Get center of all markers
+                    const center = bounds.getCenter();
+
+                    // Set view to center with configured default zoom
+                    map.setView(center, {{ map_default_zoom }});
                 }
 
                 // Setup dragging toggle button
