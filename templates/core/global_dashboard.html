@@ -447,16 +447,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     markers.push(marker);
                 });
 
-                // Center map on markers but respect default zoom level
+                // Fit bounds to show all customer locations on global dashboard
                 if (markers.length > 0) {
                     const group = L.featureGroup(markers);
-                    const bounds = group.getBounds();
-
-                    // Get center of all markers
-                    const center = bounds.getCenter();
-
-                    // Set view to center with configured default zoom
-                    map.setView(center, {{ map_default_zoom }});
+                    map.fitBounds(group.getBounds().pad(0.1));
                 }
 
                 // Setup dragging toggle button

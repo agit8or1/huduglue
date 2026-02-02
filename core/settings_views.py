@@ -130,7 +130,8 @@ def settings_general(request):
 
         # Issue #57: Map Settings
         settings.map_default_zoom = int(request.POST.get('map_default_zoom', 4))
-        settings.map_dragging_enabled = request.POST.get('map_dragging_enabled') == 'on'
+        # Note: map_dragging_enabled removed from settings UI - use per-map toggle instead
+        # Field remains in model for backwards compatibility, defaults to True
 
         settings.updated_by = request.user
         settings.save()
