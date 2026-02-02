@@ -153,15 +153,11 @@ def dashboard(request):
 @login_required
 def global_dashboard(request):
     """
-    Global system dashboard - superusers and staff users (MSP techs).
+    Global system dashboard - accessible to all authenticated users.
     Shows system-wide statistics across all organizations.
     """
-    # Only accessible to superusers and staff users (MSP techs), not tenant users
-    is_staff = request.is_staff_user if hasattr(request, 'is_staff_user') else False
-
-    if not (request.user.is_superuser or is_staff):
-        messages.error(request, 'You do not have permission to access the global dashboard.')
-        return redirect('core:dashboard')
+    # Accessible to all authenticated users
+    # Previously restricted to superusers and staff only
 
     from core.models import Organization
     from accounts.models import Membership

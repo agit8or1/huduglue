@@ -109,7 +109,7 @@
                             <li><a class="dropdown-item" href="{% url 'imports:import_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Import data from CSV or other sources"><i class="fas fa-download"></i> Import Data</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Global Views</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Cross-organization overview (staff only)"><i class="fas fa-globe"></i> Global Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Cross-organization overview"><i class="fas fa-globe"></i> Global Dashboard</a></li>
                             {% if workflows_enabled %}
                             <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Global workflow templates for all organizations"><i class="fas fa-tasks"></i> Global Workflows</a></li>
                             {% endif %}
