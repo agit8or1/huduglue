@@ -387,13 +387,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const colorPalette = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d', '#e83e8c', '#fd7e14', '#20c997', '#6f42c1'];
                 let colorIndex = 0;
 
-                // Assign colors to organizations
+                // Get unique organizations first to assign colors properly
+                const uniqueOrgs = new Set();
                 data.features.forEach(feature => {
-                    const orgId = feature.properties.organization_id;
-                    if (!orgColors[orgId]) {
-                        orgColors[orgId] = colorPalette[colorIndex % colorPalette.length];
-                        colorIndex++;
-                    }
+                    uniqueOrgs.add(feature.properties.organization_id);
+                });
+
+                // Assign one color per organization (not per location)
+                uniqueOrgs.forEach(orgId => {
+                    orgColors[orgId] = colorPalette[colorIndex % colorPalette.length];
+                    colorIndex++;
                 });
 
                 // Define marker colors based on organization
@@ -539,8 +542,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
 
-                    // Add legend items
-                    Object.keys(orgs).forEach(orgId => {
+                    // Sort organizations alphabetically by name
+                    const sortedOrgIds = Object.keys(orgs).sort((a, b) => {
+                        return orgs[a].localeCompare(orgs[b]);
+                    });
+
+                    // Add legend items (sorted alphabetically)
+                    sortedOrgIds.forEach(orgId => {
                         div.innerHTML += `<div><span style="display: inline-block; width: 12px; height: 12px; background-color: ${orgColors[orgId]}; border: 1px solid #fff; margin-right: 5px;"></span>${orgs[orgId]}</div>`;
                     });
 
