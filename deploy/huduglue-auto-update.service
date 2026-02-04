@@ -1,0 +1,22 @@
+[Unit]
+Description=HuduGlue Auto-Update Service
+After=network.target
+
+[Service]
+Type=oneshot
+User=administrator
+Group=administrator
+WorkingDirectory=/home/administrator
+ExecStart=/home/administrator/scripts/auto_update.sh
+StandardOutput=append:/var/log/huduglue/auto-update.log
+StandardError=append:/var/log/huduglue/auto-update.log
+
+# Environment
+Environment="PATH=/home/administrator/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Security
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

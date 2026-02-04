@@ -1,0 +1,16 @@
+[Unit]
+Description=HuduGlue Auto-Update Timer
+Requires=huduglue-auto-update.service
+
+[Timer]
+# Run daily at 2 AM
+OnCalendar=daily
+# On boot, wait 10 minutes then check
+OnBootSec=10min
+# Run 2 AM every day
+OnCalendar=02:00
+# If missed, run as soon as possible
+Persistent=true
+
+[Install]
+WantedBy=timers.target
