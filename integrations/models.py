@@ -87,6 +87,44 @@ class PSAConnection(BaseModel):
         encrypted = json.loads(self.encrypted_credentials)
         return decrypt_dict(encrypted)
 
+    def delete(self, *args, **kwargs):
+        """
+        Override delete to clean up imported organizations.
+        When a PSA connection is deleted, automatically delete all organizations
+        that were imported from it (tracked via ExternalObjectMap).
+        """
+        from audit.models import AuditLog
+
+        # Find all organizations imported from this connection
+        imported_orgs = set()
+        for mapping in self.object_maps.filter(local_type='organization'):
+            try:
+                org = Organization.objects.get(id=mapping.local_id)
+                imported_orgs.add(org)
+            except Organization.DoesNotExist:
+                pass
+
+        # Log the cleanup
+        if imported_orgs:
+            org_names = [org.name for org in imported_orgs]
+            AuditLog.objects.create(
+                event_type='psa_connection_deleted',
+                description=f'Deleted PSA connection "{self.name}" and {len(imported_orgs)} imported organizations: {", ".join(org_names)}',
+                metadata={
+                    'connection_name': self.name,
+                    'provider_type': self.provider_type,
+                    'imported_org_count': len(imported_orgs),
+                    'imported_org_names': org_names,
+                }
+            )
+
+        # Delete imported organizations (this will cascade delete their data)
+        for org in imported_orgs:
+            org.delete()
+
+        # Now delete the connection (mappings will cascade delete)
+        super().delete(*args, **kwargs)
+
 
 class ExternalObjectMap(BaseModel):
     """
@@ -317,6 +355,67 @@ class RMMConnection(BaseModel):
             return {}
         encrypted = json.loads(self.encrypted_credentials)
         return decrypt_dict(encrypted)
+
+    def delete(self, *args, **kwargs):
+        """
+        Override delete to clean up imported organizations.
+        When an RMM connection is deleted, automatically delete organizations
+        that were auto-created from RMM sites (identified by name prefix and device ownership).
+        """
+        from audit.models import AuditLog
+
+        # Find organizations that match the import criteria
+        imported_orgs = []
+
+        if self.org_name_prefix:
+            # Find orgs with the RMM prefix
+            potential_orgs = Organization.objects.filter(name__startswith=self.org_name_prefix)
+        else:
+            # No prefix - look for orgs that only have RMM devices and nothing else
+            potential_orgs = Organization.objects.filter(
+                rmm_devices__connection=self,
+            ).distinct()
+
+        # For each potential org, check if it should be deleted
+        for org in potential_orgs:
+            # Skip the parent organization (the one that owns this connection)
+            if org.id == self.organization.id:
+                continue
+
+            # Check if org only has RMM devices and no other data
+            has_other_data = (
+                org.passwords.exists() or
+                org.assets.exists() or
+                org.documents.exists() or
+                org.processes.exists() or
+                org.contacts.exists() or
+                org.website_monitors.exists()
+            )
+
+            # Only delete if it has no other data (pure RMM import)
+            if not has_other_data:
+                imported_orgs.append(org)
+
+        # Log the cleanup
+        if imported_orgs:
+            org_names = [org.name for org in imported_orgs]
+            AuditLog.objects.create(
+                event_type='rmm_connection_deleted',
+                description=f'Deleted RMM connection "{self.name}" and {len(imported_orgs)} imported organizations: {", ".join(org_names)}',
+                metadata={
+                    'connection_name': self.name,
+                    'provider_type': self.provider_type,
+                    'imported_org_count': len(imported_orgs),
+                    'imported_org_names': org_names,
+                }
+            )
+
+        # Delete imported organizations (this will cascade delete their RMM devices)
+        for org in imported_orgs:
+            org.delete()
+
+        # Now delete the connection
+        super().delete(*args, **kwargs)
 
 
 class RMMDevice(BaseModel):

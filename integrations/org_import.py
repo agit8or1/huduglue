@@ -198,7 +198,7 @@ def import_organization_from_rmm(connection, site_data):
     Args:
         connection: RMMConnection instance
         site_data: dict with site/client information from RMM
-            Required keys: 'external_id', 'name'
+            Keys: 'external_id', 'name' (site), 'client_name', 'client_id'
             Optional keys: 'description', 'contact', etc.
 
     Returns:
@@ -207,23 +207,33 @@ def import_organization_from_rmm(connection, site_data):
     if not connection.import_organizations:
         return None
 
-    external_id = str(site_data.get('external_id', ''))
+    # PREFER client_name over site_name for organization naming
+    # This avoids issues where multiple clients have sites in the same location
+    # Example: "Bob's Storage" (client) not "melbourne" (site)
+    client_name = site_data.get('client_name', '').strip()
     site_name = site_data.get('name', '').strip()
 
-    if not external_id or not site_name:
-        logger.warning(f"Missing required site data for import: {site_data}")
+    # Use client name if available, otherwise fall back to site name
+    org_name = client_name if client_name else site_name
+
+    # Use client_id if available, otherwise use site external_id
+    external_id = site_data.get('client_id', '') or site_data.get('external_id', '')
+    external_id = str(external_id)
+
+    if not external_id or not org_name:
+        logger.warning(f"Missing required data for RMM import: {site_data}")
         return None
 
     # Apply prefix if configured
     if connection.org_name_prefix:
-        display_name = f"{connection.org_name_prefix}{site_name}"
+        display_name = f"{connection.org_name_prefix}{org_name}"
     else:
-        display_name = site_name
+        display_name = org_name
 
-    # Generate slug from site name
-    base_slug = slugify(site_name)
+    # Generate slug from org name (client or site)
+    base_slug = slugify(org_name)
     if not base_slug:
-        base_slug = f"site-{external_id}"
+        base_slug = f"rmm-{external_id}"
 
     # Check if organization already exists by name (with prefix)
     # Note: RMM connections don't use ExternalObjectMap (PSA-only)
@@ -238,14 +248,14 @@ def import_organization_from_rmm(connection, site_data):
         org.name = display_name
         org.save()
 
-        logger.info(f"Updated organization {org.slug} from RMM site {site_name}")
+        logger.info(f"Updated organization {org.slug} from RMM: {org_name} (client: {client_name}, site: {site_name})")
 
         AuditLog.objects.create(
             action='sync',
             object_type='organization',
             object_id=org.id,
             object_repr=org.name,
-            description=f'Updated organization from RMM: {site_name} ({connection.provider_type}, site ID: {external_id})',
+            description=f'Updated organization from RMM: {org_name} ({connection.provider_type}, ID: {external_id})',
             organization=org
         )
 
@@ -266,7 +276,7 @@ def import_organization_from_rmm(connection, site_data):
             is_active=connection.org_import_as_active,
         )
 
-        logger.info(f"Created new organization {org.slug} from RMM site {site_name}")
+        logger.info(f"Created new organization {org.slug} from RMM: {org_name} (client: {client_name or 'N/A'}, site: {site_name or 'N/A'})")
 
         # Create inherited memberships from parent organization
         memberships_created = create_inherited_memberships(org, connection.organization)
@@ -278,7 +288,7 @@ def import_organization_from_rmm(connection, site_data):
             object_type='organization',
             object_id=org.id,
             object_repr=org.name,
-            description=f'Created organization from RMM: {site_name} ({connection.provider_type}, site ID: {external_id}, {memberships_created} memberships)',
+            description=f'Created organization from RMM: {org_name} (client_name: {client_name}, site_name: {site_name}, {connection.provider_type}, ID: {external_id}, {memberships_created} memberships)',
             organization=org
         )
 
