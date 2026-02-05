@@ -551,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </h6>
                             <p class="mb-1 small" style="color: ${textColor};">${props.address}</p>
                             <p class="mb-1"><span class="badge bg-secondary">${props.location_type}</span> <span class="badge bg-${props.status === 'active' ? 'success' : 'secondary'}">${props.status}</span></p>
-                            <a href="${props.url}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> View Details</a>
+                            <a href="${props.url}" class="btn btn-sm btn-primary" style="color: #fff !important;"><i class="fas fa-eye"></i> View Details</a>
                         </div>
                     `;
                     marker.bindPopup(popupContent);

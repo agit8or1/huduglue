@@ -70,6 +70,9 @@
                 <thead>
                     <tr>
                         <th>Name</th>
+                        {% if not current_organization %}
+                        <th>Organization</th>
+                        {% endif %}
                         <th>Type</th>
                         <th>Address</th>
                         <th>Status</th>
@@ -88,6 +91,11 @@
                                 {% endif %}
                             </a>
                         </td>
+                        {% if not current_organization %}
+                        <td>
+                            <span class="badge bg-info">{{ location.organization.name }}</span>
+                        </td>
+                        {% endif %}
                         <td>
                             <span class="badge bg-secondary">{{ location.get_location_type_display }}</span>
                         </td>

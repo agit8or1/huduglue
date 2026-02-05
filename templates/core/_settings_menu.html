@@ -70,3 +70,16 @@ Usage: {% include "core/_settings_menu.html" with active_page="general" %}
         </a>
     </div>
 </div>
+
+<style>
+/* Improve readability of active settings menu items in dark mode */
+[data-bs-theme="dark"] .list-group-item-action.active {
+    background-color: var(--bs-primary) !important;
+    color: #ffffff !important;
+    border-color: var(--bs-primary) !important;
+}
+
+[data-bs-theme="dark"] .list-group-item-action {
+    color: var(--bs-body-color);
+}
+</style>
