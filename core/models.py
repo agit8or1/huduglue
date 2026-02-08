@@ -441,6 +441,7 @@ class SystemSetting(models.Model):
     # Map Settings (Issue #57)
     map_default_zoom = models.PositiveIntegerField(default=4, help_text='Default zoom level for dashboard maps (1-18)')
     map_dragging_enabled = models.BooleanField(default=True, help_text='Enable map dragging by default (can be toggled per-map)')
+    global_locations_map_enabled = models.BooleanField(default=True, help_text='Enable global locations map for superusers and staff')
 
     # Metadata
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Delete WAN Connection - {{ wan.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Are you sure you want to delete the following WAN connection?</p>
+
+                <div class="alert alert-light">
+                    <h6 class="mb-2">{{ wan.name }}</h6>
+                    <p class="mb-1"><strong>Location:</strong> {{ location.name }}</p>
+                    <p class="mb-1"><strong>ISP:</strong> {{ wan.isp_name }}</p>
+                    <p class="mb-1"><strong>Type:</strong> {{ wan.get_wan_type_display }}</p>
+                    {% if wan.bandwidth_download_mbps %}
+                    <p class="mb-0"><strong>Bandwidth:</strong> {{ wan.bandwidth_display }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This action cannot be undone. All monitoring history and configuration for this WAN connection will be permanently deleted.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'locations:wan_detail' location.id wan.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Yes, Delete WAN Connection
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

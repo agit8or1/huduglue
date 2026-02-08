@@ -779,6 +779,12 @@ def global_location_map_data(request):
     if not (request.user.is_superuser or is_staff):
         return JsonResponse({'error': 'Permission denied'}, status=403)
 
+    # Check if global locations map is enabled
+    from core.models import SystemSetting
+    settings = SystemSetting.get_settings()
+    if not settings.global_locations_map_enabled:
+        return JsonResponse({'error': 'Global locations map is disabled'}, status=403)
+
     from core.models import Organization
 
     # Get all locations with coordinates across all organizations

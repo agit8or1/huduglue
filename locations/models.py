@@ -410,6 +410,281 @@ class Location(BaseModel):
         super().save(*args, **kwargs)
 
 
+class WAN(BaseModel):
+    """
+    WAN (Wide Area Network) connection tracking for locations.
+    Tracks ISP, circuit details, and monitoring status.
+    """
+    WAN_TYPES = [
+        ('internet', 'Internet'),
+        ('mpls', 'MPLS'),
+        ('vpn', 'VPN'),
+        ('dedicated', 'Dedicated Circuit'),
+        ('fiber', 'Fiber'),
+        ('cable', 'Cable'),
+        ('dsl', 'DSL'),
+        ('satellite', 'Satellite'),
+        ('wireless', 'Wireless'),
+        ('other', 'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('planned', 'Planned'),
+        ('down', 'Down'),
+        ('maintenance', 'Under Maintenance'),
+    ]
+
+    # Relationships
+    location = models.ForeignKey(
+        Location,
+        on_delete=models.CASCADE,
+        related_name='wan_connections',
+        help_text="Location where this WAN connection is terminated"
+    )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='wan_connections'
+    )
+
+    # Basic Information
+    name = models.CharField(
+        max_length=255,
+        help_text="Friendly name for this WAN connection (e.g., 'Primary Internet', 'Backup MPLS')"
+    )
+    wan_type = models.CharField(
+        max_length=20,
+        choices=WAN_TYPES,
+        default='internet'
+    )
+    circuit_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="ISP circuit ID or account number"
+    )
+
+    # ISP Information
+    isp_name = models.CharField(
+        max_length=255,
+        help_text="Internet Service Provider or carrier name"
+    )
+    isp_account_number = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Account number with ISP"
+    )
+    isp_support_phone = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="ISP support phone number"
+    )
+    isp_support_email = models.EmailField(
+        blank=True,
+        help_text="ISP support email"
+    )
+
+    # Technical Details
+    bandwidth_download_mbps = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Download bandwidth in Mbps"
+    )
+    bandwidth_upload_mbps = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Upload bandwidth in Mbps"
+    )
+    static_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Static IP address (if applicable)"
+    )
+    subnet_mask = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Subnet mask"
+    )
+    gateway = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Default gateway"
+    )
+    dns_primary = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Primary DNS server"
+    )
+    dns_secondary = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Secondary DNS server"
+    )
+
+    # Monitoring
+    monitoring_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable uptime and performance monitoring for this WAN connection"
+    )
+    monitor_target = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="IP address or hostname to ping/monitor for this WAN (e.g., gateway IP or public IP)"
+    )
+    monitor_interval_minutes = models.PositiveIntegerField(
+        default=5,
+        help_text="How often to check WAN status (in minutes)"
+    )
+
+    # Status and Metrics
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='active'
+    )
+    last_checked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last time this WAN was checked"
+    )
+    last_response_time_ms = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Last ping response time in milliseconds"
+    )
+    uptime_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Uptime percentage (last 30 days)"
+    )
+    last_down_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last time this WAN went down"
+    )
+
+    # Contract and Billing
+    monthly_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Monthly cost in dollars"
+    )
+    contract_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Contract start date"
+    )
+    contract_end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Contract end date"
+    )
+    contract_term_months = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Contract term length in months"
+    )
+
+    # Additional Information
+    notes = models.TextField(
+        blank=True,
+        help_text="Additional notes about this WAN connection"
+    )
+    is_primary = models.BooleanField(
+        default=False,
+        help_text="Primary WAN connection for this location"
+    )
+
+    objects = OrganizationManager()
+
+    class Meta:
+        db_table = 'wan_connections'
+        ordering = ['location', '-is_primary', 'name']
+        indexes = [
+            models.Index(fields=['organization', 'status']),
+            models.Index(fields=['location', 'is_primary']),
+            models.Index(fields=['monitoring_enabled']),
+        ]
+        verbose_name = 'WAN Connection'
+        verbose_name_plural = 'WAN Connections'
+
+    def __str__(self):
+        return f"{self.location.name} - {self.name}"
+
+    @property
+    def is_down(self):
+        """Check if WAN is currently down."""
+        return self.status == 'down'
+
+    @property
+    def bandwidth_display(self):
+        """Display bandwidth in human-readable format."""
+        if self.bandwidth_download_mbps and self.bandwidth_upload_mbps:
+            return f"{self.bandwidth_download_mbps}↓ / {self.bandwidth_upload_mbps}↑ Mbps"
+        elif self.bandwidth_download_mbps:
+            return f"{self.bandwidth_download_mbps} Mbps"
+        return "Unknown"
+
+    def check_status(self):
+        """
+        Check WAN connectivity status by ping.
+        Updates status and last_checked_at.
+        """
+        if not self.monitor_target or not self.monitoring_enabled:
+            return
+
+        import subprocess
+        from django.utils import timezone
+
+        try:
+            # Ping the monitor target
+            result = subprocess.run(
+                ['ping', '-c', '1', '-W', '2', self.monitor_target],
+                capture_output=True,
+                timeout=5
+            )
+
+            if result.returncode == 0:
+                # Extract response time from ping output
+                output = result.stdout.decode('utf-8')
+                import re
+                time_match = re.search(r'time=(\d+\.?\d*)', output)
+                if time_match:
+                    response_time = float(time_match.group(1))
+                    self.last_response_time_ms = int(response_time)
+
+                # Update status
+                if self.status == 'down':
+                    # WAN came back up
+                    self.status = 'active'
+                self.last_checked_at = timezone.now()
+                self.save()
+            else:
+                # Ping failed
+                if self.status != 'down':
+                    self.last_down_at = timezone.now()
+                self.status = 'down'
+                self.last_checked_at = timezone.now()
+                self.save()
+
+        except Exception as e:
+            # Ping failed or timed out
+            if self.status != 'down':
+                self.last_down_at = timezone.now()
+            self.status = 'down'
+            self.last_checked_at = timezone.now()
+            self.save()
+
+
 class LocationFloorPlan(BaseModel):
     """
     Generated floor plan for a specific floor in a location.

@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}{{ wan.name }} - WAN Connection{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-network-wired"></i> {{ wan.name }}
+        {% if wan.is_primary %}
+        <span class="badge bg-primary">Primary</span>
+        {% endif %}
+    </h1>
+    <div>
+        {% if wan.monitoring_enabled %}
+        <a href="{% url 'locations:wan_check_status' location.id wan.id %}" class="btn btn-info me-2">
+            <i class="fas fa-check-circle"></i> Check Status
+        </a>
+        {% endif %}
+        <a href="{% url 'locations:wan_edit' location.id wan.id %}" class="btn btn-warning me-2">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'locations:wan_delete' location.id wan.id %}" class="btn btn-danger me-2">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+        <a href="{% url 'locations:location_detail' location.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Location
+        </a>
+    </div>
+</div>
+
+<!-- Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Status</h6>
+                {% if wan.status == 'active' %}
+                <h4><span class="badge bg-success">{{ wan.get_status_display }}</span></h4>
+                {% elif wan.status == 'down' %}
+                <h4><span class="badge bg-danger">{{ wan.get_status_display }}</span></h4>
+                {% elif wan.status == 'planned' %}
+                <h4><span class="badge bg-info">{{ wan.get_status_display }}</span></h4>
+                {% else %}
+                <h4><span class="badge bg-secondary">{{ wan.get_status_display }}</span></h4>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Type</h6>
+                <h4><span class="badge bg-secondary">{{ wan.get_wan_type_display }}</span></h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Bandwidth</h6>
+                <h4>{{ wan.bandwidth_display }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Monitoring</h6>
+                {% if wan.monitoring_enabled %}
+                <h4><span class="badge bg-success"><i class="fas fa-check"></i> Enabled</span></h4>
+                {% else %}
+                <h4><span class="badge bg-secondary"><i class="fas fa-times"></i> Disabled</span></h4>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-md-6">
+        <!-- Basic Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Location:</th>
+                        <td><a href="{% url 'locations:location_detail' location.id %}">{{ location.name }}</a></td>
+                    </tr>
+                    <tr>
+                        <th>WAN Type:</th>
+                        <td>{{ wan.get_wan_type_display }}</td>
+                    </tr>
+                    {% if wan.circuit_id %}
+                    <tr>
+                        <th>Circuit ID:</th>
+                        <td>{{ wan.circuit_id }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Primary Connection:</th>
+                        <td>{% if wan.is_primary %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- ISP Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-building"></i> ISP Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Provider:</th>
+                        <td>{{ wan.isp_name }}</td>
+                    </tr>
+                    {% if wan.isp_account_number %}
+                    <tr>
+                        <th>Account Number:</th>
+                        <td>{{ wan.isp_account_number }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.isp_support_phone %}
+                    <tr>
+                        <th>Support Phone:</th>
+                        <td><a href="tel:{{ wan.isp_support_phone }}">{{ wan.isp_support_phone }}</a></td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.isp_support_email %}
+                    <tr>
+                        <th>Support Email:</th>
+                        <td><a href="mailto:{{ wan.isp_support_email }}">{{ wan.isp_support_email }}</a></td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog"></i> Technical Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    {% if wan.bandwidth_download_mbps %}
+                    <tr>
+                        <th width="40%">Download Speed:</th>
+                        <td>{{ wan.bandwidth_download_mbps }} Mbps</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.bandwidth_upload_mbps %}
+                    <tr>
+                        <th>Upload Speed:</th>
+                        <td>{{ wan.bandwidth_upload_mbps }} Mbps</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.static_ip %}
+                    <tr>
+                        <th>Static IP:</th>
+                        <td><code>{{ wan.static_ip }}</code></td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.subnet_mask %}
+                    <tr>
+                        <th>Subnet Mask:</th>
+                        <td><code>{{ wan.subnet_mask }}</code></td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.gateway %}
+                    <tr>
+                        <th>Gateway:</th>
+                        <td><code>{{ wan.gateway }}</code></td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.dns_primary %}
+                    <tr>
+                        <th>Primary DNS:</th>
+                        <td><code>{{ wan.dns_primary }}</code></td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.dns_secondary %}
+                    <tr>
+                        <th>Secondary DNS:</th>
+                        <td><code>{{ wan.dns_secondary }}</code></td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-md-6">
+        <!-- Monitoring Configuration -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Monitoring</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th width="40%">Enabled:</th>
+                        <td>{% if wan.monitoring_enabled %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                    </tr>
+                    {% if wan.monitoring_enabled %}
+                    <tr>
+                        <th>Monitor Target:</th>
+                        <td><code>{{ wan.monitor_target }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>Check Interval:</th>
+                        <td>{{ wan.monitor_interval_minutes }} minutes</td>
+                    </tr>
+                    {% if wan.last_checked_at %}
+                    <tr>
+                        <th>Last Checked:</th>
+                        <td>{{ wan.last_checked_at|timesince }} ago</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.last_response_time_ms %}
+                    <tr>
+                        <th>Last Response Time:</th>
+                        <td>{{ wan.last_response_time_ms }} ms</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.uptime_percentage %}
+                    <tr>
+                        <th>Uptime (30 days):</th>
+                        <td>{{ wan.uptime_percentage }}%</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.last_down_at %}
+                    <tr>
+                        <th>Last Down:</th>
+                        <td>{{ wan.last_down_at|timesince }} ago</td>
+                    </tr>
+                    {% endif %}
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Contract & Billing -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-contract"></i> Contract & Billing</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    {% if wan.monthly_cost %}
+                    <tr>
+                        <th width="40%">Monthly Cost:</th>
+                        <td>${{ wan.monthly_cost }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.contract_start_date %}
+                    <tr>
+                        <th>Contract Start:</th>
+                        <td>{{ wan.contract_start_date|date:"Y-m-d" }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.contract_end_date %}
+                    <tr>
+                        <th>Contract End:</th>
+                        <td>{{ wan.contract_end_date|date:"Y-m-d" }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if wan.contract_term_months %}
+                    <tr>
+                        <th>Term Length:</th>
+                        <td>{{ wan.contract_term_months }} months</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if wan.notes %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notes</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ wan.notes|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Metadata -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Metadata</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <tr>
+                        <th width="40%">Created:</th>
+                        <td>{{ wan.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Created By:</th>
+                        <td>{{ wan.created_by.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Last Updated:</th>
+                        <td>{{ wan.updated_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

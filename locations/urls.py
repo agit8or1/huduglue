@@ -3,6 +3,7 @@ URL patterns for locations app
 """
 from django.urls import path
 from . import views
+from . import wan_views
 
 app_name = 'locations'
 
@@ -13,6 +14,14 @@ urlpatterns = [
     path('<int:location_id>/', views.location_detail, name='location_detail'),
     path('<int:location_id>/edit/', views.location_edit, name='location_edit'),
     path('<int:location_id>/delete/', views.location_delete, name='location_delete'),
+
+    # WAN Connection Management
+    path('<int:location_id>/wan/', wan_views.wan_list, name='wan_list'),
+    path('<int:location_id>/wan/create/', wan_views.wan_create, name='wan_create'),
+    path('<int:location_id>/wan/<int:wan_id>/', wan_views.wan_detail, name='wan_detail'),
+    path('<int:location_id>/wan/<int:wan_id>/edit/', wan_views.wan_edit, name='wan_edit'),
+    path('<int:location_id>/wan/<int:wan_id>/delete/', wan_views.wan_delete, name='wan_delete'),
+    path('<int:location_id>/wan/<int:wan_id>/check-status/', wan_views.wan_check_status, name='wan_check_status'),
 
     # Floor plan generation
     path('<int:location_id>/generate-floor-plan/', views.generate_floor_plan, name='generate_floor_plan'),

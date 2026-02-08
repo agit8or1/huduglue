@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} WAN Connection{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-network-wired"></i> {{ action }} WAN Connection</h1>
+    <a href="{% url 'locations:location_detail' location.id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.wan_type.id_for_label }}" class="form-label">Type *</label>
+                            {{ form.wan_type }}
+                            {% if form.wan_type.errors %}
+                            <div class="invalid-feedback d-block">{{ form.wan_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.circuit_id.id_for_label }}" class="form-label">Circuit ID</label>
+                            {{ form.circuit_id }}
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Status *</label>
+                            {{ form.status }}
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="form-check mt-4">
+                                {{ form.is_primary }}
+                                <label class="form-check-label" for="{{ form.is_primary.id_for_label }}">
+                                    Primary Connection
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISP Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-building"></i> ISP Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.isp_name.id_for_label }}" class="form-label">ISP Name *</label>
+                            {{ form.isp_name }}
+                            {% if form.isp_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.isp_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.isp_account_number.id_for_label }}" class="form-label">Account Number</label>
+                            {{ form.isp_account_number }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.isp_support_phone.id_for_label }}" class="form-label">Support Phone</label>
+                            {{ form.isp_support_phone }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.isp_support_email.id_for_label }}" class="form-label">Support Email</label>
+                            {{ form.isp_support_email }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Technical Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.bandwidth_download_mbps.id_for_label }}" class="form-label">Download Speed (Mbps)</label>
+                            {{ form.bandwidth_download_mbps }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.bandwidth_upload_mbps.id_for_label }}" class="form-label">Upload Speed (Mbps)</label>
+                            {{ form.bandwidth_upload_mbps }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.static_ip.id_for_label }}" class="form-label">Static IP</label>
+                            {{ form.static_ip }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.subnet_mask.id_for_label }}" class="form-label">Subnet Mask</label>
+                            {{ form.subnet_mask }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.gateway.id_for_label }}" class="form-label">Gateway</label>
+                            {{ form.gateway }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.dns_primary.id_for_label }}" class="form-label">Primary DNS</label>
+                            {{ form.dns_primary }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.dns_secondary.id_for_label }}" class="form-label">Secondary DNS</label>
+                            {{ form.dns_secondary }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Configuration -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Monitoring Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        {{ form.monitoring_enabled }}
+                        <label class="form-check-label" for="{{ form.monitoring_enabled.id_for_label }}">
+                            Enable uptime monitoring for this WAN connection
+                        </label>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="{{ form.monitor_target.id_for_label }}" class="form-label">Monitor Target (IP or hostname)</label>
+                            {{ form.monitor_target }}
+                            <small class="form-text text-muted">IP address or hostname to ping for monitoring</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.monitor_interval_minutes.id_for_label }}" class="form-label">Check Interval (minutes)</label>
+                            {{ form.monitor_interval_minutes }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract & Billing -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-contract"></i> Contract & Billing</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.monthly_cost.id_for_label }}" class="form-label">Monthly Cost ($)</label>
+                            {{ form.monthly_cost }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.contract_term_months.id_for_label }}" class="form-label">Contract Term (months)</label>
+                            {{ form.contract_term_months }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.contract_start_date.id_for_label }}" class="form-label">Contract Start Date</label>
+                            {{ form.contract_start_date }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.contract_end_date.id_for_label }}" class="form-label">Contract End Date</label>
+                            {{ form.contract_end_date }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notes</h5>
+                </div>
+                <div class="card-body">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label">Additional Notes</label>
+                    {{ form.notes }}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'locations:location_detail' location.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save WAN Connection
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Sidebar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-question-circle"></i> Help</h6>
+            </div>
+            <div class="card-body">
+                <h6>WAN Connection Tracking</h6>
+                <p class="small">Document your location's internet and WAN connections for better management and troubleshooting.</p>
+
+                <h6 class="mt-3">Monitoring</h6>
+                <p class="small">Enable monitoring to automatically check if your WAN connection is up. The system will ping the monitor target at the specified interval.</p>
+
+                <h6 class="mt-3">Primary Connection</h6>
+                <p class="small">Mark your main internet connection as primary to help identify which connection is used for critical services.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

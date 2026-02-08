@@ -2,7 +2,7 @@
 Forms for locations app
 """
 from django import forms
-from .models import Location, LocationFloorPlan
+from .models import Location, LocationFloorPlan, WAN
 from core.models import Organization
 
 
@@ -173,4 +173,57 @@ class SendNavigationLinkForm(forms.Form):
                 self.add_error('recipient_phone', 'Phone number must start with + and include country code')
 
         return cleaned_data
+
+
+class WANForm(forms.ModelForm):
+    """Form for creating/editing WAN connections."""
+
+    class Meta:
+        model = WAN
+        fields = [
+            'name', 'wan_type', 'circuit_id', 'is_primary', 'status',
+            'isp_name', 'isp_account_number', 'isp_support_phone', 'isp_support_email',
+            'bandwidth_download_mbps', 'bandwidth_upload_mbps',
+            'static_ip', 'subnet_mask', 'gateway', 'dns_primary', 'dns_secondary',
+            'monitoring_enabled', 'monitor_target', 'monitor_interval_minutes',
+            'monthly_cost', 'contract_start_date', 'contract_end_date', 'contract_term_months',
+            'notes'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Primary Internet, Backup MPLS'}),
+            'wan_type': forms.Select(attrs={'class': 'form-control'}),
+            'circuit_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ISP circuit ID'}),
+            'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+
+            'isp_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Comcast, AT&T, Verizon'}),
+            'isp_account_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'isp_support_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+1-555-123-4567'}),
+            'isp_support_email': forms.EmailInput(attrs={'class': 'form-control'}),
+
+            'bandwidth_download_mbps': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Mbps'}),
+            'bandwidth_upload_mbps': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Mbps'}),
+
+            'static_ip': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '192.168.1.1'}),
+            'subnet_mask': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '255.255.255.0'}),
+            'gateway': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '192.168.1.1'}),
+            'dns_primary': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '8.8.8.8'}),
+            'dns_secondary': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '8.8.4.4'}),
+
+            'monitoring_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'monitor_target': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IP or hostname to ping'}),
+            'monitor_interval_minutes': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '1440'}),
+
+            'monthly_cost': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '$'}),
+            'contract_start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'contract_end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'contract_term_months': forms.NumberInput(attrs={'class': 'form-control'}),
+
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.organization = kwargs.pop('organization', None)
+        self.location = kwargs.pop('location', None)
+        super().__init__(*args, **kwargs)
 

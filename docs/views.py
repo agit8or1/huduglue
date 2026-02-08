@@ -642,18 +642,30 @@ def template_delete(request, pk):
 def diagram_list(request):
     """
     List all diagrams in current organization with filtering.
+    In global view mode, shows all diagrams across all organizations.
     """
     from django.db.models import Q
     from .models import Diagram
-    
+
     org = get_request_organization(request)
 
-    # Get org-specific and global diagrams (exclude templates)
-    diagrams = Diagram.objects.filter(
-        Q(organization=org) | Q(is_global=True),
-        is_published=True,
-        is_template=False  # Exclude templates
-    ).prefetch_related('tags')
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = hasattr(request, 'is_staff_user') and request.is_staff_user
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: show ALL diagrams across all organizations
+        diagrams = Diagram.objects.filter(
+            is_published=True,
+            is_template=False
+        ).select_related('organization').prefetch_related('tags')
+    else:
+        # Get org-specific and global diagrams (exclude templates)
+        diagrams = Diagram.objects.filter(
+            Q(organization=org) | Q(is_global=True),
+            is_published=True,
+            is_template=False  # Exclude templates
+        ).prefetch_related('tags')
 
     # Filter by diagram type
     diagram_type = request.GET.get('type')
@@ -676,7 +688,11 @@ def diagram_list(request):
 
     # Get tags for filters
     from core.models import Tag
-    tags = Tag.objects.filter(organization=org).order_by('name')
+    if in_global_view:
+        # In global view, show all tags
+        tags = Tag.objects.all().order_by('name')
+    else:
+        tags = Tag.objects.filter(organization=org).order_by('name')
 
     # Get diagram type choices
     from .models import Diagram as DiagramModel
@@ -690,6 +706,7 @@ def diagram_list(request):
         'selected_type': diagram_type,
         'selected_tag': tag_id,
         'query': query,
+        'in_global_view': in_global_view,
     })
 
 
@@ -697,15 +714,25 @@ def diagram_list(request):
 def diagram_detail(request, slug):
     """
     View diagram details with PNG/SVG export.
+    Supports global view mode for superusers/staff users.
     """
     from django.db.models import Q
     from .models import Diagram
-    
+
     org = get_request_organization(request)
-    diagram = get_object_or_404(
-        Diagram.objects.filter(Q(organization=org) | Q(is_global=True)),
-        slug=slug
-    )
+
+    # Check if user is in global view mode (no org but is superuser/staff)
+    is_staff = hasattr(request, 'is_staff_user') and request.is_staff_user
+    in_global_view = not org and (request.user.is_superuser or is_staff)
+
+    if in_global_view:
+        # Global view: can access any diagram
+        diagram = get_object_or_404(Diagram, slug=slug)
+    else:
+        diagram = get_object_or_404(
+            Diagram.objects.filter(Q(organization=org) | Q(is_global=True)),
+            slug=slug
+        )
 
     # Get versions
     versions = diagram.versions.all()[:10]  # Last 10 versions
@@ -714,6 +741,7 @@ def diagram_detail(request, slug):
         'diagram': diagram,
         'versions': versions,
         'current_organization': org,
+        'in_global_view': in_global_view,
     })
 
 
