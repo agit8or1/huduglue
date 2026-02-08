@@ -21,6 +21,7 @@ from .services import (
     generate_office_floor_plan
 )
 from docs.models import Diagram, DiagramVersion
+from core.middleware import get_request_organization
 import logging
 
 logger = logging.getLogger('locations')
