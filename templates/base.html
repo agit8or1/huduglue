@@ -119,6 +119,12 @@
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
+                    <!-- Support This Project Link -->
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="#" data-bs-toggle="modal" data-bs-target="#supportProjectModal" title="Support this open-source project" style="animation: heartbeat 2s ease-in-out infinite;">
+                            <i class="fas fa-heart"></i>
+                        </a>
+                    </li>
                     <!-- Global KB Link -->
                     {% if global_kb_enabled %}
                         {% if is_staff_user or user.is_superuser %}
@@ -238,6 +244,21 @@
             </small>
         </div>
     </footer>
+
+    <style>
+        /* Heartbeat animation for Support This Project link */
+        @keyframes heartbeat {
+            0%, 100% {
+                transform: scale(1);
+            }
+            10%, 30% {
+                transform: scale(1.1);
+            }
+            20%, 40% {
+                transform: scale(1);
+            }
+        }
+    </style>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
