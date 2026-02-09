@@ -397,19 +397,20 @@ def download_mobile_app(request, app_type):
                 if os.path.exists(log_file):
                     with open(log_file, 'r') as f:
                         build_log = f.read()
-                        # Filter log: keep useful lines, remove noise
+                        # Filter log: show only major steps and current command
                         log_lines = []
                         for line in build_log.split('\n'):
-                            # Skip npm warnings but keep progress indicators
-                            if 'npm warn deprecated' in line.lower():
+                            # Skip verbose output
+                            skip_patterns = ['npm warn', 'warning', '[10:', 'cleared', 'created', 'added', 'removed', '✔', '✓', '-', '›']
+                            if any(pattern in line.lower() for pattern in skip_patterns):
                                 continue
-                            # Keep lines that show actual progress
-                            if any(keyword in line.lower() for keyword in ['===', 'installing', 'added', 'building', 'complete', 'error', 'failed', 'progress:', '>']):
+                            # Keep only major markers
+                            if any(marker in line for marker in ['===', 'Started at:', '> npx', '> ./gradlew', 'Step', 'Building', 'Installing', 'Error:', 'failed', 'complete']):
                                 log_lines.append(line)
-                            elif line.strip() and not line.startswith('npm'):
-                                log_lines.append(line)
-                        # Show last 60 lines
-                        build_log = '\n'.join(log_lines[-60:]) if len(log_lines) > 60 else '\n'.join(log_lines)
+                        # Show last 20 lines (major steps only)
+                        build_log = '\n'.join(log_lines[-20:]) if len(log_lines) > 20 else '\n'.join(log_lines)
+                        if not build_log.strip():
+                            build_log = 'Build in progress... (details filtered for clarity)'
 
                 # Build in progress - show status page with live log
                 return HttpResponse(f"""
@@ -716,19 +717,20 @@ def download_mobile_app(request, app_type):
                 if os.path.exists(log_file):
                     with open(log_file, 'r') as f:
                         build_log = f.read()
-                        # Filter log: keep useful lines, remove noise
+                        # Filter log: show only major steps and current command
                         log_lines = []
                         for line in build_log.split('\n'):
-                            # Skip npm warnings but keep progress indicators
-                            if 'npm warn deprecated' in line.lower():
+                            # Skip verbose output
+                            skip_patterns = ['npm warn', 'warning', '[10:', 'cleared', 'created', 'added', 'removed', '✔', '✓', '-', '›']
+                            if any(pattern in line.lower() for pattern in skip_patterns):
                                 continue
-                            # Keep lines that show actual progress
-                            if any(keyword in line.lower() for keyword in ['===', 'installing', 'added', 'building', 'complete', 'error', 'failed', 'progress:', '>']):
+                            # Keep only major markers
+                            if any(marker in line for marker in ['===', 'Started at:', '> npx', '> ./gradlew', 'Step', 'Building', 'Installing', 'Error:', 'failed', 'complete']):
                                 log_lines.append(line)
-                            elif line.strip() and not line.startswith('npm'):
-                                log_lines.append(line)
-                        # Show last 60 lines
-                        build_log = '\n'.join(log_lines[-60:]) if len(log_lines) > 60 else '\n'.join(log_lines)
+                        # Show last 20 lines (major steps only)
+                        build_log = '\n'.join(log_lines[-20:]) if len(log_lines) > 20 else '\n'.join(log_lines)
+                        if not build_log.strip():
+                            build_log = 'Build in progress... (details filtered for clarity)'
 
                 return HttpResponse(f"""
                     <!DOCTYPE html>
