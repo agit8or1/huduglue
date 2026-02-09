@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.http import JsonResponse
+from django.db import IntegrityError
 from core.middleware import get_request_organization
 from core.decorators import require_admin
 from .models import PSAConnection, PSACompany, PSAContact, PSATicket, RMMConnection, RMMDevice, RMMAlert, RMMSoftware
@@ -366,10 +367,28 @@ def rmm_create(request):
         if form.is_valid():
             try:
                 connection = form.save(commit=False)
-                connection.organization = org
+                # Ensure organization is set (should be set by form, but double-check)
+                if not connection.organization:
+                    connection.organization = org
                 connection.save()
                 messages.success(request, f"RMM connection '{connection.name}' created successfully.")
                 return redirect('integrations:rmm_detail', pk=connection.pk)
+            except IntegrityError as e:
+                # Handle database integrity errors (like missing organization_id)
+                error_msg = str(e)
+                if 'organization_id' in error_msg.lower() and 'cannot be null' in error_msg.lower():
+                    messages.error(
+                        request,
+                        "❌ <strong>Organization Required</strong><br><br>"
+                        "An organization must be selected before creating an RMM connection. "
+                        "Please select an organization from the organization selector in the top navigation bar, "
+                        "then try again.<br><br>"
+                        "If you're a superuser, make sure you've selected an organization before accessing this page.",
+                        extra_tags='safe'
+                    )
+                else:
+                    messages.error(request, f"Database error: {error_msg}")
+                return redirect('integrations:integration_list')
             except EncryptionError as e:
                 # Handle APP_MASTER_KEY errors - usually means Gunicorn isn't loading .env
                 error_msg = str(e)

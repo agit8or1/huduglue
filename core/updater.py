@@ -407,6 +407,132 @@ class UpdateService:
             if progress_tracker:
                 progress_tracker.step_complete('Configure Fail2ban Integration')
 
+            # Step 7.5: Regenerate and install sudoers files with correct paths
+            if progress_tracker:
+                progress_tracker.step_start('Update Sudoers Configuration')
+            logger.info("Regenerating sudoers files with correct paths...")
+            try:
+                import getpass
+                current_user = getpass.getuser()
+                install_dir = str(self.base_dir)
+
+                # Create deploy directory if it doesn't exist
+                deploy_dir = os.path.join(install_dir, 'deploy')
+                os.makedirs(deploy_dir, exist_ok=True)
+
+                # Generate huduglue-install-sudoers
+                install_sudoers_content = f"""# Sudoers configuration for HuduGlue automatic fail2ban installation
+# Install: sudo cp {install_dir}/deploy/huduglue-install-sudoers /etc/sudoers.d/huduglue-install
+# Permissions: sudo chmod 0440 /etc/sudoers.d/huduglue-install
+
+# Allow {current_user} user to install and configure fail2ban without password
+{current_user} ALL=(ALL) NOPASSWD: /usr/bin/apt-get update
+{current_user} ALL=(ALL) NOPASSWD: /usr/bin/apt-get install -y fail2ban
+{current_user} ALL=(ALL) NOPASSWD: /bin/systemctl enable fail2ban
+{current_user} ALL=(ALL) NOPASSWD: /bin/systemctl start fail2ban
+{current_user} ALL=(ALL) NOPASSWD: /bin/systemctl status fail2ban
+{current_user} ALL=(ALL) NOPASSWD: /bin/cp {install_dir}/deploy/huduglue-fail2ban-sudoers /etc/sudoers.d/huduglue-fail2ban
+{current_user} ALL=(ALL) NOPASSWD: /bin/chmod 0440 /etc/sudoers.d/huduglue-fail2ban
+"""
+
+                # Generate huduglue-fail2ban-sudoers
+                fb_sudoers_content = f"""# Sudoers configuration for HuduGlue fail2ban integration
+# Install: sudo cp {install_dir}/deploy/huduglue-fail2ban-sudoers /etc/sudoers.d/huduglue-fail2ban
+# Permissions: sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban
+
+# Allow {current_user} user to run fail2ban-client without password
+{current_user} ALL=(ALL) NOPASSWD: /usr/bin/fail2ban-client
+"""
+
+                # Write files
+                install_sudoers_path = os.path.join(deploy_dir, 'huduglue-install-sudoers')
+                fb_sudoers_path = os.path.join(deploy_dir, 'huduglue-fail2ban-sudoers')
+
+                with open(install_sudoers_path, 'w') as f:
+                    f.write(install_sudoers_content)
+                with open(fb_sudoers_path, 'w') as f:
+                    f.write(fb_sudoers_content)
+
+                logger.info("Sudoers files regenerated successfully")
+                result['output'].append(f"✓ Sudoers files regenerated for user: {current_user}")
+
+                # Now install them if needed
+                install_needed = []
+
+                # Check huduglue-install
+                install_dest = '/etc/sudoers.d/huduglue-install'
+                if not os.path.exists(install_dest):
+                    install_needed.append(('huduglue-install', install_sudoers_path, install_dest))
+                else:
+                    # Check if content differs
+                    try:
+                        with open(install_dest, 'r') as f:
+                            existing_content = f.read()
+                        if existing_content != install_sudoers_content:
+                            install_needed.append(('huduglue-install', install_sudoers_path, install_dest))
+                    except:
+                        pass
+
+                # Check huduglue-fail2ban
+                fb_dest = '/etc/sudoers.d/huduglue-fail2ban'
+                if not os.path.exists(fb_dest):
+                    install_needed.append(('huduglue-fail2ban', fb_sudoers_path, fb_dest))
+                else:
+                    # Check if content differs
+                    try:
+                        with open(fb_dest, 'r') as f:
+                            existing_content = f.read()
+                        if existing_content != fb_sudoers_content:
+                            install_needed.append(('huduglue-fail2ban', fb_sudoers_path, fb_dest))
+                    except:
+                        pass
+
+                # Install files that need updating
+                if install_needed:
+                    for name, source, dest in install_needed:
+                        try:
+                            # Copy file
+                            copy_result = subprocess.run(
+                                ['/usr/bin/sudo', '/usr/bin/cp', source, dest],
+                                capture_output=True,
+                                text=True,
+                                timeout=10
+                            )
+
+                            if copy_result.returncode == 0:
+                                # Set permissions
+                                chmod_result = subprocess.run(
+                                    ['/usr/bin/sudo', '/usr/bin/chmod', '0440', dest],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=10
+                                )
+
+                                if chmod_result.returncode == 0:
+                                    result['steps_completed'].append(f'install_{name}_sudoers')
+                                    result['output'].append(f"✓ {name} sudoers installed/updated automatically")
+                                    logger.info(f"{name} sudoers installed successfully")
+                                else:
+                                    logger.warning(f"Failed to set {name} sudoers permissions: {chmod_result.stderr}")
+                                    result['output'].append(f"⚠ {name} sudoers installed but permissions not set")
+                            else:
+                                logger.warning(f"Failed to copy {name} sudoers: {copy_result.stderr}")
+                                result['output'].append(f"⚠ {name} sudoers installation failed (may need manual install)")
+                        except Exception as e:
+                            logger.warning(f"Failed to install {name} sudoers: {e}")
+                            result['output'].append(f"⚠ {name} sudoers installation failed: {str(e)[:50]}")
+                else:
+                    result['output'].append("✓ Sudoers files already up to date")
+                    logger.info("Sudoers files already up to date")
+
+            except Exception as e:
+                # Non-critical - log warning but continue
+                logger.warning(f"Sudoers configuration update failed (non-critical): {e}")
+                result['output'].append(f"⚠ Sudoers configuration update skipped: {str(e)[:100]}")
+
+            if progress_tracker:
+                progress_tracker.step_complete('Update Sudoers Configuration')
+
             # Step 8: Restart service (if running under systemd)
             is_systemd = self._is_systemd_service()
             logger.info(f"Systemd service check result: {is_systemd}")
