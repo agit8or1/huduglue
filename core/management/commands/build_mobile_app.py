@@ -145,34 +145,43 @@ class Command(BaseCommand):
 
             # Build the app
             if app_type == 'android':
-                self._update_status(status_file, 'building', 'Building Android APK locally (this may take 10-20 minutes)...')
+                self._update_status(status_file, 'building', 'Generating native Android project...')
                 self.stdout.write('Building Android APK...\n')
-                self._log('\n=== Building Android APK Locally ===\n')
-                self._log('Building locally without Expo cloud services...\n\n')
+                self._log('\n=== Building Android APK with Native Tools ===\n')
+                self._log('Step 1: Generating native Android project (no Expo account needed)...\n\n')
 
-                # Use local build (no Expo account required)
+                # Generate native Android project (no Expo account required)
                 try:
+                    # Run expo prebuild to generate android/ folder
                     self._run_command_with_logging(
-                        ['npx', 'eas-cli', 'build', '--platform', 'android', '--profile', 'preview', '--local', '--non-interactive'],
+                        ['npx', 'expo', 'prebuild', '--platform', 'android', '--clean'],
                         cwd=mobile_app_dir,
+                        timeout=600  # 10 minute timeout
+                    )
+
+                    self._update_status(status_file, 'building', 'Building APK with Gradle (10-20 minutes)...')
+                    self._log('\n=== Building APK with Gradle ===\n')
+
+                    # Build APK using Gradle
+                    android_dir = os.path.join(mobile_app_dir, 'android')
+                    self._run_command_with_logging(
+                        ['./gradlew', 'assembleRelease'],
+                        cwd=android_dir,
                         timeout=1800  # 30 minute timeout
                     )
 
-                    # Read log to extract build URL
-                    with open(self.log_file, 'r') as f:
-                        log_content = f.read()
-
-                    if 'Build URL:' in log_content or 'https://expo.dev' in log_content:
-                        # Extract URL from log
-                        for line in log_content.split('\n'):
-                            if 'Build URL:' in line or ('https://expo.dev' in line and 'builds' in line):
-                                build_url = line.split()[-1]
-                                self._update_status(status_file, 'complete', f'Build complete! Download from: {build_url}')
-                                self.stdout.write(self.style.SUCCESS(f'APK build complete: {build_url}\n'))
-                                break
+                    # Find the generated APK
+                    apk_path = os.path.join(android_dir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk')
+                    if os.path.exists(apk_path):
+                        # Copy to builds directory
+                        dest_path = os.path.join(builds_dir, 'huduglue.apk')
+                        import shutil as sh
+                        sh.copy2(apk_path, dest_path)
+                        self._update_status(status_file, 'complete', 'APK built successfully!')
+                        self._log(f'\n✓ APK ready at: {dest_path}\n')
+                        self.stdout.write(self.style.SUCCESS('APK build complete!\n'))
                     else:
-                        self._update_status(status_file, 'complete', 'Build submitted to Expo. Check log for details.')
-                        self.stdout.write(self.style.SUCCESS('Build submitted to Expo!\n'))
+                        raise Exception('APK file not found after build')
 
                 except subprocess.CalledProcessError as e:
                     raise Exception(f'Build command failed with exit code {e.returncode}')
