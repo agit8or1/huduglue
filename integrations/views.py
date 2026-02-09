@@ -36,14 +36,38 @@ def integration_list(request):
 @require_admin
 def integration_create(request):
     """Create new PSA connection."""
-    org = get_request_organization(request)
+    from core.models import Organization
 
-    # Require organization to be selected
-    if not org:
-        messages.error(request, "Please select an organization first.")
-        return redirect('accounts:access_management')
+    # Get user's organizations
+    if request.user.is_superuser:
+        user_orgs = Organization.objects.all()
+    else:
+        user_orgs = Organization.objects.filter(
+            memberships__user=request.user,
+            memberships__is_active=True
+        ).distinct()
+
+    # Auto-select if only one organization
+    org = get_request_organization(request)
+    if not org and user_orgs.count() == 1:
+        org = user_orgs.first()
+
+    # If no org and multiple available, let form handle it
+    # If still no orgs available at all, show error
+    if user_orgs.count() == 0:
+        messages.error(request, "You must be a member of at least one organization to create integrations.")
+        return redirect('integrations:integration_list')
 
     if request.method == 'POST':
+        # Get organization from form if not already set
+        if not org and 'organization' in request.POST:
+            try:
+                org_id = request.POST.get('organization')
+                org = user_orgs.get(pk=org_id)
+            except Organization.DoesNotExist:
+                messages.error(request, "Invalid organization selected.")
+                return redirect('integrations:integration_create')
+
         form = PSAConnectionForm(request.POST, organization=org)
         if form.is_valid():
             try:
@@ -75,10 +99,15 @@ def integration_create(request):
     else:
         form = PSAConnectionForm(organization=org)
 
-    return render(request, 'integrations/integration_form.html', {
+    context = {
         'form': form,
         'action': 'Create',
-    })
+        'user_organizations': user_orgs,
+        'selected_org': org,
+        'show_org_selector': user_orgs.count() > 1 and not org,
+    }
+
+    return render(request, 'integrations/integration_form.html', context)
 
 
 @login_required
