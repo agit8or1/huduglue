@@ -489,6 +489,10 @@ class UpdateService:
 
                 # Install files that need updating
                 if install_needed:
+                    result['output'].append("📝 Installing sudoers files (requires passwordless sudo)...")
+                    install_success_count = 0
+                    install_fail_count = 0
+
                     for name, source, dest in install_needed:
                         try:
                             # Copy file
@@ -510,17 +514,38 @@ class UpdateService:
 
                                 if chmod_result.returncode == 0:
                                     result['steps_completed'].append(f'install_{name}_sudoers')
-                                    result['output'].append(f"✓ {name} sudoers installed/updated automatically")
+                                    result['output'].append(f"  ✓ {name} sudoers installed successfully")
                                     logger.info(f"{name} sudoers installed successfully")
+                                    install_success_count += 1
                                 else:
                                     logger.warning(f"Failed to set {name} sudoers permissions: {chmod_result.stderr}")
-                                    result['output'].append(f"⚠ {name} sudoers installed but permissions not set")
+                                    result['output'].append(f"  ⚠ {name} installed but permissions not set: {chmod_result.stderr[:50]}")
+                                    install_fail_count += 1
                             else:
-                                logger.warning(f"Failed to copy {name} sudoers: {copy_result.stderr}")
-                                result['output'].append(f"⚠ {name} sudoers installation failed (may need manual install)")
+                                error_msg = copy_result.stderr.strip() if copy_result.stderr else 'Unknown error'
+                                logger.warning(f"Failed to copy {name} sudoers: {error_msg}")
+                                if 'password' in error_msg.lower() or 'sudo' in error_msg.lower():
+                                    result['output'].append(f"  ✗ {name} FAILED - passwordless sudo not configured")
+                                    result['output'].append(f"     Run CLI update first: cd {install_dir} && ./update.sh")
+                                else:
+                                    result['output'].append(f"  ✗ {name} FAILED: {error_msg[:70]}")
+                                install_fail_count += 1
+                        except subprocess.TimeoutExpired:
+                            logger.warning(f"Timeout installing {name} sudoers - may be waiting for password")
+                            result['output'].append(f"  ✗ {name} TIMED OUT - likely waiting for sudo password")
+                            result['output'].append(f"     Run CLI update first: cd {install_dir} && ./update.sh")
+                            install_fail_count += 1
                         except Exception as e:
                             logger.warning(f"Failed to install {name} sudoers: {e}")
-                            result['output'].append(f"⚠ {name} sudoers installation failed: {str(e)[:50]}")
+                            result['output'].append(f"  ✗ {name} ERROR: {str(e)[:60]}")
+                            install_fail_count += 1
+
+                    # Summary message
+                    if install_fail_count > 0:
+                        result['output'].append("")
+                        result['output'].append(f"⚠ WARNING: {install_fail_count} sudoers file(s) failed to install")
+                        result['output'].append("Some features may require manual sudo password entry.")
+                        result['output'].append(f"Fix: Run './update.sh' from {install_dir} to configure sudoers properly")
                 else:
                     result['output'].append("✓ Sudoers files already up to date")
                     logger.info("Sudoers files already up to date")

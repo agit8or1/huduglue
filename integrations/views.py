@@ -489,12 +489,33 @@ def rmm_delete(request, pk):
 
     if request.method == 'POST':
         name = connection.name
-        connection.delete()
-        messages.success(request, f"RMM connection '{name}' deleted successfully.")
+        try:
+            # Check for related devices before deletion
+            device_count = connection.devices.count()
+            if device_count > 0:
+                logger.info(f"Deleting RMM connection '{name}' with {device_count} related devices (will cascade)")
+
+            connection.delete()
+            messages.success(request, f"✓ RMM connection '{name}' deleted successfully.")
+            logger.info(f"RMM connection '{name}' (pk={pk}) deleted successfully")
+        except IntegrityError as e:
+            error_msg = str(e)
+            logger.error(f"IntegrityError deleting RMM connection '{name}': {error_msg}")
+            messages.error(request, f"❌ Cannot delete RMM connection: Database integrity error. Related records may exist.")
+            return redirect('integrations:integration_list')
+        except Exception as e:
+            logger.error(f"Error deleting RMM connection '{name}': {e}")
+            messages.error(request, f"❌ Error deleting RMM connection: {str(e)[:100]}")
+            return redirect('integrations:integration_list')
+
         return redirect('integrations:integration_list')
+
+    # Get device count for display in confirmation
+    device_count = connection.devices.count()
 
     return render(request, 'integrations/rmm_confirm_delete.html', {
         'connection': connection,
+        'device_count': device_count,
     })
 
 

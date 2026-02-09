@@ -286,25 +286,50 @@ fi
 # Install/update sudoers files if needed
 if [ "$INSTALL_SUDOERS" = true ] || [ "$FB_SUDOERS" = true ]; then
     echo ""
-    info "Installing sudoers files..."
+    info "Installing sudoers files (requires sudo access)..."
+    echo ""
+    warning "NOTE: You may be prompted for your sudo password to install sudoers files."
+    info "These files enable passwordless sudo for specific HuduGlue operations."
+    echo ""
+
+    INSTALL_SUCCESS=true
 
     if [ "$INSTALL_SUDOERS" = true ]; then
-        if sudo cp "$INSTALL_DIR/deploy/huduglue-install-sudoers" /etc/sudoers.d/huduglue-install 2>/dev/null && \
-           sudo chmod 0440 /etc/sudoers.d/huduglue-install 2>/dev/null; then
-            success "  • Installed huduglue-install sudoers"
+        echo -n "Installing huduglue-install sudoers... "
+        if sudo cp "$INSTALL_DIR/deploy/huduglue-install-sudoers" /etc/sudoers.d/huduglue-install 2>&1 && \
+           sudo chmod 0440 /etc/sudoers.d/huduglue-install 2>&1; then
+            success "✓ Installed"
         else
-            warning "  • Failed to install huduglue-install (may need sudo password)"
-            info "    Manual install: sudo cp $INSTALL_DIR/deploy/huduglue-install-sudoers /etc/sudoers.d/huduglue-install && sudo chmod 0440 /etc/sudoers.d/huduglue-install"
+            INSTALL_SUCCESS=false
+            error "✗ FAILED"
+            warning "Manual installation required. Run this command:"
+            echo "    sudo cp $INSTALL_DIR/deploy/huduglue-install-sudoers /etc/sudoers.d/huduglue-install && sudo chmod 0440 /etc/sudoers.d/huduglue-install"
         fi
     fi
 
     if [ "$FB_SUDOERS" = true ]; then
-        if sudo cp "$INSTALL_DIR/deploy/huduglue-fail2ban-sudoers" /etc/sudoers.d/huduglue-fail2ban 2>/dev/null && \
-           sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban 2>/dev/null; then
-            success "  • Installed huduglue-fail2ban sudoers"
+        echo -n "Installing huduglue-fail2ban sudoers... "
+        if sudo cp "$INSTALL_DIR/deploy/huduglue-fail2ban-sudoers" /etc/sudoers.d/huduglue-fail2ban 2>&1 && \
+           sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban 2>&1; then
+            success "✓ Installed"
         else
-            warning "  • Failed to install huduglue-fail2ban (may need sudo password)"
-            info "    Manual install: sudo cp $INSTALL_DIR/deploy/huduglue-fail2ban-sudoers /etc/sudoers.d/huduglue-fail2ban && sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban"
+            INSTALL_SUCCESS=false
+            error "✗ FAILED"
+            warning "Manual installation required. Run this command:"
+            echo "    sudo cp $INSTALL_DIR/deploy/huduglue-fail2ban-sudoers /etc/sudoers.d/huduglue-fail2ban && sudo chmod 0440 /etc/sudoers.d/huduglue-fail2ban"
+        fi
+    fi
+
+    if [ "$INSTALL_SUCCESS" = false ]; then
+        echo ""
+        error "⚠ SUDOERS INSTALLATION INCOMPLETE"
+        warning "Some features like automatic fail2ban setup will require manual sudo password entry."
+        warning "To fix this, run the manual installation commands shown above."
+        echo ""
+        read -p "Continue with update anyway? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            error_exit "Update cancelled - please install sudoers files manually first"
         fi
     fi
 fi
