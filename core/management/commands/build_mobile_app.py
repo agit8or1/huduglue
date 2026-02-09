@@ -30,16 +30,21 @@ class Command(BaseCommand):
         try:
             # Ensure basic utilities are installed first
             import shutil
+            import os
+
+            # Determine if we need sudo (check if running as root)
+            use_sudo = os.geteuid() != 0 and shutil.which('sudo')
+            sudo_prefix = ['sudo'] if use_sudo else []
 
             # Install curl if missing (needed for Node.js installation)
             if not shutil.which('curl'):
                 self._update_status(status_file, 'building', 'Installing curl...')
                 self.stdout.write('Installing curl (required for Node.js setup)...')
                 try:
-                    subprocess.run(['sudo', 'apt-get', 'update'], check=True, capture_output=True)
-                    subprocess.run(['sudo', 'apt-get', 'install', '-y', 'curl'], check=True, capture_output=True)
+                    subprocess.run(sudo_prefix + ['apt-get', 'update'], check=True, capture_output=True)
+                    subprocess.run(sudo_prefix + ['apt-get', 'install', '-y', 'curl'], check=True, capture_output=True)
                 except Exception as e:
-                    raise Exception(f'Failed to install curl: {e}\nPlease run: sudo apt-get install -y curl')
+                    raise Exception(f'Failed to install curl: {e}\nPlease install manually: apt-get install -y curl')
 
             # Check if npm is installed, install automatically if not
             if not shutil.which('npm'):
@@ -57,14 +62,14 @@ class Command(BaseCommand):
 
                     self.stdout.write('Installing Node.js repository...')
                     subprocess.run(
-                        ['sudo', 'bash', '/tmp/nodesource_setup.sh'],
+                        sudo_prefix + ['bash', '/tmp/nodesource_setup.sh'],
                         check=True,
                         capture_output=True
                     )
 
                     self.stdout.write('Installing Node.js and npm...')
                     subprocess.run(
-                        ['sudo', 'apt-get', 'install', '-y', 'nodejs'],
+                        sudo_prefix + ['apt-get', 'install', '-y', 'nodejs'],
                         check=True,
                         capture_output=True
                     )
@@ -99,14 +104,15 @@ class Command(BaseCommand):
             # Check if dependencies are installed
             node_modules = os.path.join(mobile_app_dir, 'node_modules')
             if not os.path.exists(node_modules):
-                self._update_status(status_file, 'building', 'Installing dependencies...')
+                self._update_status(status_file, 'building', 'Installing dependencies (this may take 5-10 minutes)...')
                 self.stdout.write('Installing npm dependencies...')
                 subprocess.run(
                     ['npm', 'install'],
                     cwd=mobile_app_dir,
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    timeout=600  # 10 minute timeout for npm install
                 )
 
             # Check if expo-cli is installed

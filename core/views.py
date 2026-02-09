@@ -400,13 +400,13 @@ def download_mobile_app(request, app_type):
                         <meta http-equiv="refresh" content="10">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
-                            body {{ background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
                             .container {{ max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }}
                             .spinner {{ border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }}
                             @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
                             .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
-                            h1, h2, h3, h4, h5 {{ color: #e6edf3 !important; }}
-                            p, .lead {{ color: #e6edf3 !important; font-size: 1.1rem; }}
+                            h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
+                            p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                             h1 {{ color: #58a6ff; }}
@@ -436,11 +436,11 @@ def download_mobile_app(request, app_type):
                         <meta charset="UTF-8">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
-                            body {{ background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
                             .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
                             .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
-                            h1, h2, h3, h4, h5 {{ color: #e6edf3 !important; }}
-                            p, .lead {{ color: #e6edf3 !important; font-size: 1.1rem; }}
+                            h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
+                            p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                             h1 {{ color: #3fb950; }}
@@ -483,11 +483,11 @@ def download_mobile_app(request, app_type):
                             <meta charset="UTF-8">
                             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                             <style>
-                                body {{ background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                                body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
                                 .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
                                 .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
-                            h1, h2, h3, h4, h5 {{ color: #e6edf3 !important; }}
-                            p, .lead {{ color: #e6edf3 !important; font-size: 1.1rem; }}
+                            h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
+                            p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                                 h1 {{ color: #f85149; }}
@@ -542,7 +542,7 @@ def download_mobile_app(request, app_type):
                 <meta http-equiv="refresh" content="10">
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 <style>
-                    body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+                    body { background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
                     .container { max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }
                     .spinner { border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }
                     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -602,13 +602,13 @@ def download_mobile_app(request, app_type):
                         <meta http-equiv="refresh" content="10">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
-                            body {{ background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
                             .container {{ max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }}
                             .spinner {{ border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }}
                             @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
                             .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
-                            h1, h2, h3, h4, h5 {{ color: #e6edf3 !important; }}
-                            p, .lead {{ color: #e6edf3 !important; font-size: 1.1rem; }}
+                            h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
+                            p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                             h1 {{ color: #58a6ff; }}
@@ -637,11 +637,11 @@ def download_mobile_app(request, app_type):
                         <meta charset="UTF-8">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
-                            body {{ background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
                             .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
                             .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
-                            h1, h2, h3, h4, h5 {{ color: #e6edf3 !important; }}
-                            p, .lead {{ color: #e6edf3 !important; font-size: 1.1rem; }}
+                            h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
+                            p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                             h1 {{ color: #3fb950; }}
@@ -682,11 +682,11 @@ def download_mobile_app(request, app_type):
                             <meta charset="UTF-8">
                             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                             <style>
-                                body {{ background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                                body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
                                 .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
                                 .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
-                            h1, h2, h3, h4, h5 {{ color: #e6edf3 !important; }}
-                            p, .lead {{ color: #e6edf3 !important; font-size: 1.1rem; }}
+                            h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
+                            p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                                 h1 {{ color: #f85149; }}
@@ -738,7 +738,7 @@ def download_mobile_app(request, app_type):
                 <meta http-equiv="refresh" content="10">
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 <style>
-                    body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+                    body { background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
                     .container { max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }
                     .spinner { border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }
                     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
