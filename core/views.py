@@ -396,10 +396,19 @@ def download_mobile_app(request, app_type):
                 if os.path.exists(log_file):
                     with open(log_file, 'r') as f:
                         build_log = f.read()
-                        # Filter out npm warnings and get last 50 lines
-                        log_lines = [line for line in build_log.split('\n')
-                                   if 'npm warn deprecated' not in line.lower()]
-                        build_log = '\n'.join(log_lines[-50:]) if len(log_lines) > 50 else '\n'.join(log_lines)
+                        # Filter log: keep useful lines, remove noise
+                        log_lines = []
+                        for line in build_log.split('\n'):
+                            # Skip npm warnings but keep progress indicators
+                            if 'npm warn deprecated' in line.lower():
+                                continue
+                            # Keep lines that show actual progress
+                            if any(keyword in line.lower() for keyword in ['===', 'installing', 'added', 'building', 'complete', 'error', 'failed', 'progress:', '>']):
+                                log_lines.append(line)
+                            elif line.strip() and not line.startswith('npm'):
+                                log_lines.append(line)
+                        # Show last 60 lines
+                        build_log = '\n'.join(log_lines[-60:]) if len(log_lines) > 60 else '\n'.join(log_lines)
 
                 # Build in progress - show status page with live log
                 return HttpResponse(f"""
@@ -448,7 +457,8 @@ def download_mobile_app(request, app_type):
                                     <h1 style="margin: 0;">Building Android App...</h1>
                                 </div>
                                 <p class="lead text-center"><strong>Status:</strong> {status_data['message']}</p>
-                                <p class="text-center text-muted"><small>Page refreshes every 5 seconds. You can close this tab and come back later.</small></p>
+                                <p class="text-center"><strong>Elapsed Time:</strong> <span id="elapsed-time" style="color: #58a6ff; font-size: 1.2em;">0m 0s</span></p>
+                                <p class="text-center text-muted"><small>Page auto-refreshes every 5 seconds. You can close this tab and come back later.</small></p>
                             </div>
 
                             <div class="card">
@@ -615,12 +625,27 @@ def download_mobile_app(request, app_type):
                     .status-header { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
                 </style>
                 <script>
-                    window.onload = function() {
+                    window.onload = function() {{
                         var logContainer = document.getElementById('log-container');
-                        if (logContainer) {
+                        if (logContainer) {{
                             logContainer.scrollTop = logContainer.scrollHeight;
-                        }
-                    };
+                        }}
+
+                        // Show elapsed time
+                        var startTime = {status_data.get('timestamp', 0)} * 1000;
+                        function updateElapsedTime() {{
+                            var elapsed = Math.floor((Date.now() - startTime) / 1000);
+                            var minutes = Math.floor(elapsed / 60);
+                            var seconds = elapsed % 60;
+                            var elapsedText = minutes + 'm ' + seconds + 's';
+                            var elapsedElement = document.getElementById('elapsed-time');
+                            if (elapsedElement) {{
+                                elapsedElement.textContent = elapsedText;
+                            }}
+                        }}
+                        updateElapsedTime();
+                        setInterval(updateElapsedTime, 1000);
+                    }};
                 </script>
             </head>
             <body>
@@ -681,10 +706,19 @@ def download_mobile_app(request, app_type):
                 if os.path.exists(log_file):
                     with open(log_file, 'r') as f:
                         build_log = f.read()
-                        # Filter out npm warnings and get last 50 lines
-                        log_lines = [line for line in build_log.split('\n')
-                                   if 'npm warn deprecated' not in line.lower()]
-                        build_log = '\n'.join(log_lines[-50:]) if len(log_lines) > 50 else '\n'.join(log_lines)
+                        # Filter log: keep useful lines, remove noise
+                        log_lines = []
+                        for line in build_log.split('\n'):
+                            # Skip npm warnings but keep progress indicators
+                            if 'npm warn deprecated' in line.lower():
+                                continue
+                            # Keep lines that show actual progress
+                            if any(keyword in line.lower() for keyword in ['===', 'installing', 'added', 'building', 'complete', 'error', 'failed', 'progress:', '>']):
+                                log_lines.append(line)
+                            elif line.strip() and not line.startswith('npm'):
+                                log_lines.append(line)
+                        # Show last 60 lines
+                        build_log = '\n'.join(log_lines[-60:]) if len(log_lines) > 60 else '\n'.join(log_lines)
 
                 return HttpResponse(f"""
                     <!DOCTYPE html>
@@ -732,7 +766,8 @@ def download_mobile_app(request, app_type):
                                     <h1 style="margin: 0;">Building iOS App...</h1>
                                 </div>
                                 <p class="lead text-center"><strong>Status:</strong> {status_data['message']}</p>
-                                <p class="text-center text-muted"><small>Page refreshes every 5 seconds. You can close this tab and come back later.</small></p>
+                                <p class="text-center"><strong>Elapsed Time:</strong> <span id="elapsed-time" style="color: #58a6ff; font-size: 1.2em;">0m 0s</span></p>
+                                <p class="text-center text-muted"><small>Page auto-refreshes every 5 seconds. You can close this tab and come back later.</small></p>
                             </div>
 
                             <div class="card">
@@ -893,12 +928,27 @@ def download_mobile_app(request, app_type):
                     .status-header { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
                 </style>
                 <script>
-                    window.onload = function() {
+                    window.onload = function() {{
                         var logContainer = document.getElementById('log-container');
-                        if (logContainer) {
+                        if (logContainer) {{
                             logContainer.scrollTop = logContainer.scrollHeight;
-                        }
-                    };
+                        }}
+
+                        // Show elapsed time
+                        var startTime = {status_data.get('timestamp', 0)} * 1000;
+                        function updateElapsedTime() {{
+                            var elapsed = Math.floor((Date.now() - startTime) / 1000);
+                            var minutes = Math.floor(elapsed / 60);
+                            var seconds = elapsed % 60;
+                            var elapsedText = minutes + 'm ' + seconds + 's';
+                            var elapsedElement = document.getElementById('elapsed-time');
+                            if (elapsedElement) {{
+                                elapsedElement.textContent = elapsedText;
+                            }}
+                        }}
+                        updateElapsedTime();
+                        setInterval(updateElapsedTime, 1000);
+                    }};
                 </script>
             </head>
             <body>

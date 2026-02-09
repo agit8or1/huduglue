@@ -121,8 +121,9 @@ class Command(BaseCommand):
                 self._update_status(status_file, 'building', 'Installing dependencies (this may take 5-10 minutes)...')
                 self.stdout.write('Installing npm dependencies...\n')
                 self._log('\n=== Installing npm dependencies ===\n')
+                self._log('This will take several minutes. Progress updates below:\n\n')
                 self._run_command_with_logging(
-                    ['npm', 'install', '--loglevel=error'],
+                    ['npm', 'install', '--progress=true'],
                     cwd=mobile_app_dir,
                     timeout=600  # 10 minute timeout for npm install
                 )
