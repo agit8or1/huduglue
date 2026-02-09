@@ -194,6 +194,52 @@
                         <div class="text-danger small">{{ form.notes.errors }}</div>
                     {% endif %}
                 </div>
+
+                <!-- Lifespan & Replacement Tracking -->
+                <div class="col-12"><hr></div>
+                <div class="col-12">
+                    <h6 class="text-muted mb-3"><i class="fas fa-calendar-alt"></i> Lifespan & Replacement Tracking</h6>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">{{ form.purchase_date.label }}</label>
+                    {{ form.purchase_date }}
+                    <small class="form-text text-muted d-block">{{ form.purchase_date.help_text }}</small>
+                    {% if form.purchase_date.errors %}
+                        <div class="text-danger small">{{ form.purchase_date.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">{{ form.lifespan_years.label }}</label>
+                    {{ form.lifespan_years }}
+                    <small class="form-text text-muted d-block">{{ form.lifespan_years.help_text }}</small>
+                    {% if form.lifespan_years.errors %}
+                        <div class="text-danger small">{{ form.lifespan_years.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-check mt-4">
+                        {{ form.lifespan_reminder_enabled }}
+                        <label class="form-check-label" for="{{ form.lifespan_reminder_enabled.id_for_label }}">
+                            {{ form.lifespan_reminder_enabled.label }}
+                        </label>
+                    </div>
+                    <small class="form-text text-muted d-block">{{ form.lifespan_reminder_enabled.help_text }}</small>
+                    {% if form.lifespan_reminder_enabled.errors %}
+                        <div class="text-danger small">{{ form.lifespan_reminder_enabled.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">{{ form.lifespan_reminder_months.label }}</label>
+                    {{ form.lifespan_reminder_months }}
+                    <small class="form-text text-muted d-block">{{ form.lifespan_reminder_months.help_text }}</small>
+                    {% if form.lifespan_reminder_months.errors %}
+                        <div class="text-danger small">{{ form.lifespan_reminder_months.errors }}</div>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="mt-4">
