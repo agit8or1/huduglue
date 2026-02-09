@@ -28,8 +28,20 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'Building {app_type} app...'))
 
         try:
-            # Check if npm is installed, install automatically if not
+            # Ensure basic utilities are installed first
             import shutil
+
+            # Install curl if missing (needed for Node.js installation)
+            if not shutil.which('curl'):
+                self._update_status(status_file, 'building', 'Installing curl...')
+                self.stdout.write('Installing curl (required for Node.js setup)...')
+                try:
+                    subprocess.run(['sudo', 'apt-get', 'update'], check=True, capture_output=True)
+                    subprocess.run(['sudo', 'apt-get', 'install', '-y', 'curl'], check=True, capture_output=True)
+                except Exception as e:
+                    raise Exception(f'Failed to install curl: {e}\nPlease run: sudo apt-get install -y curl')
+
+            # Check if npm is installed, install automatically if not
             if not shutil.which('npm'):
                 self._update_status(status_file, 'building', 'Installing Node.js and npm (first time setup)...')
                 self.stdout.write('Node.js/npm not found. Installing automatically...')
