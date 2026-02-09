@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ClientModuleScope</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+<link href="../../../images/gradle-logo.svg">
+<link href="../../../styles/gradle.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            gradle
+                    </a>
+            </div>
+            <div class="library-version">
+8.8            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":docs/kotlin_dsl">DSL</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="gradle::org.gradle.kotlin.dsl/ClientModuleScope///PointingToDeclaration//-1867656071">
+  <div class="breadcrumbs"><a href="../../../index.html">gradle</a><span class="delimiter">/</span><a href="../index.html">org.gradle.kotlin.dsl</a><span class="delimiter">/</span><span class="current">ClientModuleScope</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Client</span><wbr></wbr><span>Module</span><wbr></wbr><span><span>Scope</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html"><strike>ClientModuleScope</strike></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dependencyHandler<span class="token operator">: </span><a href="../../org.gradle.api.artifacts.dsl/-dependency-handler/index.html#-498385534%2FMain%2F-1867656071">DependencyHandler</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>clientModule<span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ClientModule///PointingToDeclaration/">ClientModule</span></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="org.gradle.kotlin.dsl.support.delegates/ClientModuleDelegate///PointingToDeclaration/">ClientModuleDelegate</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/platforms/core-configuration/kotlin-dsl/src/main/kotlin//org/gradle/kotlin/dsl/DependencyHandlerExtensions.kt#L193">source</a>)</span></span></div><div class="deprecation-content"><h3 class="">Deprecated</h3><p class="paragraph">Will be removed in Gradle 9.0</p></div><p class="paragraph">Receiver for ClientModule configuration blocks.</p></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-1071888366%2FConstructors%2F-1867656071" anchor-label="ClientModuleScope" id="-1071888366%2FConstructors%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-client-module-scope.html"><span>Client</span><wbr></wbr><span>Module</span><wbr></wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1071888366%2FConstructors%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dependencyHandler<span class="token operator">: </span><a href="../../org.gradle.api.artifacts.dsl/-dependency-handler/index.html#-498385534%2FMain%2F-1867656071">DependencyHandler</a><span class="token punctuation">, </span></span><span class="parameter ">clientModule<span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ClientModule///PointingToDeclaration/">ClientModule</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="355719698%2FProperties%2F-1867656071" anchor-label="clientModule" id="355719698%2FProperties%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="client-module.html"><span>client</span><wbr></wbr><span><span>Module</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="355719698%2FProperties%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="client-module.html">clientModule</a><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ClientModule///PointingToDeclaration/">ClientModule</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-785089436%2FProperties%2F-1867656071" anchor-label="delegate" id="-785089436%2FProperties%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="delegate.html"><span><span>delegate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-785089436%2FProperties%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="delegate.html">delegate</a><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ClientModule///PointingToDeclaration/">ClientModule</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-1352904213%2FFunctions%2F-1867656071" anchor-label="addArtifact" id="-1352904213%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1352904213%2FFunctions%2F-1867656071"><span>add</span><wbr></wbr><span><span>Artifact</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1352904213%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1352904213%2FFunctions%2F-1867656071"><span class="token function">addArtifact</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">artifact<span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/DependencyArtifact///PointingToDeclaration/">DependencyArtifact</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependency///PointingToDeclaration/">ModuleDependency</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-832350902%2FFunctions%2F-1867656071" anchor-label="addDependency" id="-832350902%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-832350902%2FFunctions%2F-1867656071"><span>add</span><wbr></wbr><span><span>Dependency</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-832350902%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-832350902%2FFunctions%2F-1867656071"><span class="token function">addDependency</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dependency<span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependency///PointingToDeclaration/">ModuleDependency</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1524707586%2FFunctions%2F-1867656071" anchor-label="artifact" id="1524707586%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-706435413%2FFunctions%2F-1867656071"><span><span>artifact</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1524707586%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-706435413%2FFunctions%2F-1867656071"><span class="token function">artifact</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">configureClosure<span class="token operator">: </span><span data-unresolved-link="groovy.lang/Closure///PointingToDeclaration/">Closure</span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/DependencyArtifact///PointingToDeclaration/">DependencyArtifact</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1230655581%2FFunctions%2F-1867656071"><span class="token function">artifact</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">configureAction<span class="token operator">: </span><a href="../../org.gradle.api/-action/index.html#-199246903%2FMain%2F-1867656071">Action</a><span class="token operator">&lt;</span><span class="token keyword">in </span><span data-unresolved-link="org.gradle.api.artifacts/DependencyArtifact///PointingToDeclaration/">DependencyArtifact</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/DependencyArtifact///PointingToDeclaration/">DependencyArtifact</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1820682608%2FFunctions%2F-1867656071" anchor-label="attributes" id="-1820682608%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1820682608%2FFunctions%2F-1867656071"><span><span>attributes</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1820682608%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1820682608%2FFunctions%2F-1867656071"><span class="token function">attributes</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">configureAction<span class="token operator">: </span><a href="../../org.gradle.api/-action/index.html#-199246903%2FMain%2F-1867656071">Action</a><span class="token operator">&lt;</span><span class="token keyword">in </span><span data-unresolved-link="org.gradle.api.attributes/AttributeContainer///PointingToDeclaration/">AttributeContainer</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependency///PointingToDeclaration/">ModuleDependency</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1165450728%2FFunctions%2F-1867656071" anchor-label="because" id="1165450728%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1165450728%2FFunctions%2F-1867656071"><span><span>because</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1165450728%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#1165450728%2FFunctions%2F-1867656071"><span class="token function">because</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reason<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2067289667%2FFunctions%2F-1867656071" anchor-label="capabilities" id="2067289667%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#2067289667%2FFunctions%2F-1867656071"><span><span>capabilities</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2067289667%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#2067289667%2FFunctions%2F-1867656071"><span class="token function">capabilities</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">configureAction<span class="token operator">: </span><a href="../../org.gradle.api/-action/index.html#-199246903%2FMain%2F-1867656071">Action</a><span class="token operator">&lt;</span><span class="token keyword">in </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependencyCapabilitiesHandler///PointingToDeclaration/">ModuleDependencyCapabilitiesHandler</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependency///PointingToDeclaration/">ModuleDependency</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-80861406%2FFunctions%2F-1867656071" anchor-label="contentEquals" id="-80861406%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-80861406%2FFunctions%2F-1867656071"><span>content</span><wbr></wbr><span><span>Equals</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-80861406%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-80861406%2FFunctions%2F-1867656071"><span class="token function">contentEquals</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dependency<span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/Dependency///PointingToDeclaration/">Dependency</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1619862614%2FFunctions%2F-1867656071" anchor-label="copy" id="1619862614%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1619862614%2FFunctions%2F-1867656071"><span><span>copy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1619862614%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#1619862614%2FFunctions%2F-1867656071"><span class="token function">copy</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ClientModule///PointingToDeclaration/">ClientModule</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-653231439%2FFunctions%2F-1867656071" anchor-label="dependencies" id="-653231439%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dependencies.html"><span><span>dependencies</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-653231439%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="dependencies.html"><span class="token function">dependencies</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>notations<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="626864213%2FFunctions%2F-1867656071" anchor-label="dependency" id="626864213%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dependency.html"><span><span>dependency</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="626864213%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="dependency.html"><span class="token function">dependency</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">notation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="dependency.html"><span class="token function">dependency</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">notation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">dependencyConfiguration<span class="token operator">: </span><span class="token keyword"></span><span data-unresolved-link="org.gradle.api.artifacts/ExternalModuleDependency///PointingToDeclaration/">ExternalModuleDependency</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="400089887%2FFunctions%2F-1867656071" anchor-label="doNotEndorseStrictVersions" id="400089887%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#400089887%2FFunctions%2F-1867656071"><span>do</span><wbr></wbr><span>Not</span><wbr></wbr><span>Endorse</span><wbr></wbr><span>Strict</span><wbr></wbr><span><span>Versions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="400089887%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#400089887%2FFunctions%2F-1867656071"><span class="token function">doNotEndorseStrictVersions</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1564743141%2FFunctions%2F-1867656071" anchor-label="endorseStrictVersions" id="-1564743141%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1564743141%2FFunctions%2F-1867656071"><span>endorse</span><wbr></wbr><span>Strict</span><wbr></wbr><span><span>Versions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1564743141%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1564743141%2FFunctions%2F-1867656071"><span class="token function">endorseStrictVersions</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1566712891%2FFunctions%2F-1867656071" anchor-label="exclude" id="1566712891%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1566712891%2FFunctions%2F-1867656071"><span><span>exclude</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1566712891%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#1566712891%2FFunctions%2F-1867656071"><span class="token function">exclude</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">excludeProperties<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependency///PointingToDeclaration/">ModuleDependency</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-566806432%2FFunctions%2F-1867656071" anchor-label="getArtifacts" id="-566806432%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-566806432%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Artifacts</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-566806432%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-566806432%2FFunctions%2F-1867656071"><span class="token function">getArtifacts</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-set/index.html">MutableSet</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="org.gradle.api.artifacts/DependencyArtifact///PointingToDeclaration/">DependencyArtifact</span><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1902973854%2FFunctions%2F-1867656071" anchor-label="getAttributes" id="-1902973854%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1902973854%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Attributes</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1902973854%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1902973854%2FFunctions%2F-1867656071"><span class="token function">getAttributes</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.attributes/AttributeContainer///PointingToDeclaration/">AttributeContainer</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-336129584%2FFunctions%2F-1867656071" anchor-label="getDependencies" id="-336129584%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-336129584%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Dependencies</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-336129584%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-336129584%2FFunctions%2F-1867656071"><span class="token function">getDependencies</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-set/index.html">MutableSet</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependency///PointingToDeclaration/">ModuleDependency</span><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="725695036%2FFunctions%2F-1867656071" anchor-label="getExcludeRules" id="725695036%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#725695036%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span>Exclude</span><wbr></wbr><span><span>Rules</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="725695036%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#725695036%2FFunctions%2F-1867656071"><span class="token function">getExcludeRules</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-set/index.html">MutableSet</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="org.gradle.api.artifacts/ExcludeRule///PointingToDeclaration/">ExcludeRule</span><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1158269310%2FFunctions%2F-1867656071" anchor-label="getGroup" id="-1158269310%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1158269310%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Group</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1158269310%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1158269310%2FFunctions%2F-1867656071"><span class="token function">getGroup</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1549494558%2FFunctions%2F-1867656071" anchor-label="getId" id="1549494558%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1549494558%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1549494558%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#1549494558%2FFunctions%2F-1867656071"><span class="token function">getId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1224421651%2FFunctions%2F-1867656071" anchor-label="getModule" id="-1224421651%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1224421651%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Module</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1224421651%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1224421651%2FFunctions%2F-1867656071"><span class="token function">getModule</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleIdentifier///PointingToDeclaration/">ModuleIdentifier</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-388111698%2FFunctions%2F-1867656071" anchor-label="getName" id="-388111698%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-388111698%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-388111698%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-388111698%2FFunctions%2F-1867656071"><span class="token function">getName</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2010605077%2FFunctions%2F-1867656071" anchor-label="getReason" id="2010605077%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#2010605077%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Reason</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2010605077%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#2010605077%2FFunctions%2F-1867656071"><span class="token function">getReason</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1704883805%2FFunctions%2F-1867656071" anchor-label="getRequestedCapabilities" id="1704883805%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1704883805%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span>Requested</span><wbr></wbr><span><span>Capabilities</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1704883805%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#1704883805%2FFunctions%2F-1867656071"><span class="token function">getRequestedCapabilities</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="org.gradle.api.capabilities/Capability///PointingToDeclaration/">Capability</span><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1317157412%2FFunctions%2F-1867656071" anchor-label="getTargetConfiguration" id="-1317157412%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1317157412%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span>Target</span><wbr></wbr><span><span>Configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1317157412%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1317157412%2FFunctions%2F-1867656071"><span class="token function">getTargetConfiguration</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1747636919%2FFunctions%2F-1867656071" anchor-label="getVersion" id="-1747636919%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1747636919%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span><span>Version</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1747636919%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1747636919%2FFunctions%2F-1867656071"><span class="token function">getVersion</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="652149484%2FFunctions%2F-1867656071" anchor-label="getVersionConstraint" id="652149484%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#652149484%2FFunctions%2F-1867656071"><span>get</span><wbr></wbr><span>Version</span><wbr></wbr><span><span>Constraint</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="652149484%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#652149484%2FFunctions%2F-1867656071"><span class="token function">getVersionConstraint</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/VersionConstraint///PointingToDeclaration/">VersionConstraint</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1375335468%2FFunctions%2F-1867656071" anchor-label="isChanging" id="-1375335468%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1375335468%2FFunctions%2F-1867656071"><span>is</span><wbr></wbr><span><span>Changing</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1375335468%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1375335468%2FFunctions%2F-1867656071"><span class="token function">isChanging</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1492897016%2FFunctions%2F-1867656071" anchor-label="isEndorsingStrictVersions" id="-1492897016%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1492897016%2FFunctions%2F-1867656071"><span>is</span><wbr></wbr><span>Endorsing</span><wbr></wbr><span>Strict</span><wbr></wbr><span><span>Versions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1492897016%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1492897016%2FFunctions%2F-1867656071"><span class="token function">isEndorsingStrictVersions</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="318097870%2FFunctions%2F-1867656071" anchor-label="isForce" id="318097870%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#318097870%2FFunctions%2F-1867656071"><span>is</span><wbr></wbr><span><span>Force</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="318097870%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#318097870%2FFunctions%2F-1867656071"><span class="token function">isForce</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1909123044%2FFunctions%2F-1867656071" anchor-label="isTransitive" id="-1909123044%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1909123044%2FFunctions%2F-1867656071"><span>is</span><wbr></wbr><span><span>Transitive</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1909123044%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1909123044%2FFunctions%2F-1867656071"><span class="token function">isTransitive</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1035617391%2FFunctions%2F-1867656071" anchor-label="matchesStrictly" id="1035617391%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1035617391%2FFunctions%2F-1867656071"><span>matches</span><wbr></wbr><span><span>Strictly</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1035617391%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#1035617391%2FFunctions%2F-1867656071"><span class="token function">matchesStrictly</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">identifier<span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleVersionIdentifier///PointingToDeclaration/">ModuleVersionIdentifier</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1332072476%2FFunctions%2F-1867656071" anchor-label="module" id="-1332072476%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="module.html"><span><span>module</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1332072476%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="module.html"><span class="token function">module</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">group<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">version<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">configuration<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">classifier<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">ext<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">setup<span class="token operator">: </span><span class="token keyword"></span><a href="index.html">ClientModuleScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="875878597%2FFunctions%2F-1867656071" anchor-label="setChanging" id="875878597%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#875878597%2FFunctions%2F-1867656071"><span>set</span><wbr></wbr><span><span>Changing</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="875878597%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#875878597%2FFunctions%2F-1867656071"><span class="token function">setChanging</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">changing<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ExternalModuleDependency///PointingToDeclaration/">ExternalModuleDependency</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="730005831%2FFunctions%2F-1867656071" anchor-label="setTargetConfiguration" id="730005831%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#730005831%2FFunctions%2F-1867656071"><span>set</span><wbr></wbr><span>Target</span><wbr></wbr><span><span>Configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="730005831%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#730005831%2FFunctions%2F-1867656071"><span class="token function">setTargetConfiguration</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1108521971%2FFunctions%2F-1867656071" anchor-label="setTransitive" id="-1108521971%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1108521971%2FFunctions%2F-1867656071"><span>set</span><wbr></wbr><span><span>Transitive</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1108521971%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1108521971%2FFunctions%2F-1867656071"><span class="token function">setTransitive</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">transitive<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.gradle.api.artifacts/ModuleDependency///PointingToDeclaration/">ModuleDependency</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-168854189%2FFunctions%2F-1867656071" anchor-label="version" id="-168854189%2FFunctions%2F-1867656071" data-filterable-set=":docs/kotlin_dsl"></a>
+          <div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-168854189%2FFunctions%2F-1867656071"><span><span>version</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-168854189%2FFunctions%2F-1867656071"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-168854189%2FFunctions%2F-1867656071"><span class="token function">version</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">configureAction<span class="token operator">: </span><a href="../../org.gradle.api/-action/index.html#-199246903%2FMain%2F-1867656071">Action</a><span class="token operator">&lt;</span><span class="token keyword">in </span><span data-unresolved-link="org.gradle.api.artifacts/MutableVersionConstraint///PointingToDeclaration/">MutableVersionConstraint</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>Gradle Kotlin DSL Reference</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

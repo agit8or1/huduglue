@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>files</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+<link href="../../../images/gradle-logo.svg">
+<link href="../../../styles/gradle.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            gradle
+                    </a>
+            </div>
+            <div class="library-version">
+8.8            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":docs/kotlin_dsl">DSL</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageIds="gradle::org.gradle.kotlin.dsl/SettingsScriptApi/files/#kotlin.Array[kotlin.Any]/PointingToDeclaration//-1867656071">
+  <div class="breadcrumbs"><a href="../../../index.html">gradle</a><span class="delimiter">/</span><a href="../index.html">org.gradle.kotlin.dsl</a><span class="delimiter">/</span><a href="index.html">SettingsScriptApi</a><span class="delimiter">/</span><span class="current">files</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>files</span></span></h1>
+  </div>
+  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl" data-active="" data-toggle=":docs/kotlin_dsl">DSL</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/kotlin_dsl"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="files.html"><span class="token function">files</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>paths<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../org.gradle.api.file/-configurable-file-collection/index.html#-717165796%2FMain%2F-1867656071">ConfigurableFileCollection</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/platforms/core-configuration/kotlin-dsl/src/main/kotlin//org/gradle/kotlin/dsl/SettingsScriptApi.kt#L205">source</a>)</span></span></div><p class="paragraph">Creates a <a href="../../org.gradle.api.file/-configurable-file-collection/index.html#-717165796%2FMain%2F-1867656071">ConfigurableFileCollection</a> containing the given files.</p><p class="paragraph">You can pass any of the following types to this method:</p><ul><li><p class="paragraph">A <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char-sequence/index.html">CharSequence</a>, including <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a> as defined by <a href="file.html">file</a>.</p></li><li><p class="paragraph">A <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html">File</a> as defined by <a href="file.html">file</a>.</p></li><li><p class="paragraph">A <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html">java.nio.file.Path</a> as defined by <a href="file.html">file</a>.</p></li><li><p class="paragraph">A <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/URI.html">URI</a> or <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/URL.html">java.net.URL</a> as defined by <a href="file.html">file</a>.</p></li><li><p class="paragraph">A <span data-unresolved-link="org.gradle.api.file/Directory///PointingToDeclaration/">org.gradle.api.file.Directory</span> or <span data-unresolved-link="org.gradle.api.file/RegularFile///PointingToDeclaration/">org.gradle.api.file.RegularFile</span> as defined by <a href="file.html">file</a>.</p></li><li><p class="paragraph">A <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.sequences/-sequence/index.html">Sequence</a>, <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a> or <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a> that contains objects of any supported type. The elements of the collection are recursively converted to files.</p></li><li><p class="paragraph">A <span data-unresolved-link="org.gradle.api.file/FileCollection///PointingToDeclaration/">org.gradle.api.file.FileCollection</span>. The contents of the collection are included in the returned collection.</p></li><li><p class="paragraph">A <span data-unresolved-link="org.gradle.api.provider/Provider///PointingToDeclaration/">org.gradle.api.provider.Provider</span> of any supported type. The provider's value is recursively converted to files. If the provider represents an output of a task, that task is executed if the file collection is used as an input to another task.</p></li><li><p class="paragraph">A <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/Callable.html">java.util.concurrent.Callable</a> that returns any supported type. The callable's return value is recursively converted to files. A <code class="lang-kotlin">null</code> return value is treated as an empty collection.</p></li><li><p class="paragraph">A <a href="../../org.gradle.api/-task/index.html#217904858%2FMain%2F-1867656071">org.gradle.api.Task</a>. Converted to the task's output files. The task is executed if the file collection is used as an input to another task.</p></li><li><p class="paragraph">A <span data-unresolved-link="org.gradle.api.tasks/TaskOutputs///PointingToDeclaration/">org.gradle.api.tasks.TaskOutputs</span>. Converted to the output files the related task. The task is executed if the file collection is used as an input to another task.</p></li><li><p class="paragraph">Anything else is treated as a failure.</p></li></ul><p class="paragraph">The returned file collection is lazy, so that the paths are evaluated only when the contents of the file collection are queried. The file collection is also live, so that it evaluates the above each time the contents of the collection is queried.</p><p class="paragraph">The returned file collection maintains the iteration order of the supplied paths.</p><p class="paragraph">The returned file collection maintains the details of the tasks that produce the files, so that these tasks are executed if this file collection is used as an input to some task.</p><p class="paragraph">This method can also be used to create an empty collection, which can later be mutated to add elements.</p><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">The file collection.</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>paths</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The paths to the files. May be empty.</p></div></div></div></div></div><hr><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="files.html"><span class="token function">files</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">paths<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token punctuation">, </span></span><span class="parameter ">configuration<span class="token operator">: </span><span class="token keyword"></span><a href="../../org.gradle.api.file/-configurable-file-collection/index.html#-717165796%2FMain%2F-1867656071">ConfigurableFileCollection</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../org.gradle.api.file/-configurable-file-collection/index.html#-717165796%2FMain%2F-1867656071">ConfigurableFileCollection</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/platforms/core-configuration/kotlin-dsl/src/main/kotlin//org/gradle/kotlin/dsl/SettingsScriptApi.kt#L217">source</a>)</span></span></div><p class="paragraph">Creates a <a href="../../org.gradle.api.file/-configurable-file-collection/index.html#-717165796%2FMain%2F-1867656071">ConfigurableFileCollection</a> containing the given files.</p><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">The file collection.</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>paths</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The contents of the file collection. Evaluated as per <a href="files.html">files</a>.</p></div></div></div></div><div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>configuration</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The block to use to configure the file collection.</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":docs/kotlin_dsl" data-filterable-set=":docs/kotlin_dsl"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="files.html"><span>Settings</span><wbr></wbr><span>Script</span><wbr></wbr><span>Api.</span><wbr></wbr><span>files</span></a></div></span></div><div></div></div></div></div></div>  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>Gradle Kotlin DSL Reference</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

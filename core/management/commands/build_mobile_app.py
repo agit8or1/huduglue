@@ -45,6 +45,11 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'Building {app_type} app...'))
 
         try:
+            # Check if Java is installed (required for Gradle/Android builds)
+            if not shutil.which('java'):
+                self._update_status(status_file, 'failed', 'Java/JDK is not installed. Please install: sudo apt-get install openjdk-17-jdk')
+                raise Exception('Java/JDK is required for Android builds. Install with: sudo apt-get install openjdk-17-jdk')
+
             # Ensure basic utilities are installed first
             # Determine if we need sudo (check if running as root)
             use_sudo = os.geteuid() != 0 and shutil.which('sudo')

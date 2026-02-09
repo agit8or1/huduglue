@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>unix</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+<link href="../../../images/gradle-logo.svg">
+<link href="../../../styles/gradle.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            gradle
+                    </a>
+            </div>
+            <div class="library-version">
+8.8            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":docs/java_api">API</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageIds="gradle::org.gradle.api.file/ConfigurableFilePermissions/unix/#java.lang.String/PointingToDeclaration//-1793262594">
+  <div class="breadcrumbs"><a href="../../../index.html">gradle</a><span class="delimiter">/</span><a href="../index.html">org.gradle.api.file</a><span class="delimiter">/</span><a href="index.html">ConfigurableFilePermissions</a><span class="delimiter">/</span><span class="current">unix</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>unix</span></span></h1>
+  </div>
+  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api" data-active="" data-toggle=":docs/java_api">API</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/java_api"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="unix.html"><span class="token function">unix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">unixNumericOrSymbolic<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/subprojects/core-api/src/main/java//org/gradle/api/file/ConfigurableFilePermissions.java#L203">source</a>)</span></span></div><p class="paragraph">Sets Unix style permissions. Accept values in two styles of notation: </p><ul><li>NUMERIC notation: uses 3 octal (base-8) digits representing permissions for the 3 categories of users; for example &quot;755&quot;</li><li>SYMBOLIC notation: uses 3 sets of 3 characters, each set representing the permissions for one of the user categories; for example &quot;rwxr-xr-x&quot;</li></ul><p class="paragraph"> The NUMERIC notation consist of 3 digits having values from 0 to 7. 1st digit represents the OWNER, 2nd represents the GROUP while the 3rd represents OTHER users. </p><p class="paragraph"> Each of the digits is the sum of its component bits in the binary numeral system. Each of the 3 bits represents a permission. 1st bit is the READ bit, adds 4 to the digit (binary 100). 2nd bit is the WRITE bit, adds 2 to the digit (binary 010). 3rd bit is the EXECUTE bit, adds 1 to the digit (binary 001). </p><p class="paragraph"> See the examples below. </p><p class="paragraph"> NOTE: providing the 3 numeric digits can also be done in the octal literal form, so &quot;0740&quot; will be handled identically to &quot;740&quot;. </p><p class="paragraph"> The SYMBOLIC notation consists of 3 sets of 3 characters. The 1st set represents the OWNER, the 2nd set represents the GROUP, the 3rd set represents OTHER users. </p><p class="paragraph"> Each of the tree characters represents the read, write and execute permissions: </p><ul><li><code class="lang-kotlin">r</code> if READING is permitted, <code class="lang-kotlin">-</code> if it is not; must be 1st in the set</li><li><code class="lang-kotlin">w</code> if WRITING is permitted, <code class="lang-kotlin">-</code> if it is not; must be 2nd in the set</li><li><code class="lang-kotlin">x</code> if EXECUTING is permitted, <code class="lang-kotlin">-</code> if it is not; must be 3rd in the set</li></ul><p class="paragraph"> Examples: </p><table><thead></thead><tbody><tr><td></td><td></td><td></td></tr><tr><td>000</td><td>---------</td><td>no permissions</td></tr><tr><td>700</td><td>rwx------</td><td>read, write &execute only for owner</td></tr><tr><td>770</td><td>rwxrwx---</td><td>read, write &execute for owner and group</td></tr><tr><td>111</td><td>--x--x--x</td><td>execute</td></tr><tr><td>222</td><td>-w--w--w-</td><td>write</td></tr><tr><td>333</td><td>-wx-wx-wx</td><td>write &execute</td></tr><tr><td>444</td><td>r--r--r--</td><td>read</td></tr><tr><td>555</td><td>r-xr-xr-x</td><td>read &execute</td></tr><tr><td>666</td><td>rw-rw-rw-</td><td>read &write</td></tr><tr><td>740</td><td>rwxr-----</td><td>owner can read, write &execute; group can only read; others have no permissions</td></tr></tbody></table><p class="paragraph"> An example usage of this method would be configuring a copy task and explicitly specifying the destination file permissions: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">from(...)
+into(...)
+filePermissions { unix(&quot;r--r--r--&quot;) }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><hr><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="unix.html"><span class="token function">unix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">unixNumeric<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/subprojects/core-api/src/main/java//org/gradle/api/file/ConfigurableFilePermissions.java#L208">source</a>)</span></span></div><p class="paragraph">Sets Unix style numeric permissions. See <a href="unix.html">unix</a> for details.</p></div>  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>Gradle Kotlin DSL Reference</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

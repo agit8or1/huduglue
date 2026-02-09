@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ValueSource</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+<link href="../../../images/gradle-logo.svg">
+<link href="../../../styles/gradle.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            gradle
+                    </a>
+            </div>
+            <div class="library-version">
+8.8            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":docs/java_api">API</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="gradle::org.gradle.api.provider/ValueSource///PointingToDeclaration//-1793262594">
+  <div class="breadcrumbs"><a href="../../../index.html">gradle</a><span class="delimiter">/</span><a href="../index.html">org.gradle.api.provider</a><span class="delimiter">/</span><span class="current">ValueSource</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Value</span><wbr></wbr><span><span>Source</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api" data-active="" data-toggle=":docs/java_api">API</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/java_api"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">ValueSource</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="index.html">T</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="index.html">P</a><span class="token operator"> : </span><a href="../-value-source-parameters/index.html">ValueSourceParameters</a><span class="token operator">?</span><span class="token operator">&gt;</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/subprojects/core-api/src/main/java//org/gradle/api/provider/ValueSource.java#L110">source</a>)</span></span></div><p class="paragraph">Represents an external source of information used by a Gradle build. Examples of external sources include client environment variables, system properties, configuration files, shell commands, network services, among others. </p><p class="paragraph"> Representing external sources as <a href="index.html">ValueSource</a>s allows Gradle to transparently manage <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">the configuration cache</a> as values obtained from those sources change. For example, a build might run a different set of tasks depending on whether the <code class="lang-kotlin">CI</code> environment variable is set or not. </p><p class="paragraph"> To integrate a new type of value source, create an abstract subclass of this interface and use <a href="../-provider-factory/of.html">of</a> to get a provider to a configured source. The returned <a href="../-provider/index.html">org.gradle.api.provider.Provider</a> can be passed to tasks or queried by build logic during the configuration phase. In the latter case, the source would be automatically considered as an input to the work graph cache. </p><p class="paragraph"> It is possible to have some Gradle services to be <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#service_injection">injected</a> into the implementation, similar to tasks and plugins. It can be done by adding a parameter to the constructor and annotating the constructor with the <code class="lang-kotlin">@Inject</code> annotation: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">public abstract class MyValueSource implements ValueSource&lt;String, ValueSourceParameters.None&gt; {
+    private final ExecOperations execOperations;
+
+    @Inject
+    public MyValueSource(ExecOperations execOperations) {
+        this.execOperations = execOperations;
+    }
+
+    @Override
+    @Nullable
+    public String obtain() {
+        // your custom implementation
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div> Currently, only a small subset of services is supported: <ul><li><a href="../../org.gradle.process/-exec-operations/index.html">org.gradle.process.ExecOperations</a> provides means to execute external processes. It is possible to use this service even at configuration time. However, as the returned value is used to check the configuration cache, the <a href="obtain.html">obtain</a> method will be called during each build. Calling slow commands here will slow things down.</li></ul><p class="paragraph"> A value source implementation will most likely take parameters. To do this create a subtype of <a href="../-value-source-parameters/index.html">ValueSourceParameters</a> and declare this type as the type parameter to the value source implementation. </p><p class="paragraph"> A value source implementation doesn't have to be thread-safe, as the single call to <a href="obtain.html">obtain</a> is synchronized. </p><p class="paragraph"> A value source implementation is exempt from the automatic detection of work graph cache inputs. For example, if the <a href="obtain.html">obtain</a> method calls <code class="lang-kotlin">System.getenv(&quot;FOO&quot;)</code> then changes to the <code class="lang-kotlin">FOO</code> environment variable only invalidate the cache if the value returned by the <code class="lang-kotlin">obtain()</code> method itself changes. The same applies to reading files or system properties. Starting an external process with a standard API (for example, <code class="lang-kotlin">java.lang.ProcessBuilder</code>) is also allowed. </p> Implementations of ValueSource are subject to the following constraint: <ul><li>Do not implement <a href="get-parameters.html">getParameters</a> in your class, the method will be implemented by Gradle.</li></ul><span class="kdoc-tag"><h4 class="">Since</h4><p class="paragraph">6.1</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-provider-factory/of.html"><span>Provider</span><wbr></wbr><span><span>Factory</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span><span>&lt;a</span></span> <span>href=&quot;https://docs.</span><wbr></wbr><span>gradle.</span><wbr></wbr><span>org/current/userguide/configuration_cache.</span><wbr></wbr><span><span>html&quot;&gt;Configuration</span></span> <span><span>Cache&lt;/a&gt;</span></span></div></span></div><div></div></div></div></div></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="358282285%2FFunctions%2F-1793262594" anchor-label="getParameters" id="358282285%2FFunctions%2F-1793262594" data-filterable-set=":docs/java_api"></a>
+          <div class="table-row" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-parameters.html"><span>get</span><wbr></wbr><span><span>Parameters</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="358282285%2FFunctions%2F-1793262594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api" data-active="" data-toggle=":docs/java_api">API</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/java_api"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="javax.inject/Inject///PointingToDeclaration/"><span class="token annotation builtin">Inject</span></span></div></div><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="get-parameters.html"><span class="token function">getParameters</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">P</a></div><div class="brief ">The object provided by <a href="../-value-source-spec/get-parameters.html">getParameters</a> when creating a provider from the value source.</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1057792616%2FFunctions%2F-1793262594" anchor-label="obtain" id="1057792616%2FFunctions%2F-1793262594" data-filterable-set=":docs/java_api"></a>
+          <div class="table-row" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="obtain.html"><span><span>obtain</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1057792616%2FFunctions%2F-1793262594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api" data-active="" data-toggle=":docs/java_api">API</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/java_api"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="javax.annotation/Nullable///PointingToDeclaration/"><span class="token annotation builtin">Nullable</span></span></div></div><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="obtain.html"><span class="token function">obtain</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">T</a></div><div class="brief ">Obtains the value from the source.</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>Gradle Kotlin DSL Reference</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

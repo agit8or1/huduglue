@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>RuleSource</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+<link href="../../../images/gradle-logo.svg">
+<link href="../../../styles/gradle.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            gradle
+                    </a>
+            </div>
+            <div class="library-version">
+8.8            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":docs/java_api">API</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="gradle::org.gradle.model/RuleSource///PointingToDeclaration//-1793262594">
+  <div class="breadcrumbs"><a href="../../../index.html">gradle</a><span class="delimiter">/</span><a href="../index.html">org.gradle.model</a><span class="delimiter">/</span><span class="current">RuleSource</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Rule</span><wbr></wbr><span><span>Source</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api" data-active="" data-toggle=":docs/java_api">API</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/java_api"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="../../org.gradle.api/-incubating/index.html"><span class="token annotation builtin">Incubating</span></a></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">RuleSource</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/platforms/core-configuration/model-core/src/main/java//org/gradle/model/RuleSource.java#L81">source</a>)</span></span></div><p class="paragraph">A marker type for a class that is a collection of rules. </p><p class="paragraph"> A rule source is not used like a regular Java object. It is a stateless container of methods and possibly constants. </p><p class="paragraph"> Please consult the “Rule based model configuration” chapter of the Gradle User Manual for general information about “rules”. </p><h3 class="">Rule methods</h3><p class="paragraph"> Each method that is annotated with one of the following is considered a rule: </p><ul><li><a href="../-model/index.html">Model</a></li><li><a href="../-defaults/index.html">Defaults</a></li><li><a href="../-mutate/index.html">Mutate</a></li><li><a href="../-finalize/index.html">Finalize</a></li><li><a href="../-validate/index.html">Validate</a></li><li><a href="../-rules/index.html">Rules</a></li><li><a href="../../org.gradle.platform.base/-component-type/index.html">org.gradle.platform.base.ComponentType</a></li><li><a href="../../org.gradle.platform.base/-component-binaries/index.html">org.gradle.platform.base.ComponentBinaries</a></li><li><a href="../../org.gradle.platform.base/-binary-tasks/index.html">org.gradle.platform.base.BinaryTasks</a></li></ul><p class="paragraph"> Each annotation specifies the type of the rule, which affects when it will be executed. </p><p class="paragraph"> The following constraints apply to all rule methods: </p><ul><li>A method may only be annotated by at most one of the above annotations.</li><li>A rule method may be <code class="lang-kotlin">static</code> or not; it makes no difference.</li><li>A rule method cannot be generic (i.e. cannot have type parameters).</li><li>With the exception of <a href="../-model/index.html">Model</a> methods, all methods must have at least one parameter.</li><li>With the exception of <a href="../-model/index.html">Model</a> methods, all methods must have a <code class="lang-kotlin">void</code> return type.</li></ul><p class="paragraph"> See <a href="../-model/index.html">Model</a> for information on the significance of the return type of a <a href="../-model/index.html">Model</a> method. </p>Subjects and inputs<p class="paragraph"> Method rules declare the subject and any inputs as parameters to the method. With the exception of <a href="../-model/index.html">Model</a> methods, the subject of the rule is the, required, first parameter and all subsequent parameters are inputs. For a non-void <a href="../-model/index.html">Model</a> method, the subject (i.e. model element being created) is the return object. For a void <a href="../-model/index.html">Model</a> method, the subject is the first method parameter. </p><p class="paragraph"> The <a href="../-path/index.html">Path</a> annotation can be placed on any parameter (except the subject of <a href="../-model/index.html">Model</a> rules) to indicate the model element to bind to. If there is no <a href="../-path/index.html">Path</a> annotation, a “by-type” binding will be attempted. The binding scope is determined by how the rule source is applied. </p><h3 class="">General class constraints</h3><p class="paragraph"> Along with the constraints on individual rule methods by their associated annotation, the following are general constraints of rule source implementations: </p><ul><li>Constructors are not allowed.</li><li>Inheritance hierarchies are not allowed (i.e. all rules sources must directly extend <a href="index.html">RuleSource</a>).</li><li>Instance variables are not allowed.</li><li>Non-final static variables are not allowed (i.e. constants are allowed).</li><li>Methods cannot be overloaded.</li><li>Implementations cannot be generic (i.e. cannot use type parameters).</li></ul></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="1533241457%2FConstructors%2F-1793262594" anchor-label="RuleSource" id="1533241457%2FConstructors%2F-1793262594" data-filterable-set=":docs/java_api"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-rule-source.html"><span>Rule</span><wbr></wbr><span><span>Source</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1533241457%2FConstructors%2F-1793262594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api" data-active="" data-toggle=":docs/java_api">API</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/java_api"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>Gradle Kotlin DSL Reference</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

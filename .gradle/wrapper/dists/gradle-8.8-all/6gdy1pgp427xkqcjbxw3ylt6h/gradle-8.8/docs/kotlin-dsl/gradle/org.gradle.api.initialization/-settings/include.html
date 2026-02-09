@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>include</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+<link href="../../../images/gradle-logo.svg">
+<link href="../../../styles/gradle.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            gradle
+                    </a>
+            </div>
+            <div class="library-version">
+8.8            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":docs/java_api">API</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageIds="gradle::org.gradle.api.initialization/Settings/include/#java.lang.String.../PointingToDeclaration//-1793262594">
+  <div class="breadcrumbs"><a href="../../../index.html">gradle</a><span class="delimiter">/</span><a href="../index.html">org.gradle.api.initialization</a><span class="delimiter">/</span><a href="index.html">Settings</a><span class="delimiter">/</span><span class="current">include</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>include</span></span></h1>
+  </div>
+  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api" data-active="" data-toggle=":docs/java_api">API</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":docs/java_api"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="include.html"><span class="token function">include</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">projectPaths<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/subprojects/core-api/src/main/java//org/gradle/api/initialization/Settings.java#L123">source</a>)</span></span></div><p class="paragraph">Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to add to the build. Note that these path are not file paths, but instead specify the location of the new project in the project hierarchy. As such, the supplied paths must use the ':' character as separator (and NOT '/').</p><p class="paragraph">The last element of the supplied path is used as the project name. The supplied path is converted to a project directory relative to the root project directory. The project directory can be altered by changing the 'projectDir' property after the project has been included (see <a href="../-project-descriptor/set-project-dir.html">setProjectDir</a>)</p><p class="paragraph">As an example, the path <code class="lang-kotlin">a:b</code> adds a project with path <code class="lang-kotlin">:a:b</code>, name <code class="lang-kotlin">b</code> and project directory <code class="lang-kotlin">$rootDir/a/b</code>. It also adds the a project with path <code class="lang-kotlin">:a</code>, name <code class="lang-kotlin">a</code> and project directory <code class="lang-kotlin">$rootDir/a</code>, if it does not exist already.</p><p class="paragraph">Some common examples of using the project path are:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">  // include two projects, 'foo' and 'foo:bar'
+  // directories are inferred by replacing ':' with '/'
+  include 'foo:bar'
+
+  // include one project whose project dir does not match the logical project path
+  include 'baz'
+  project(':baz').projectDir = file('foo/baz')
+
+  // include many projects whose project dirs do not match the logical project paths
+  file('subprojects').eachDir { dir -&gt;
+    include dir.name
+    project(&quot;:${dir.name}&quot;).projectDir = dir
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>project</span><wbr></wbr><span><span>Paths</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the projects to add.</p></div></div></div></div></div><hr><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="include.html"><span class="token function">include</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">projectPaths<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Iterable.html">Iterable</a><span class="token operator">&lt;</span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/gradle/gradle/blob/4bd1b3d3fc3f31db5a26eecb416a165b8cc36082/subprojects/core-api/src/main/java//org/gradle/api/initialization/Settings.java#L162">source</a>)</span></span></div><p class="paragraph">Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to add to the build. Note that these path are not file paths, but instead specify the location of the new project in the project hierarchy. As such, the supplied paths must use the ':' character as separator (and NOT '/').</p><p class="paragraph">The last element of the supplied path is used as the project name. The supplied path is converted to a project directory relative to the root project directory. The project directory can be altered by changing the 'projectDir' property after the project has been included (see <a href="../-project-descriptor/set-project-dir.html">setProjectDir</a>)</p><p class="paragraph">As an example, the path <code class="lang-kotlin">a:b</code> adds a project with path <code class="lang-kotlin">:a:b</code>, name <code class="lang-kotlin">b</code> and project directory <code class="lang-kotlin">$rootDir/a/b</code>. It also adds the a project with path <code class="lang-kotlin">:a</code>, name <code class="lang-kotlin">a</code> and project directory <code class="lang-kotlin">$rootDir/a</code>, if it does not exist already.</p><p class="paragraph">Some common examples of using the project path are:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">  // include two projects, 'foo' and 'foo:bar'
+  // directories are inferred by replacing ':' with '/'
+  include(['foo:bar'])
+
+  // include one project whose project dir does not match the logical project path
+  include(['baz'])
+  project(':baz').projectDir = file('foo/baz')
+
+  // include many projects whose project dirs do not match the logical project paths
+  file('subprojects').eachDir { dir -&gt;
+    include([dir.name])
+    project(&quot;:${dir.name}&quot;).projectDir = dir
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Since</h4><p class="paragraph">7.4</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":docs/java_api" data-filterable-set=":docs/java_api"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>project</span><wbr></wbr><span><span>Paths</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the projects to add.</p></div></div></div></div></div></div>  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>Gradle Kotlin DSL Reference</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
