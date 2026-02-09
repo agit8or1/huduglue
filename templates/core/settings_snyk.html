@@ -757,5 +757,10 @@ document.getElementById('upgradeSnykBtn').addEventListener('click', function() {
         statusDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> ${error.message}`;
     });
 });
+
+// Auto-check Snyk version on page load
+document.addEventListener('DOMContentLoaded', function() {
+    checkSnykVersion();
+});
 </script>
 {% endblock %}
