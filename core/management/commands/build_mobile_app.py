@@ -19,9 +19,15 @@ class Command(BaseCommand):
         mobile_app_dir = os.path.join(settings.BASE_DIR, 'mobile-app')
         builds_dir = os.path.join(mobile_app_dir, 'builds')
         status_file = os.path.join(builds_dir, f'{app_type}_build_status.json')
+        self.log_file = os.path.join(builds_dir, f'{app_type}_build.log')
 
         # Ensure builds directory exists
         os.makedirs(builds_dir, exist_ok=True)
+
+        # Clear previous log
+        with open(self.log_file, 'w') as f:
+            f.write(f'=== Building {app_type.upper()} App ===\n')
+            f.write(f'Started at: {subprocess.check_output(["date"]).decode().strip()}\n\n')
 
         # Update status: started
         self._update_status(status_file, 'building', 'Starting build...')
@@ -105,13 +111,11 @@ class Command(BaseCommand):
             node_modules = os.path.join(mobile_app_dir, 'node_modules')
             if not os.path.exists(node_modules):
                 self._update_status(status_file, 'building', 'Installing dependencies (this may take 5-10 minutes)...')
-                self.stdout.write('Installing npm dependencies...')
-                subprocess.run(
+                self.stdout.write('Installing npm dependencies...\n')
+                self._log('\n=== Installing npm dependencies ===\n')
+                self._run_command_with_logging(
                     ['npm', 'install'],
                     cwd=mobile_app_dir,
-                    check=True,
-                    capture_output=True,
-                    text=True,
                     timeout=600  # 10 minute timeout for npm install
                 )
 
@@ -133,59 +137,66 @@ class Command(BaseCommand):
             # Build the app
             if app_type == 'android':
                 self._update_status(status_file, 'building', 'Building Android APK (this may take 10-20 minutes)...')
-                self.stdout.write('Building Android APK...')
+                self.stdout.write('Building Android APK...\n')
+                self._log('\n=== Building Android APK with EAS ===\n')
 
                 # Use EAS Build (modern Expo build system)
-                result = subprocess.run(
-                    ['npx', 'eas-cli', 'build', '--platform', 'android', '--profile', 'preview', '--non-interactive'],
-                    cwd=mobile_app_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=1800  # 30 minute timeout
-                )
+                try:
+                    self._run_command_with_logging(
+                        ['npx', 'eas-cli', 'build', '--platform', 'android', '--profile', 'preview', '--non-interactive'],
+                        cwd=mobile_app_dir,
+                        timeout=1800  # 30 minute timeout
+                    )
 
-                if result.returncode == 0:
-                    # Extract download URL from output
-                    output = result.stdout
-                    if 'Build URL:' in output:
-                        url_line = [line for line in output.split('\n') if 'Build URL:' in line][0]
-                        build_url = url_line.split('Build URL:')[1].strip()
+                    # Read log to extract build URL
+                    with open(self.log_file, 'r') as f:
+                        log_content = f.read()
 
-                        self._update_status(status_file, 'complete', f'Build complete! Download from: {build_url}')
-                        self.stdout.write(self.style.SUCCESS(f'APK build complete: {build_url}'))
-                        self.stdout.write(self.style.WARNING('Note: Download the APK and place it at mobile-app/builds/huduglue.apk'))
+                    if 'Build URL:' in log_content or 'https://expo.dev' in log_content:
+                        # Extract URL from log
+                        for line in log_content.split('\n'):
+                            if 'Build URL:' in line or ('https://expo.dev' in line and 'builds' in line):
+                                build_url = line.split()[-1]
+                                self._update_status(status_file, 'complete', f'Build complete! Download from: {build_url}')
+                                self.stdout.write(self.style.SUCCESS(f'APK build complete: {build_url}\n'))
+                                break
                     else:
-                        self._update_status(status_file, 'complete', 'Build submitted to Expo. Check https://expo.dev/accounts/[your-account]/projects/huduglue-mobile/builds')
-                        self.stdout.write(self.style.SUCCESS('Build submitted to Expo!'))
-                else:
-                    raise Exception(f'Build failed: {result.stderr}')
+                        self._update_status(status_file, 'complete', 'Build submitted to Expo. Check log for details.')
+                        self.stdout.write(self.style.SUCCESS('Build submitted to Expo!\n'))
+
+                except subprocess.CalledProcessError as e:
+                    raise Exception(f'Build command failed with exit code {e.returncode}')
 
             elif app_type == 'ios':
                 self._update_status(status_file, 'building', 'Building iOS IPA (this may take 10-20 minutes)...')
-                self.stdout.write('Building iOS IPA...')
+                self.stdout.write('Building iOS IPA...\n')
+                self._log('\n=== Building iOS IPA with EAS ===\n')
 
-                result = subprocess.run(
-                    ['npx', 'eas-cli', 'build', '--platform', 'ios', '--profile', 'preview', '--non-interactive'],
-                    cwd=mobile_app_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=1800  # 30 minute timeout
-                )
+                try:
+                    self._run_command_with_logging(
+                        ['npx', 'eas-cli', 'build', '--platform', 'ios', '--profile', 'preview', '--non-interactive'],
+                        cwd=mobile_app_dir,
+                        timeout=1800  # 30 minute timeout
+                    )
 
-                if result.returncode == 0:
-                    output = result.stdout
-                    if 'Build URL:' in output:
-                        url_line = [line for line in output.split('\n') if 'Build URL:' in line][0]
-                        build_url = url_line.split('Build URL:')[1].strip()
+                    # Read log to extract build URL
+                    with open(self.log_file, 'r') as f:
+                        log_content = f.read()
 
-                        self._update_status(status_file, 'complete', f'Build complete! Download from: {build_url}')
-                        self.stdout.write(self.style.SUCCESS(f'IPA build complete: {build_url}'))
-                        self.stdout.write(self.style.WARNING('Note: Download the IPA and place it at mobile-app/builds/huduglue.ipa'))
+                    if 'Build URL:' in log_content or 'https://expo.dev' in log_content:
+                        # Extract URL from log
+                        for line in log_content.split('\n'):
+                            if 'Build URL:' in line or ('https://expo.dev' in line and 'builds' in line):
+                                build_url = line.split()[-1]
+                                self._update_status(status_file, 'complete', f'Build complete! Download from: {build_url}')
+                                self.stdout.write(self.style.SUCCESS(f'IPA build complete: {build_url}\n'))
+                                break
                     else:
-                        self._update_status(status_file, 'complete', 'Build submitted to Expo. Check https://expo.dev')
-                        self.stdout.write(self.style.SUCCESS('Build submitted to Expo!'))
-                else:
-                    raise Exception(f'Build failed: {result.stderr}')
+                        self._update_status(status_file, 'complete', 'Build submitted to Expo. Check log for details.')
+                        self.stdout.write(self.style.SUCCESS('Build submitted to Expo!\n'))
+
+                except subprocess.CalledProcessError as e:
+                    raise Exception(f'Build command failed with exit code {e.returncode}')
 
         except subprocess.TimeoutExpired:
             self._update_status(status_file, 'failed', 'Build timed out after 30 minutes')
@@ -205,6 +216,41 @@ class Command(BaseCommand):
                 'message': message,
                 'timestamp': time.time()
             }, f)
+
+    def _run_command_with_logging(self, cmd, cwd=None, timeout=None, env=None):
+        """Run command and stream output to log file in real-time"""
+        import select
+        self._log(f'\n> {" ".join(cmd)}\n')
+
+        process = subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            env=env or os.environ.copy()
+        )
+
+        # Stream output line by line
+        for line in iter(process.stdout.readline, ''):
+            if line:
+                self._log(line)
+                self.stdout.write(line.rstrip())
+
+        process.wait(timeout=timeout)
+
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode, cmd)
+
+        return process
+
+    def _log(self, message):
+        """Append message to log file"""
+        with open(self.log_file, 'a') as f:
+            f.write(message)
+            if not message.endswith('\n'):
+                f.write('\n')
 
     def _configure_api_urls(self, mobile_app_dir):
         """Auto-configure app.json with server's FQDN"""

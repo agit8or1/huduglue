@@ -390,7 +390,17 @@ def download_mobile_app(request, app_type):
                 status_data = json.load(f)
 
             if status_data['status'] == 'building':
-                # Build in progress - show status page
+                # Read build log for real-time progress
+                log_file = os.path.join(builds_dir, f'{app_type}_build.log')
+                build_log = ''
+                if os.path.exists(log_file):
+                    with open(log_file, 'r') as f:
+                        build_log = f.read()
+                        # Get last 100 lines for display
+                        log_lines = build_log.split('\n')
+                        build_log = '\n'.join(log_lines[-100:]) if len(log_lines) > 100 else build_log
+
+                # Build in progress - show status page with live log
                 return HttpResponse(f"""
                     <!DOCTYPE html>
                     <html>
@@ -400,29 +410,52 @@ def download_mobile_app(request, app_type):
                         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
                         <meta http-equiv="Pragma" content="no-cache">
                         <meta http-equiv="Expires" content="0">
-                        <meta http-equiv="refresh" content="10">
+                        <meta http-equiv="refresh" content="5">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
                             body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
-                            .container {{ max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }}
-                            .spinner {{ border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }}
+                            .container {{ max-width: 1200px; margin: 30px auto; padding: 20px; }}
+                            .spinner {{ border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 15px; }}
                             @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
-                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; margin-bottom: 20px; }}
                             h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
                             p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                             h1 {{ color: #58a6ff; }}
+                            .log-container {{ background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 20px; max-height: 500px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; color: #c9d1d9; }}
+                            .log-container::-webkit-scrollbar {{ width: 10px; }}
+                            .log-container::-webkit-scrollbar-track {{ background: #161b22; }}
+                            .log-container::-webkit-scrollbar-thumb {{ background: #30363d; border-radius: 5px; }}
+                            .status-header {{ display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }}
                         </style>
+                        <script>
+                            // Auto-scroll to bottom of log
+                            window.onload = function() {{
+                                var logContainer = document.getElementById('log-container');
+                                if (logContainer) {{
+                                    logContainer.scrollTop = logContainer.scrollHeight;
+                                }}
+                            }};
+                        </script>
                     </head>
                     <body>
                         <div class="container">
                             <div class="card">
-                                <h1>Building Android App...</h1>
-                                <div class="spinner"></div>
-                                <p class="lead"><strong>Status:</strong> {status_data['message']}</p>
-                                <p>This page will refresh automatically. Building typically takes 10-20 minutes.</p>
-                                <p class="text-muted"><small>You can close this tab and come back later.</small></p>
+                                <div class="status-header">
+                                    <div class="spinner"></div>
+                                    <h1 style="margin: 0;">Building Android App...</h1>
+                                </div>
+                                <p class="lead text-center"><strong>Status:</strong> {status_data['message']}</p>
+                                <p class="text-center text-muted"><small>Page refreshes every 5 seconds. You can close this tab and come back later.</small></p>
+                            </div>
+
+                            <div class="card">
+                                <h3 style="margin-bottom: 15px;">&#x1F4DD; Build Progress Log</h3>
+                                <div id="log-container" class="log-container">
+                                    <pre style="margin: 0; color: #c9d1d9;">{build_log if build_log else 'Waiting for build to start...'}</pre>
+                                </div>
+                                <p class="text-muted text-center" style="margin-top: 15px; margin-bottom: 0;"><small>Showing last 100 lines of build output</small></p>
                             </div>
                         </div>
                     </body>
@@ -605,6 +638,16 @@ def download_mobile_app(request, app_type):
                 status_data = json.load(f)
 
             if status_data['status'] == 'building':
+                # Read build log for real-time progress
+                log_file = os.path.join(builds_dir, f'{app_type}_build.log')
+                build_log = ''
+                if os.path.exists(log_file):
+                    with open(log_file, 'r') as f:
+                        build_log = f.read()
+                        # Get last 100 lines for display
+                        log_lines = build_log.split('\n')
+                        build_log = '\n'.join(log_lines[-100:]) if len(log_lines) > 100 else build_log
+
                 return HttpResponse(f"""
                     <!DOCTYPE html>
                     <html>
@@ -614,29 +657,52 @@ def download_mobile_app(request, app_type):
                         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
                         <meta http-equiv="Pragma" content="no-cache">
                         <meta http-equiv="Expires" content="0">
-                        <meta http-equiv="refresh" content="10">
+                        <meta http-equiv="refresh" content="5">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
                             body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
-                            .container {{ max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }}
-                            .spinner {{ border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }}
+                            .container {{ max-width: 1200px; margin: 30px auto; padding: 20px; }}
+                            .spinner {{ border: 5px solid #30363d; border-top: 5px solid #58a6ff; box-shadow: 0 0 10px rgba(88, 166, 255, 0.3); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 15px; }}
                             @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
-                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; margin-bottom: 20px; }}
                             h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
                             p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
                             strong {{ color: #ffffff; }}
                             .text-muted {{ color: #8b949e !important; }}
                             h1 {{ color: #58a6ff; }}
+                            .log-container {{ background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 20px; max-height: 500px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; color: #c9d1d9; }}
+                            .log-container::-webkit-scrollbar {{ width: 10px; }}
+                            .log-container::-webkit-scrollbar-track {{ background: #161b22; }}
+                            .log-container::-webkit-scrollbar-thumb {{ background: #30363d; border-radius: 5px; }}
+                            .status-header {{ display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }}
                         </style>
+                        <script>
+                            // Auto-scroll to bottom of log
+                            window.onload = function() {{
+                                var logContainer = document.getElementById('log-container');
+                                if (logContainer) {{
+                                    logContainer.scrollTop = logContainer.scrollHeight;
+                                }}
+                            }};
+                        </script>
                     </head>
                     <body>
                         <div class="container">
                             <div class="card">
-                                <h1>Building iOS App...</h1>
-                                <div class="spinner"></div>
-                                <p class="lead"><strong>Status:</strong> {status_data['message']}</p>
-                                <p>This page will refresh automatically. Building typically takes 10-20 minutes.</p>
-                                <p class="text-muted"><small>You can close this tab and come back later.</small></p>
+                                <div class="status-header">
+                                    <div class="spinner"></div>
+                                    <h1 style="margin: 0;">Building iOS App...</h1>
+                                </div>
+                                <p class="lead text-center"><strong>Status:</strong> {status_data['message']}</p>
+                                <p class="text-center text-muted"><small>Page refreshes every 5 seconds. You can close this tab and come back later.</small></p>
+                            </div>
+
+                            <div class="card">
+                                <h3 style="margin-bottom: 15px;">&#x1F4DD; Build Progress Log</h3>
+                                <div id="log-container" class="log-container">
+                                    <pre style="margin: 0; color: #c9d1d9;">{build_log if build_log else 'Waiting for build to start...'}</pre>
+                                </div>
+                                <p class="text-muted text-center" style="margin-top: 15px; margin-bottom: 0;"><small>Showing last 100 lines of build output</small></p>
                             </div>
                         </div>
                     </body>
