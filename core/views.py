@@ -396,9 +396,10 @@ def download_mobile_app(request, app_type):
                 if os.path.exists(log_file):
                     with open(log_file, 'r') as f:
                         build_log = f.read()
-                        # Get last 100 lines for display
-                        log_lines = build_log.split('\n')
-                        build_log = '\n'.join(log_lines[-100:]) if len(log_lines) > 100 else build_log
+                        # Filter out npm warnings and get last 50 lines
+                        log_lines = [line for line in build_log.split('\n')
+                                   if 'npm warn deprecated' not in line.lower()]
+                        build_log = '\n'.join(log_lines[-50:]) if len(log_lines) > 50 else '\n'.join(log_lines)
 
                 # Build in progress - show status page with live log
                 return HttpResponse(f"""
@@ -680,9 +681,10 @@ def download_mobile_app(request, app_type):
                 if os.path.exists(log_file):
                     with open(log_file, 'r') as f:
                         build_log = f.read()
-                        # Get last 100 lines for display
-                        log_lines = build_log.split('\n')
-                        build_log = '\n'.join(log_lines[-100:]) if len(log_lines) > 100 else build_log
+                        # Filter out npm warnings and get last 50 lines
+                        log_lines = [line for line in build_log.split('\n')
+                                   if 'npm warn deprecated' not in line.lower()]
+                        build_log = '\n'.join(log_lines[-50:]) if len(log_lines) > 50 else '\n'.join(log_lines)
 
                 return HttpResponse(f"""
                     <!DOCTYPE html>

@@ -122,7 +122,7 @@ class Command(BaseCommand):
                 self.stdout.write('Installing npm dependencies...\n')
                 self._log('\n=== Installing npm dependencies ===\n')
                 self._run_command_with_logging(
-                    ['npm', 'install'],
+                    ['npm', 'install', '--loglevel=error'],
                     cwd=mobile_app_dir,
                     timeout=600  # 10 minute timeout for npm install
                 )
