@@ -397,6 +397,9 @@ def download_mobile_app(request, app_type):
                     <head>
                         <title>Building Android App - HuduGlue</title>
                         <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                         <meta http-equiv="refresh" content="10">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
@@ -434,6 +437,9 @@ def download_mobile_app(request, app_type):
                     <head>
                         <title>Android App Build Complete - HuduGlue</title>
                         <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
                             body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
@@ -481,6 +487,9 @@ def download_mobile_app(request, app_type):
                         <head>
                             <title>Android App Build Failed - HuduGlue</title>
                             <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                             <style>
                                 body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
@@ -539,6 +548,9 @@ def download_mobile_app(request, app_type):
             <head>
                 <title>Building Android App - HuduGlue</title>
                 <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                 <meta http-equiv="refresh" content="10">
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 <style>
@@ -599,6 +611,9 @@ def download_mobile_app(request, app_type):
                     <head>
                         <title>Building iOS App - HuduGlue</title>
                         <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                         <meta http-equiv="refresh" content="10">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
@@ -635,6 +650,9 @@ def download_mobile_app(request, app_type):
                     <head>
                         <title>iOS App Build Complete - HuduGlue</title>
                         <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
                             body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
@@ -680,6 +698,9 @@ def download_mobile_app(request, app_type):
                         <head>
                             <title>iOS App Build Failed - HuduGlue</title>
                             <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                             <style>
                                 body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
@@ -735,6 +756,9 @@ def download_mobile_app(request, app_type):
             <head>
                 <title>Building iOS App - HuduGlue</title>
                 <meta charset="UTF-8">
+                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                        <meta http-equiv="Pragma" content="no-cache">
+                        <meta http-equiv="Expires" content="0">
                 <meta http-equiv="refresh" content="10">
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 <style>
