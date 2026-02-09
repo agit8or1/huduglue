@@ -16,24 +16,41 @@ from .generators import REPORT_GENERATORS
 import json
 
 
+def get_user_organizations(user):
+    """Get all organizations the user is a member of"""
+    from core.models import Organization
+    if user.is_superuser:
+        return Organization.objects.all()
+    return Organization.objects.filter(
+        memberships__user=user,
+        memberships__is_active=True
+    ).distinct()
+
+
+def get_user_primary_organization(user):
+    """Get user's primary organization (first active membership)"""
+    membership = user.memberships.filter(is_active=True).select_related('organization').first()
+    return membership.organization if membership else None
+
+
 @login_required
 def reports_home(request):
     """Reports and Analytics home page"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     context = {
         'recent_reports': GeneratedReport.objects.filter(
-            organization=org
+            organization__in=orgs
         ).select_related('template', 'generated_by')[:10],
         'active_schedules': ScheduledReport.objects.filter(
-            organization=org,
+            organization__in=orgs,
             is_active=True
         ).count(),
         'total_dashboards': Dashboard.objects.filter(
-            Q(organization=org) | Q(is_global=True)
+            Q(organization__in=orgs) | Q(is_global=True)
         ).count(),
         'templates_count': ReportTemplate.objects.filter(
-            Q(organization=org) | Q(is_global=True)
+            Q(organization__in=orgs) | Q(is_global=True)
         ).count(),
     }
 
@@ -43,10 +60,10 @@ def reports_home(request):
 @login_required
 def dashboard_list(request):
     """List all available dashboards"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     dashboards = Dashboard.objects.filter(
-        Q(organization=org) | Q(is_global=True)
+        Q(organization__in=orgs) | Q(is_global=True)
     ).prefetch_related('widgets')
 
     context = {
@@ -59,12 +76,12 @@ def dashboard_list(request):
 @login_required
 def dashboard_detail(request, pk):
     """View a specific dashboard"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     dashboard = get_object_or_404(
         Dashboard,
-        pk=pk,
-        organization__in=[org, None]  # User's org or global
+        Q(organization__in=orgs) | Q(organization__isnull=True),  # User's orgs or global
+        pk=pk
     )
 
     widgets = dashboard.widgets.all().order_by('position')
@@ -80,6 +97,11 @@ def dashboard_detail(request, pk):
 @login_required
 def dashboard_create(request):
     """Create a new dashboard"""
+    org = get_user_primary_organization(request.user)
+    if not org:
+        messages.error(request, 'You must be a member of an organization to create dashboards.')
+        return redirect('reports:home')
+
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description', '')
@@ -89,7 +111,7 @@ def dashboard_create(request):
             name=name,
             description=description,
             is_default=is_default,
-            organization=request.user.organization,
+            organization=org,
             created_by=request.user
         )
 
@@ -102,10 +124,11 @@ def dashboard_create(request):
 @login_required
 def dashboard_edit(request, pk):
     """Edit an existing dashboard"""
+    orgs = get_user_organizations(request.user)
     dashboard = get_object_or_404(
         Dashboard,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if request.method == 'POST':
@@ -128,10 +151,11 @@ def dashboard_edit(request, pk):
 @login_required
 def dashboard_delete(request, pk):
     """Delete a dashboard"""
+    orgs = get_user_organizations(request.user)
     dashboard = get_object_or_404(
         Dashboard,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if request.method == 'POST':
@@ -147,10 +171,10 @@ def dashboard_delete(request, pk):
 @login_required
 def template_list(request):
     """List all report templates"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     templates = ReportTemplate.objects.filter(
-        Q(organization=org) | Q(is_global=True)
+        Q(organization__in=orgs) | Q(is_global=True)
     ).select_related('created_by')
 
     # Group by report type
@@ -172,17 +196,17 @@ def template_list(request):
 @login_required
 def template_detail(request, pk):
     """View a report template"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     template = get_object_or_404(
         ReportTemplate,
-        pk=pk,
-        organization__in=[org, None]
+        Q(organization__in=orgs) | Q(organization__isnull=True),
+        pk=pk
     )
 
     recent_reports = GeneratedReport.objects.filter(
         template=template,
-        organization=org
+        organization__in=orgs
     )[:10]
 
     context = {
@@ -196,6 +220,11 @@ def template_detail(request, pk):
 @login_required
 def template_create(request):
     """Create a new report template"""
+    org = get_user_primary_organization(request.user)
+    if not org and not request.user.is_staff:
+        messages.error(request, 'You must be a member of an organization to create templates.')
+        return redirect('reports:template_list')
+
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description', '')
@@ -209,7 +238,7 @@ def template_create(request):
             report_type=report_type,
             query_template=query_template,
             is_global=is_global,
-            organization=request.user.organization,
+            organization=org if not is_global else None,
             created_by=request.user
         )
 
@@ -227,10 +256,11 @@ def template_create(request):
 @login_required
 def template_edit(request, pk):
     """Edit a report template"""
+    orgs = get_user_organizations(request.user)
     template = get_object_or_404(
         ReportTemplate,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if request.method == 'POST':
@@ -256,10 +286,11 @@ def template_edit(request, pk):
 @login_required
 def template_delete(request, pk):
     """Delete a report template"""
+    orgs = get_user_organizations(request.user)
     template = get_object_or_404(
         ReportTemplate,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if request.method == 'POST':
@@ -275,12 +306,16 @@ def template_delete(request, pk):
 @login_required
 def generate_report(request, pk):
     """Generate a report from a template"""
-    org = request.user.organization
+    org = get_user_primary_organization(request.user)
+    if not org:
+        messages.error(request, 'You must be a member of an organization to generate reports.')
+        return redirect('reports:template_list')
 
+    orgs = get_user_organizations(request.user)
     template = get_object_or_404(
         ReportTemplate,
-        pk=pk,
-        organization__in=[org, None]
+        Q(organization__in=orgs) | Q(organization__isnull=True),
+        pk=pk
     )
 
     if request.method == 'POST':
@@ -337,10 +372,10 @@ def generate_report(request, pk):
 @login_required
 def generated_list(request):
     """List all generated reports"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     reports = GeneratedReport.objects.filter(
-        organization=org
+        organization__in=orgs
     ).select_related('template', 'generated_by').order_by('-created_at')
 
     context = {
@@ -353,10 +388,11 @@ def generated_list(request):
 @login_required
 def generated_detail(request, pk):
     """View a generated report"""
+    orgs = get_user_organizations(request.user)
     report = get_object_or_404(
         GeneratedReport,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     context = {
@@ -369,10 +405,11 @@ def generated_detail(request, pk):
 @login_required
 def generated_download(request, pk):
     """Download a generated report"""
+    orgs = get_user_organizations(request.user)
     report = get_object_or_404(
         GeneratedReport,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if report.file:
@@ -385,10 +422,11 @@ def generated_download(request, pk):
 @login_required
 def generated_delete(request, pk):
     """Delete a generated report"""
+    orgs = get_user_organizations(request.user)
     report = get_object_or_404(
         GeneratedReport,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if request.method == 'POST':
@@ -403,10 +441,10 @@ def generated_delete(request, pk):
 @login_required
 def scheduled_list(request):
     """List all scheduled reports"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     schedules = ScheduledReport.objects.filter(
-        organization=org
+        organization__in=orgs
     ).select_related('template', 'created_by').order_by('next_run')
 
     context = {
@@ -419,7 +457,12 @@ def scheduled_list(request):
 @login_required
 def scheduled_create(request):
     """Create a new scheduled report"""
-    org = request.user.organization
+    org = get_user_primary_organization(request.user)
+    if not org:
+        messages.error(request, 'You must be a member of an organization to create scheduled reports.')
+        return redirect('reports:scheduled_list')
+
+    orgs = get_user_organizations(request.user)
 
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -457,7 +500,7 @@ def scheduled_create(request):
         return redirect('reports:scheduled_list')
 
     templates = ReportTemplate.objects.filter(
-        Q(organization=org) | Q(is_global=True)
+        Q(organization__in=orgs) | Q(is_global=True)
     )
 
     context = {
@@ -473,10 +516,11 @@ def scheduled_create(request):
 @login_required
 def scheduled_edit(request, pk):
     """Edit a scheduled report"""
+    orgs = get_user_organizations(request.user)
     schedule = get_object_or_404(
         ScheduledReport,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if request.method == 'POST':
@@ -511,10 +555,11 @@ def scheduled_edit(request, pk):
 @login_required
 def scheduled_delete(request, pk):
     """Delete a scheduled report"""
+    orgs = get_user_organizations(request.user)
     schedule = get_object_or_404(
         ScheduledReport,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     if request.method == 'POST':
@@ -530,10 +575,11 @@ def scheduled_delete(request, pk):
 @login_required
 def scheduled_toggle(request, pk):
     """Toggle a scheduled report active/inactive"""
+    orgs = get_user_organizations(request.user)
     schedule = get_object_or_404(
         ScheduledReport,
         pk=pk,
-        organization=request.user.organization
+        organization__in=orgs
     )
 
     schedule.is_active = not schedule.is_active
@@ -548,22 +594,22 @@ def scheduled_toggle(request, pk):
 @login_required
 def analytics_overview(request):
     """Analytics overview dashboard"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     # Get recent events
     recent_events = AnalyticsEvent.objects.filter(
-        organization=org
+        organization__in=orgs
     ).select_related('user')[:100]
 
     # Event counts by category
     events_by_category = AnalyticsEvent.objects.filter(
-        organization=org,
+        organization__in=orgs,
         timestamp__gte=timezone.now() - timedelta(days=30)
     ).values('event_category').annotate(count=Count('id'))
 
     # Most active users
     active_users = AnalyticsEvent.objects.filter(
-        organization=org,
+        organization__in=orgs,
         timestamp__gte=timezone.now() - timedelta(days=7)
     ).values('user__username').annotate(count=Count('id')).order_by('-count')[:10]
 
@@ -579,10 +625,10 @@ def analytics_overview(request):
 @login_required
 def analytics_events(request):
     """Detailed analytics events list"""
-    org = request.user.organization
+    orgs = get_user_organizations(request.user)
 
     events = AnalyticsEvent.objects.filter(
-        organization=org
+        organization__in=orgs
     ).select_related('user').order_by('-timestamp')
 
     # Apply filters
