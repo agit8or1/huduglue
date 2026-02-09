@@ -22,7 +22,14 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     if DEBUG:
-        SECRET_KEY = 'django-insecure-dev-key-not-for-production'
+        # FIX: Generate unique development key instead of hardcoded value
+        # This prevents accidental use of predictable key if DEBUG left True in production
+        import socket
+        import hashlib
+        hostname = socket.gethostname()
+        # Generate unique key based on hostname + base directory path
+        unique_seed = f"{hostname}-{BASE_DIR}-django-dev-key"
+        SECRET_KEY = 'django-insecure-' + hashlib.sha256(unique_seed.encode()).hexdigest()
     else:
         raise ValueError("SECRET_KEY environment variable must be set in production")
 
@@ -443,9 +450,14 @@ if not APP_MASTER_KEY and not DEBUG:
 API_KEY_SECRET = os.getenv('API_KEY_SECRET')
 if not API_KEY_SECRET:
     if DEBUG:
-        # In development, generate a separate key from SECRET_KEY
+        # FIX: Generate completely independent key using different seed
+        # Do NOT derive from SECRET_KEY - use separate entropy source
         import hashlib
-        API_KEY_SECRET = hashlib.sha256(f"{SECRET_KEY}-api-keys".encode()).hexdigest()
+        import socket
+        hostname = socket.gethostname()
+        # Use different seed than SECRET_KEY for key separation
+        unique_seed = f"api-key-secret-{hostname}-{BASE_DIR}"
+        API_KEY_SECRET = hashlib.sha256(unique_seed.encode()).hexdigest()
     else:
         raise ValueError("API_KEY_SECRET environment variable must be set in production (must differ from SECRET_KEY)")
 

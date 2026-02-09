@@ -486,6 +486,28 @@ class SystemSetting(models.Model):
             # If decryption fails, assume it's not encrypted (backward compatibility)
             return self.smtp_password
 
+    def get_ldap_bind_password_decrypted(self):
+        """Get decrypted LDAP bind password."""
+        if not self.ldap_bind_password:
+            return ''
+        try:
+            from vault.encryption_v2 import decrypt_api_credentials
+            return decrypt_api_credentials(self.ldap_bind_password, org_id=0)
+        except Exception:
+            # If decryption fails, assume it's not encrypted (backward compatibility)
+            return self.ldap_bind_password
+
+    def get_azure_ad_client_secret_decrypted(self):
+        """Get decrypted Azure AD client secret."""
+        if not self.azure_ad_client_secret:
+            return ''
+        try:
+            from vault.encryption_v2 import decrypt_api_credentials
+            return decrypt_api_credentials(self.azure_ad_client_secret, org_id=0)
+        except Exception:
+            # If decryption fails, assume it's not encrypted (backward compatibility)
+            return self.azure_ad_client_secret
+
     def delete(self, *args, **kwargs):
         """Prevent deletion of settings."""
         pass

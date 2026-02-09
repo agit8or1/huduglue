@@ -80,7 +80,7 @@ class AzureADBackend(ModelBackend):
                 'enabled': enabled,
                 'tenant_id': getattr(settings, 'azure_ad_tenant_id', ''),
                 'client_id': getattr(settings, 'azure_ad_client_id', ''),
-                'client_secret': getattr(settings, 'azure_ad_client_secret', ''),
+                'client_secret': settings.get_azure_ad_client_secret_decrypted(),
                 'redirect_uri': getattr(settings, 'azure_ad_redirect_uri', ''),
                 'auto_create': getattr(settings, 'azure_ad_auto_create_users', True),
                 'sync_groups': getattr(settings, 'azure_ad_sync_groups', False),
@@ -211,11 +211,12 @@ class AzureOAuthClient:
     def load_config(self):
         """Load Azure configuration from SystemSetting."""
         settings = SystemSetting.get_settings()
+
         return {
             'enabled': getattr(settings, 'azure_ad_enabled', False),
             'tenant_id': getattr(settings, 'azure_ad_tenant_id', ''),
             'client_id': getattr(settings, 'azure_ad_client_id', ''),
-            'client_secret': getattr(settings, 'azure_ad_client_secret', ''),
+            'client_secret': settings.get_azure_ad_client_secret_decrypted(),
             'redirect_uri': getattr(settings, 'azure_ad_redirect_uri', ''),
         }
 

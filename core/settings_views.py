@@ -391,8 +391,9 @@ def settings_directory(request):
         # Only update password if provided
         ldap_password = request.POST.get('ldap_bind_password', '').strip()
         if ldap_password:
-            # TODO: Encrypt password before storing
-            settings.ldap_bind_password = ldap_password
+            # FIX: Encrypt password before storing
+            from vault.encryption_v2 import encrypt_api_credentials
+            settings.ldap_bind_password = encrypt_api_credentials(ldap_password, org_id=0)
 
         settings.ldap_user_search_base = request.POST.get('ldap_user_search_base', settings.ldap_user_search_base)
         settings.ldap_user_search_filter = request.POST.get('ldap_user_search_filter', settings.ldap_user_search_filter)
@@ -408,8 +409,9 @@ def settings_directory(request):
         # Only update client secret if provided
         azure_secret = request.POST.get('azure_ad_client_secret', '').strip()
         if azure_secret:
-            # TODO: Encrypt secret before storing
-            settings.azure_ad_client_secret = azure_secret
+            # FIX: Encrypt secret before storing
+            from vault.encryption_v2 import encrypt_api_credentials
+            settings.azure_ad_client_secret = encrypt_api_credentials(azure_secret, org_id=0)
 
         settings.azure_ad_redirect_uri = request.POST.get('azure_ad_redirect_uri', settings.azure_ad_redirect_uri)
         settings.azure_ad_auto_create_users = request.POST.get('azure_ad_auto_create_users') == 'on'
@@ -724,8 +726,11 @@ def maintenance(request):
                     if db_vendor in ('mysql', 'mariadb'):
                         cursor.execute("SHOW TABLES")
                         tables = [row[0] for row in cursor.fetchall()]
-                        # Optimize each table
+                        # Optimize each table with validation
                         for table in tables:
+                            # FIX: Validate table name is alphanumeric + underscore only
+                            if not table.replace('_', '').isalnum():
+                                continue
                             quoted_table = connection.ops.quote_name(table)
                             cursor.execute(f"OPTIMIZE TABLE {quoted_table}")
                         messages.success(request, f'Optimized {len(tables)} database tables successfully.')
@@ -736,8 +741,11 @@ def maintenance(request):
                     elif db_vendor == 'postgresql':
                         cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")
                         tables = [row[0] for row in cursor.fetchall()]
-                        # PostgreSQL VACUUM
+                        # PostgreSQL VACUUM with validation
                         for table in tables:
+                            # FIX: Validate table name
+                            if not table.replace('_', '').isalnum():
+                                continue
                             quoted_table = connection.ops.quote_name(table)
                             cursor.execute(f"VACUUM {quoted_table}")
                         messages.success(request, f'Optimized {len(tables)} database tables successfully.')
@@ -756,14 +764,20 @@ def maintenance(request):
                         cursor.execute("SHOW TABLES")
                         tables = [row[0] for row in cursor.fetchall()]
                         for table in tables:
+                            # FIX: Validate table name
+                            if not table.replace('_', '').isalnum():
+                                continue
                             quoted_table = connection.ops.quote_name(table)
                             cursor.execute(f"ANALYZE TABLE {quoted_table}")
                         messages.success(request, f'Analyzed {len(tables)} database tables successfully.')
                     elif db_vendor == 'sqlite':
                         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
                         tables = [row[0] for row in cursor.fetchall()]
-                        # SQLite ANALYZE
+                        # SQLite ANALYZE with validation
                         for table in tables:
+                            # FIX: Validate table name
+                            if not table.replace('_', '').isalnum():
+                                continue
                             quoted_table = connection.ops.quote_name(table)
                             cursor.execute(f"ANALYZE {quoted_table}")
                         messages.success(request, f'Analyzed {len(tables)} database tables successfully.')
@@ -771,6 +785,9 @@ def maintenance(request):
                         cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")
                         tables = [row[0] for row in cursor.fetchall()]
                         for table in tables:
+                            # FIX: Validate table name
+                            if not table.replace('_', '').isalnum():
+                                continue
                             quoted_table = connection.ops.quote_name(table)
                             cursor.execute(f"ANALYZE {quoted_table}")
                         messages.success(request, f'Analyzed {len(tables)} database tables successfully.')
@@ -847,7 +864,9 @@ def maintenance(request):
                         continue
 
                     try:
-                        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                        # FIX: Use quote_name for SQL injection protection
+                        quoted_table = connection.ops.quote_name(table_name)
+                        cursor.execute(f"SELECT COUNT(*) FROM {quoted_table}")
                         row_count = cursor.fetchone()[0]
                         table_sizes.append({
                             'name': table_name,
