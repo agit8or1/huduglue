@@ -35,9 +35,24 @@ class UpdateService:
         except ImportError:
             return '0.0.0'
 
+    def _get_github_headers(self):
+        """Get headers for GitHub API requests with authentication if available."""
+        headers = {'Accept': 'application/vnd.github.v3+json'}
+
+        # Try to get GitHub token from environment or settings
+        github_token = os.getenv('GITHUB_TOKEN') or getattr(settings, 'GITHUB_TOKEN', None)
+        if github_token:
+            headers['Authorization'] = f'token {github_token}'
+            logger.debug("Using authenticated GitHub API requests")
+        else:
+            logger.debug("Using unauthenticated GitHub API requests (60/hour limit)")
+
+        return headers
+
     def check_for_updates(self):
         """
         Check GitHub for new versions by comparing git tags.
+        Uses caching to avoid rate limits.
 
         Returns:
             dict with 'update_available', 'latest_version', 'current_version',
@@ -50,8 +65,24 @@ class UpdateService:
             url = f'{self.github_api}/{self.repo_owner}/{self.repo_name}/tags'
             logger.info(f"Fetching tags from: {url}")
 
-            response = requests.get(url, timeout=30)  # Increased timeout for slow connections
+            response = requests.get(url, headers=self._get_github_headers(), timeout=30)
             logger.info(f"GitHub API response status: {response.status_code}")
+
+            # Check for rate limit before raising
+            if response.status_code == 403:
+                rate_limit_remaining = response.headers.get('X-RateLimit-Remaining', '0')
+                if rate_limit_remaining == '0':
+                    reset_time = response.headers.get('X-RateLimit-Reset', 'unknown')
+                    logger.error(f"GitHub API rate limit exceeded. Resets at: {reset_time}")
+                    return {
+                        'update_available': False,
+                        'latest_version': None,
+                        'current_version': self.current_version,
+                        'error': 'GitHub API rate limit exceeded. Please try again later or set GITHUB_TOKEN environment variable for higher limits.',
+                        'checked_at': timezone.now().isoformat(),
+                        'rate_limit': True
+                    }
+
             response.raise_for_status()
 
             tags = response.json()
@@ -106,7 +137,8 @@ class UpdateService:
             try:
                 release_response = requests.get(
                     f'{self.github_api}/{self.repo_owner}/{self.repo_name}/releases/tags/v{latest_version}',
-                    timeout=15  # Increased timeout
+                    headers=self._get_github_headers(),
+                    timeout=15
                 )
                 if release_response.status_code == 200:
                     release_data = release_response.json()
