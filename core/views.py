@@ -533,39 +533,49 @@ def download_mobile_app(request, app_type):
                     os.remove(status_file)
                     # Fall through to trigger build below
                 else:
+                    # Delete failed status file so we show clean state
+                    try:
+                        os.remove(status_file)
+                    except:
+                        pass
+
+                    # Show friendly "not created yet" page instead of error
                     return HttpResponse(f"""
                         <!DOCTYPE html>
                         <html>
                         <head>
-                            <title>Android App Build Failed - HuduGlue</title>
+                            <title>Android App - HuduGlue</title>
                             <meta charset="UTF-8">
-                        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-                        <meta http-equiv="Pragma" content="no-cache">
-                        <meta http-equiv="Expires" content="0">
+                            <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                            <meta http-equiv="Pragma" content="no-cache">
+                            <meta http-equiv="Expires" content="0">
                             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                             <style>
                                 body {{ background: #0d1117; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
-                                .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
-                                .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
-                            h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
-                            p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
-                            strong {{ color: #ffffff; }}
-                            .text-muted {{ color: #8b949e !important; }}
-                                h1 {{ color: #f85149; }}
-                                .error-box {{ background: #3d1e1e; border: 1px solid #f85149; border-radius: 6px; padding: 15px; margin: 20px 0; }}
+                                .container {{ max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }}
+                                .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 40px; }}
+                                h1, h2, h3, h4, h5 {{ color: #ffffff !important; }}
+                                p, .lead {{ color: #ffffff !important; font-size: 1.1rem; }}
+                                strong {{ color: #ffffff; }}
+                                .text-muted {{ color: #8b949e !important; }}
+                                h1 {{ color: #58a6ff; margin-bottom: 20px; }}
+                                .info-icon {{ font-size: 64px; margin-bottom: 20px; }}
+                                .btn-build {{ background: #238636; border: 1px solid #2ea043; color: white; padding: 12px 32px; font-size: 16px; border-radius: 6px; text-decoration: none; display: inline-block; margin-top: 20px; }}
+                                .btn-build:hover {{ background: #2ea043; color: white; }}
+                                .btn-secondary {{ background: #30363d; border: 1px solid #484f58; color: white; padding: 12px 32px; font-size: 16px; border-radius: 6px; text-decoration: none; display: inline-block; margin-top: 20px; margin-left: 10px; }}
+                                .btn-secondary:hover {{ background: #484f58; color: white; }}
                             </style>
                         </head>
                         <body>
                             <div class="container">
                                 <div class="card">
-                                    <h1>&#x274C; Android App Build Failed</h1>
-                                    <div class="error-box">
-                                        <strong>Error:</strong><br>
-                                        <pre style="white-space: pre-wrap; margin: 10px 0; font-family: 'Courier New', monospace; color: #ffa657;">{status_data['message']}</pre>
-                                    </div>
+                                    <div class="info-icon">📱</div>
+                                    <h1>Android App Not Created Yet</h1>
+                                    <p class="lead">The mobile app hasn't been built yet.</p>
+                                    <p class="text-muted">Click the button below to start building the Android app. This process takes about 10-15 minutes.</p>
                                     <div class="mt-4">
-                                        <a href="?retry=1" class="btn btn-primary">Retry Build</a>
-                                        <a href="javascript:history.back()" class="btn btn-secondary">&larr; Go Back</a>
+                                        <a href="?build=1" class="btn-build">Build Android App</a>
+                                        <a href="javascript:history.back()" class="btn-secondary">Go Back</a>
                                     </div>
                                 </div>
                             </div>
