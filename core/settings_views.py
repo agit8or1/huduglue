@@ -717,28 +717,64 @@ def maintenance(request):
         elif action == 'optimize_database':
             # Optimize database tables
             try:
+                db_vendor = connection.vendor
                 with connection.cursor() as cursor:
-                    cursor.execute("SHOW TABLES")
-                    tables = [row[0] for row in cursor.fetchall()]
-                    for table in tables:
-                        # Use proper SQL identifier quoting to prevent SQL injection
-                        quoted_table = connection.ops.quote_name(table)
-                        cursor.execute(f"OPTIMIZE TABLE {quoted_table}")
-                messages.success(request, f'Optimized {len(tables)} database tables successfully.')
+                    # Get table names based on database type
+                    if db_vendor in ('mysql', 'mariadb'):
+                        cursor.execute("SHOW TABLES")
+                        tables = [row[0] for row in cursor.fetchall()]
+                        # Optimize each table
+                        for table in tables:
+                            quoted_table = connection.ops.quote_name(table)
+                            cursor.execute(f"OPTIMIZE TABLE {quoted_table}")
+                        messages.success(request, f'Optimized {len(tables)} database tables successfully.')
+                    elif db_vendor == 'sqlite':
+                        # SQLite uses VACUUM for optimization
+                        cursor.execute("VACUUM")
+                        messages.success(request, 'Database optimized successfully (VACUUM completed).')
+                    elif db_vendor == 'postgresql':
+                        cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")
+                        tables = [row[0] for row in cursor.fetchall()]
+                        # PostgreSQL VACUUM
+                        for table in tables:
+                            quoted_table = connection.ops.quote_name(table)
+                            cursor.execute(f"VACUUM {quoted_table}")
+                        messages.success(request, f'Optimized {len(tables)} database tables successfully.')
+                    else:
+                        messages.warning(request, f'Database optimization not supported for {db_vendor}.')
             except Exception as e:
                 messages.error(request, f'Database optimization failed: {e}')
 
         elif action == 'vacuum_database':
             # Analyze tables for query optimization
             try:
+                db_vendor = connection.vendor
                 with connection.cursor() as cursor:
-                    cursor.execute("SHOW TABLES")
-                    tables = [row[0] for row in cursor.fetchall()]
-                    for table in tables:
-                        # Use proper SQL identifier quoting to prevent SQL injection
-                        quoted_table = connection.ops.quote_name(table)
-                        cursor.execute(f"ANALYZE TABLE {quoted_table}")
-                messages.success(request, f'Analyzed {len(tables)} database tables successfully.')
+                    # Get table names and analyze based on database type
+                    if db_vendor in ('mysql', 'mariadb'):
+                        cursor.execute("SHOW TABLES")
+                        tables = [row[0] for row in cursor.fetchall()]
+                        for table in tables:
+                            quoted_table = connection.ops.quote_name(table)
+                            cursor.execute(f"ANALYZE TABLE {quoted_table}")
+                        messages.success(request, f'Analyzed {len(tables)} database tables successfully.')
+                    elif db_vendor == 'sqlite':
+                        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+                        tables = [row[0] for row in cursor.fetchall()]
+                        # SQLite ANALYZE
+                        for table in tables:
+                            quoted_table = connection.ops.quote_name(table)
+                            cursor.execute(f"ANALYZE {quoted_table}")
+                        messages.success(request, f'Analyzed {len(tables)} database tables successfully.')
+                    elif db_vendor == 'postgresql':
+                        cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")
+                        tables = [row[0] for row in cursor.fetchall()]
+                        for table in tables:
+                            quoted_table = connection.ops.quote_name(table)
+                            cursor.execute(f"ANALYZE {quoted_table}")
+                        messages.success(request, f'Analyzed {len(tables)} database tables successfully.')
+                    else:
+                        messages.warning(request, f'Database analysis not supported for {db_vendor}.')
             except Exception as e:
                 messages.error(request, f'Database analysis failed: {e}')
 
