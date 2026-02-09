@@ -392,44 +392,73 @@ def download_mobile_app(request, app_type):
             if status_data['status'] == 'building':
                 # Build in progress - show status page
                 return HttpResponse(f"""
+                    <!DOCTYPE html>
                     <html>
                     <head>
                         <title>Building Android App - HuduGlue</title>
+                        <meta charset="UTF-8">
                         <meta http-equiv="refresh" content="10">
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
-                            body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; text-align: center; }}
-                            .spinner {{ border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }}
+                            body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            .container {{ max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }}
+                            .spinner {{ border: 5px solid #30363d; border-top: 5px solid #0d6efd; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }}
                             @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                            h1 {{ color: #58a6ff; }}
                         </style>
                     </head>
                     <body>
-                        <h1>🔨 Building Android App...</h1>
-                        <div class="spinner"></div>
-                        <p><strong>Status:</strong> {status_data['message']}</p>
-                        <p>This page will refresh automatically. Building typically takes 10-20 minutes.</p>
-                        <p><small>Started: {status_data.get('timestamp', 'Unknown')}</small></p>
+                        <div class="container">
+                            <div class="card">
+                                <h1>Building Android App...</h1>
+                                <div class="spinner"></div>
+                                <p class="lead"><strong>Status:</strong> {status_data['message']}</p>
+                                <p>This page will refresh automatically. Building typically takes 10-20 minutes.</p>
+                                <p class="text-muted"><small>You can close this tab and come back later.</small></p>
+                            </div>
+                        </div>
                     </body>
                     </html>
-                """, content_type='text/html')
+                """, content_type='text/html; charset=utf-8')
 
             elif status_data['status'] == 'complete':
                 # Build complete but file not downloaded yet
                 return HttpResponse(f"""
+                    <!DOCTYPE html>
                     <html>
-                    <head><title>Android App Build Complete - HuduGlue</title></head>
-                    <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
-                        <h1>✅ Android App Build Complete!</h1>
-                        <p>{status_data['message']}</p>
-                        <p><strong>Next Steps:</strong></p>
-                        <ol>
-                            <li>Download the APK from the URL above</li>
-                            <li>Place it at: <code>~/huduglue/mobile-app/builds/huduglue.apk</code></li>
-                            <li>Refresh this page to download</li>
-                        </ol>
-                        <p><a href="javascript:history.back()">← Go Back</a></p>
+                    <head>
+                        <title>Android App Build Complete - HuduGlue</title>
+                        <meta charset="UTF-8">
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                        <style>
+                            body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
+                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                            h1 {{ color: #3fb950; }}
+                            code {{ background: #30363d; padding: 2px 6px; border-radius: 3px; color: #ffa657; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="card">
+                                <h1>&#x2705; Android App Build Complete!</h1>
+                                <p class="lead">{status_data['message']}</p>
+                                <hr>
+                                <h5>Next Steps:</h5>
+                                <ol class="text-start">
+                                    <li>Download the APK from the URL above</li>
+                                    <li>Place it at: <code>~/huduglue/mobile-app/builds/huduglue.apk</code></li>
+                                    <li>Refresh this page to download</li>
+                                </ol>
+                                <hr>
+                                <a href="javascript:history.back()" class="btn btn-secondary">&larr; Go Back</a>
+                                <a href="javascript:location.reload()" class="btn btn-primary">Refresh Page</a>
+                            </div>
+                        </div>
                     </body>
                     </html>
-                """, content_type='text/html')
+                """, content_type='text/html; charset=utf-8')
 
             elif status_data['status'] == 'failed':
                 # Build failed - allow retry
@@ -439,16 +468,36 @@ def download_mobile_app(request, app_type):
                     # Fall through to trigger build below
                 else:
                     return HttpResponse(f"""
+                        <!DOCTYPE html>
                         <html>
-                        <head><title>Android App Build Failed - HuduGlue</title></head>
-                        <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
-                            <h1>❌ Android App Build Failed</h1>
-                            <p><strong>Error:</strong> {status_data['message']}</p>
-                            <p><a href="?retry=1" class="btn btn-primary">Retry Build</a></p>
-                            <p><a href="javascript:history.back()">← Go Back</a></p>
+                        <head>
+                            <title>Android App Build Failed - HuduGlue</title>
+                            <meta charset="UTF-8">
+                            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                            <style>
+                                body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                                .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
+                                .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                                h1 {{ color: #f85149; }}
+                                .error-box {{ background: #3d1e1e; border: 1px solid #f85149; border-radius: 6px; padding: 15px; margin: 20px 0; }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="card">
+                                    <h1>&#x274C; Android App Build Failed</h1>
+                                    <div class="error-box">
+                                        <strong>Error:</strong> {status_data['message']}
+                                    </div>
+                                    <div class="mt-4">
+                                        <a href="?retry=1" class="btn btn-primary">Retry Build</a>
+                                        <a href="javascript:history.back()" class="btn btn-secondary">&larr; Go Back</a>
+                                    </div>
+                                </div>
+                            </div>
                         </body>
                         </html>
-                    """, content_type='text/html')
+                    """, content_type='text/html; charset=utf-8')
 
         # No APK and no build in progress - start build
         def build_app_background():
@@ -472,25 +521,35 @@ def download_mobile_app(request, app_type):
 
         # Return building status page
         return HttpResponse("""
+            <!DOCTYPE html>
             <html>
             <head>
                 <title>Building Android App - HuduGlue</title>
+                <meta charset="UTF-8">
                 <meta http-equiv="refresh" content="10">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 <style>
-                    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; text-align: center; }
-                    .spinner { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+                    body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+                    .container { max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }
+                    .spinner { border: 5px solid #30363d; border-top: 5px solid #0d6efd; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }
                     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }
+                    h1 { color: #58a6ff; }
                 </style>
             </head>
             <body>
-                <h1>🔨 Building Android App...</h1>
-                <div class="spinner"></div>
-                <p><strong>Build started!</strong> This typically takes 10-20 minutes.</p>
-                <p>This page will refresh automatically every 10 seconds.</p>
-                <p><small>You can close this tab and come back later.</small></p>
+                <div class="container">
+                    <div class="card">
+                        <h1>Building Android App...</h1>
+                        <div class="spinner"></div>
+                        <p class="lead"><strong>Build started!</strong> This typically takes 10-20 minutes.</p>
+                        <p>This page will refresh automatically every 10 seconds.</p>
+                        <p class="text-muted"><small>You can close this tab and come back later.</small></p>
+                    </div>
+                </div>
             </body>
             </html>
-        """, content_type='text/html')
+        """, content_type='text/html; charset=utf-8')
 
     elif app_type == 'ios':
         ipa_path = os.path.join(MOBILE_APP_DIR, 'huduglue.ipa')
@@ -522,60 +581,109 @@ def download_mobile_app(request, app_type):
 
             if status_data['status'] == 'building':
                 return HttpResponse(f"""
+                    <!DOCTYPE html>
                     <html>
                     <head>
                         <title>Building iOS App - HuduGlue</title>
+                        <meta charset="UTF-8">
                         <meta http-equiv="refresh" content="10">
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
-                            body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; text-align: center; }}
-                            .spinner {{ border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }}
+                            body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            .container {{ max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }}
+                            .spinner {{ border: 5px solid #30363d; border-top: 5px solid #0d6efd; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }}
                             @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                            h1 {{ color: #58a6ff; }}
                         </style>
                     </head>
                     <body>
-                        <h1>🔨 Building iOS App...</h1>
-                        <div class="spinner"></div>
-                        <p><strong>Status:</strong> {status_data['message']}</p>
-                        <p>This page will refresh automatically. Building typically takes 10-20 minutes.</p>
-                        <p><small>Started: {status_data.get('timestamp', 'Unknown')}</small></p>
+                        <div class="container">
+                            <div class="card">
+                                <h1>Building iOS App...</h1>
+                                <div class="spinner"></div>
+                                <p class="lead"><strong>Status:</strong> {status_data['message']}</p>
+                                <p>This page will refresh automatically. Building typically takes 10-20 minutes.</p>
+                                <p class="text-muted"><small>You can close this tab and come back later.</small></p>
+                            </div>
+                        </div>
                     </body>
                     </html>
-                """, content_type='text/html')
+                """, content_type='text/html; charset=utf-8')
 
             elif status_data['status'] == 'complete':
                 return HttpResponse(f"""
+                    <!DOCTYPE html>
                     <html>
-                    <head><title>iOS App Build Complete - HuduGlue</title></head>
-                    <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
-                        <h1>✅ iOS App Build Complete!</h1>
-                        <p>{status_data['message']}</p>
-                        <p><strong>Next Steps:</strong></p>
-                        <ol>
-                            <li>Download the IPA from the URL above</li>
-                            <li>Place it at: <code>~/huduglue/mobile-app/builds/huduglue.ipa</code></li>
-                            <li>Refresh this page to download</li>
-                        </ol>
-                        <p><strong>Note:</strong> IPA files require TestFlight, enterprise distribution, or App Store for installation.</p>
-                        <p><a href="javascript:history.back()">← Go Back</a></p>
+                    <head>
+                        <title>iOS App Build Complete - HuduGlue</title>
+                        <meta charset="UTF-8">
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                        <style>
+                            body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                            .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
+                            .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                            h1 {{ color: #3fb950; }}
+                            code {{ background: #30363d; padding: 2px 6px; border-radius: 3px; color: #ffa657; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="card">
+                                <h1>&#x2705; iOS App Build Complete!</h1>
+                                <p class="lead">{status_data['message']}</p>
+                                <hr>
+                                <h5>Next Steps:</h5>
+                                <ol class="text-start">
+                                    <li>Download the IPA from the URL above</li>
+                                    <li>Place it at: <code>~/huduglue/mobile-app/builds/huduglue.ipa</code></li>
+                                    <li>Refresh this page to download</li>
+                                </ol>
+                                <p class="alert alert-warning">IPA files require TestFlight, enterprise distribution, or App Store for installation.</p>
+                                <hr>
+                                <a href="javascript:history.back()" class="btn btn-secondary">&larr; Go Back</a>
+                                <a href="javascript:location.reload()" class="btn btn-primary">Refresh Page</a>
+                            </div>
+                        </div>
                     </body>
                     </html>
-                """, content_type='text/html')
+                """, content_type='text/html; charset=utf-8')
 
             elif status_data['status'] == 'failed':
                 if request.GET.get('retry') == '1':
                     os.remove(status_file)
                 else:
                     return HttpResponse(f"""
+                        <!DOCTYPE html>
                         <html>
-                        <head><title>iOS App Build Failed - HuduGlue</title></head>
-                        <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
-                            <h1>❌ iOS App Build Failed</h1>
-                            <p><strong>Error:</strong> {status_data['message']}</p>
-                            <p><a href="?retry=1" class="btn btn-primary">Retry Build</a></p>
-                            <p><a href="javascript:history.back()">← Go Back</a></p>
+                        <head>
+                            <title>iOS App Build Failed - HuduGlue</title>
+                            <meta charset="UTF-8">
+                            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                            <style>
+                                body {{ background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }}
+                                .container {{ max-width: 800px; margin: 50px auto; padding: 40px; }}
+                                .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }}
+                                h1 {{ color: #f85149; }}
+                                .error-box {{ background: #3d1e1e; border: 1px solid #f85149; border-radius: 6px; padding: 15px; margin: 20px 0; }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="card">
+                                    <h1>&#x274C; iOS App Build Failed</h1>
+                                    <div class="error-box">
+                                        <strong>Error:</strong> {status_data['message']}
+                                    </div>
+                                    <div class="mt-4">
+                                        <a href="?retry=1" class="btn btn-primary">Retry Build</a>
+                                        <a href="javascript:history.back()" class="btn btn-secondary">&larr; Go Back</a>
+                                    </div>
+                                </div>
+                            </div>
                         </body>
                         </html>
-                    """, content_type='text/html')
+                    """, content_type='text/html; charset=utf-8')
 
         # No IPA and no build in progress - start build
         def build_app_background():
@@ -596,25 +704,35 @@ def download_mobile_app(request, app_type):
         )
 
         return HttpResponse("""
+            <!DOCTYPE html>
             <html>
             <head>
                 <title>Building iOS App - HuduGlue</title>
+                <meta charset="UTF-8">
                 <meta http-equiv="refresh" content="10">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                 <style>
-                    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; text-align: center; }
-                    .spinner { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+                    body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+                    .container { max-width: 800px; margin: 50px auto; padding: 40px; text-align: center; }
+                    .spinner { border: 5px solid #30363d; border-top: 5px solid #0d6efd; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 30px auto; }
                     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; }
+                    h1 { color: #58a6ff; }
                 </style>
             </head>
             <body>
-                <h1>🔨 Building iOS App...</h1>
-                <div class="spinner"></div>
-                <p><strong>Build started!</strong> This typically takes 10-20 minutes.</p>
-                <p>This page will refresh automatically every 10 seconds.</p>
-                <p><small>You can close this tab and come back later.</small></p>
+                <div class="container">
+                    <div class="card">
+                        <h1>Building iOS App...</h1>
+                        <div class="spinner"></div>
+                        <p class="lead"><strong>Build started!</strong> This typically takes 10-20 minutes.</p>
+                        <p>This page will refresh automatically every 10 seconds.</p>
+                        <p class="text-muted"><small>You can close this tab and come back later.</small></p>
+                    </div>
+                </div>
             </body>
             </html>
-        """, content_type='text/html')
+        """, content_type='text/html; charset=utf-8')
 
     else:
         raise Http404("Invalid app type")

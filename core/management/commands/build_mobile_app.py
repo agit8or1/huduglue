@@ -29,8 +29,8 @@ class Command(BaseCommand):
 
         try:
             # Check if npm is installed
-            npm_check = subprocess.run(['which', 'npm'], capture_output=True)
-            if npm_check.returncode != 0:
+            import shutil
+            if not shutil.which('npm'):
                 raise Exception('npm is not installed. Please install Node.js and npm first.')
 
             # Check if dependencies are installed
@@ -47,8 +47,7 @@ class Command(BaseCommand):
                 )
 
             # Check if expo-cli is installed
-            expo_check = subprocess.run(['which', 'expo'], capture_output=True)
-            if expo_check.returncode != 0:
+            if not shutil.which('expo'):
                 self._update_status(status_file, 'building', 'Installing Expo CLI...')
                 self.stdout.write('Installing Expo CLI...')
                 subprocess.run(
@@ -57,6 +56,10 @@ class Command(BaseCommand):
                     capture_output=True,
                     text=True
                 )
+
+            # Auto-configure API URLs with server's FQDN
+            self._update_status(status_file, 'building', 'Configuring API URLs...')
+            self._configure_api_urls(mobile_app_dir)
 
             # Build the app
             if app_type == 'android':
@@ -133,3 +136,75 @@ class Command(BaseCommand):
                 'message': message,
                 'timestamp': time.time()
             }, f)
+
+    def _configure_api_urls(self, mobile_app_dir):
+        """Auto-configure app.json with server's FQDN"""
+        import os
+
+        app_json_path = os.path.join(mobile_app_dir, 'app.json')
+
+        # Detect server's FQDN
+        server_url = self._get_server_url()
+        graphql_url = f"{server_url}/api/v2/graphql/"
+
+        self.stdout.write(f'Configuring API URLs: {server_url}')
+
+        # Read app.json
+        with open(app_json_path, 'r') as f:
+            app_config = json.load(f)
+
+        # Update API URLs
+        if 'expo' not in app_config:
+            app_config['expo'] = {}
+        if 'extra' not in app_config['expo']:
+            app_config['expo']['extra'] = {}
+
+        app_config['expo']['extra']['apiUrl'] = server_url
+        app_config['expo']['extra']['graphqlUrl'] = graphql_url
+
+        # Write updated app.json
+        with open(app_json_path, 'w') as f:
+            json.dump(app_config, f, indent=2)
+
+        self.stdout.write(self.style.SUCCESS(f'Configured API URLs: {server_url}'))
+
+    def _get_server_url(self):
+        """Get the server's FQDN from environment or settings"""
+        import os
+        from django.conf import settings
+
+        # Try environment variable first (for production)
+        env_url = os.getenv('SERVER_URL') or os.getenv('ALLOWED_HOSTS')
+        if env_url:
+            # Clean up and format
+            url = env_url.split(',')[0].strip()
+            if not url.startswith('http'):
+                # Assume HTTPS for production
+                url = f'https://{url}'
+            return url
+
+        # Try Django ALLOWED_HOSTS setting
+        if hasattr(settings, 'ALLOWED_HOSTS') and settings.ALLOWED_HOSTS:
+            allowed_hosts = [h for h in settings.ALLOWED_HOSTS if h not in ['localhost', '127.0.0.1', '*']]
+            if allowed_hosts:
+                host = allowed_hosts[0]
+                # Assume HTTPS for production
+                return f'https://{host}'
+
+        # Fall back to reading from .env file
+        env_file = os.path.join(settings.BASE_DIR, '.env')
+        if os.path.exists(env_file):
+            with open(env_file, 'r') as f:
+                for line in f:
+                    if line.startswith('ALLOWED_HOSTS='):
+                        hosts = line.split('=')[1].strip().strip('"').strip("'")
+                        host = hosts.split(',')[0].strip()
+                        if host and host not in ['localhost', '127.0.0.1', '*']:
+                            return f'https://{host}'
+
+        # Last resort: use localhost for development
+        self.stdout.write(self.style.WARNING(
+            'Could not detect server URL. Using localhost. '
+            'Set SERVER_URL or ALLOWED_HOSTS environment variable for production.'
+        ))
+        return 'http://localhost:8000'
