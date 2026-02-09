@@ -27,6 +27,12 @@ class Command(BaseCommand):
         os.environ['PATH'] = ':'.join(path_additions) + ':' + current_path
 
         app_type = options['app_type']
+
+        # FIX: Validate app_type to prevent command injection
+        VALID_APP_TYPES = ['android', 'ios']
+        if app_type not in VALID_APP_TYPES:
+            raise ValueError(f"Invalid app_type: {app_type}. Must be one of: {', '.join(VALID_APP_TYPES)}")
+
         mobile_app_dir = os.path.join(settings.BASE_DIR, 'mobile-app')
         builds_dir = os.path.join(mobile_app_dir, 'builds')
         status_file = os.path.join(builds_dir, f'{app_type}_build_status.json')

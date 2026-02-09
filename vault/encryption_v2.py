@@ -177,9 +177,14 @@ def encrypt_v2(
 
     Raises:
         EncryptionError: If encryption fails
+        ValueError: If plaintext is None or invalid
     """
+    # FIX: Raise explicit error for None instead of silent handling
+    if plaintext is None:
+        raise ValueError("Cannot encrypt None value - plaintext must be a string")
+
     if not plaintext:
-        return ""
+        return ""  # Empty string is valid, return empty
 
     try:
         # Derive purpose-specific key
@@ -239,9 +244,14 @@ def decrypt_v2(
 
     Raises:
         EncryptionError: If decryption fails or AAD doesn't match
+        ValueError: If encrypted is None or invalid
     """
+    # FIX: Raise explicit error for None instead of silent handling
+    if encrypted is None:
+        raise ValueError("Cannot decrypt None value - encrypted must be a string")
+
     if not encrypted:
-        return ""
+        return ""  # Empty string is valid, return empty
 
     try:
         # Decode from base64

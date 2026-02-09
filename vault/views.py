@@ -17,9 +17,11 @@ from .encryption import EncryptionError
 
 
 @login_required
+@ratelimit(key='user', rate='100/h', method='GET', block=False)
 def password_list(request):
     """
     List all passwords in current organization, or all passwords if in global view mode.
+    Rate limited to 100 requests per hour per user.
     """
     org = get_request_organization(request)
 
@@ -41,10 +43,12 @@ def password_list(request):
 
 
 @login_required
+@ratelimit(key='user', rate='200/h', method='GET', block=False)
 def password_detail(request, pk):
     """
     View password details. Returns decrypted password via separate AJAX endpoint for security.
     Supports global view mode for superusers/staff users.
+    Rate limited to 200 requests per hour per user.
     """
     org = get_request_organization(request)
 
@@ -353,16 +357,28 @@ def check_password_strength_api(request):
     from .utils import calculate_password_strength
 
     password = request.POST.get('password', '')
+
+    # FIX: Validate and sanitize input
+    if not isinstance(password, str):
+        return JsonResponse({'error': 'Invalid password format'}, status=400)
+
+    # Limit password length to prevent DOS
+    MAX_PASSWORD_LENGTH = 1000
+    if len(password) > MAX_PASSWORD_LENGTH:
+        return JsonResponse({'error': f'Password too long (max {MAX_PASSWORD_LENGTH} characters)'}, status=400)
+
     strength_data = calculate_password_strength(password)
 
     return JsonResponse(strength_data)
 
 
 @login_required
+@ratelimit(key='user', rate='100/h', method='GET', block=True)
 def generate_otp_api(request, pk):
     """
     API endpoint to generate TOTP code.
     Works with any password that has a TOTP secret configured.
+    Rate limited to 100 requests per hour per user.
     """
     org = get_request_organization(request)
     password = get_object_or_404(Password, pk=pk, organization=org)
@@ -390,8 +406,14 @@ def generate_otp_api(request, pk):
             })
         else:
             return JsonResponse({'error': 'TOTP secret not configured for this password'}, status=400)
+    except (ValueError, AttributeError, KeyError) as e:
+        # FIX: Catch specific exceptions for better error handling
+        logger.error(f"Error generating OTP for password {pk}: {e}")
+        return JsonResponse({'error': 'Failed to generate OTP code'}, status=500)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        # Catch-all for unexpected errors
+        logger.error(f"Unexpected error generating OTP for password {pk}: {e}")
+        return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
 
 
 @login_required

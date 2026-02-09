@@ -1217,8 +1217,9 @@ def check_snyk_version(request):
             try:
                 from packaging import version
                 update_available = version.parse(latest_version) > version.parse(current_version)
-            except:
-                # Fallback to string comparison if packaging module not available
+            except (ImportError, ValueError, TypeError) as e:
+                # FIX: Catch specific exceptions instead of bare except
+                # Fallback to string comparison if version parsing fails
                 update_available = latest_version != current_version
 
         # Debug info

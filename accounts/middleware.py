@@ -36,7 +36,24 @@ class Enforce2FAMiddleware:
             return self.get_response(request)
 
         # Skip 2FA for Azure AD authenticated users (SSO is already secure)
+        # FIX: Add audit logging for 2FA bypass
         if request.session.get('azure_ad_authenticated', False):
+            # Log Azure AD 2FA bypass (once per session to avoid spam)
+            if not request.session.get('azure_2fa_bypass_logged', False):
+                from core.models import AuditLog
+                try:
+                    AuditLog.objects.create(
+                        user=request.user,
+                        username=request.user.username,
+                        action='azure_ad_2fa_bypass',
+                        description=f'User authenticated via Azure AD SSO - 2FA requirement bypassed',
+                        ip_address=request.META.get('REMOTE_ADDR'),
+                        user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
+                    )
+                    request.session['azure_2fa_bypass_logged'] = True
+                except Exception:
+                    pass  # Don't break authentication flow if logging fails
+
             return self.get_response(request)
 
         # Check if user has 2FA device configured

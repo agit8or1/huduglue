@@ -16,16 +16,22 @@ logger = logging.getLogger('accounts')
 @require_http_methods(["GET"])
 def azure_login(request):
     """
-    Redirect user to Azure AD login page.
+    Redirect user to Azure AD login page with CSRF state protection.
     """
+    import secrets
+
     client = AzureOAuthClient()
 
     if not client.is_enabled():
         messages.error(request, "Azure AD authentication is not configured.")
         return redirect('two_factor:login')
 
-    # Get authorization URL
-    auth_url = client.get_authorization_url()
+    # FIX: Generate cryptographically secure state token for CSRF protection
+    state = secrets.token_urlsafe(32)
+    request.session['azure_oauth_state'] = state
+
+    # Get authorization URL with state parameter
+    auth_url = client.get_authorization_url(state=state)
     if not auth_url:
         messages.error(request, "Failed to generate Azure AD login URL.")
         return redirect('two_factor:login')
@@ -34,15 +40,20 @@ def azure_login(request):
     return redirect(auth_url)
 
 
-@csrf_exempt  # Azure callback doesn't include CSRF token
+@csrf_exempt  # SECURITY EXCEPTION: Azure OAuth callback uses state parameter for CSRF protection
 @require_http_methods(["GET"])
 def azure_callback(request):
     """
     Handle OAuth callback from Azure AD.
     Exchange authorization code for token and authenticate user.
+
+    SECURITY NOTE: @csrf_exempt is required because OAuth callbacks don't include
+    Django CSRF tokens. CSRF protection is provided by OAuth 2.0 state parameter
+    validation, which prevents authorization code interception attacks.
     """
-    # Get authorization code from query params
+    # Get authorization code and state from query params
     code = request.GET.get('code')
+    state = request.GET.get('state')
     error = request.GET.get('error')
     error_description = request.GET.get('error_description')
 
@@ -54,6 +65,16 @@ def azure_callback(request):
     if not code:
         messages.error(request, "No authorization code received from Azure AD.")
         return redirect('two_factor:login')
+
+    # FIX: Validate state parameter for CSRF protection
+    session_state = request.session.get('azure_oauth_state')
+    if not state or not session_state or state != session_state:
+        logger.warning(f"Azure OAuth state mismatch - possible CSRF attack. Expected: {session_state}, Got: {state}")
+        messages.error(request, "Invalid authentication state. Please try again.")
+        return redirect('two_factor:login')
+
+    # Clear state after use (single-use token)
+    request.session.pop('azure_oauth_state', None)
 
     # Exchange code for token
     client = AzureOAuthClient()
