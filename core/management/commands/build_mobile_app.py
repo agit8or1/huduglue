@@ -145,14 +145,15 @@ class Command(BaseCommand):
 
             # Build the app
             if app_type == 'android':
-                self._update_status(status_file, 'building', 'Building Android APK (this may take 10-20 minutes)...')
+                self._update_status(status_file, 'building', 'Building Android APK locally (this may take 10-20 minutes)...')
                 self.stdout.write('Building Android APK...\n')
-                self._log('\n=== Building Android APK with EAS ===\n')
+                self._log('\n=== Building Android APK Locally ===\n')
+                self._log('Building locally without Expo cloud services...\n\n')
 
-                # Use EAS Build (modern Expo build system)
+                # Use local build (no Expo account required)
                 try:
                     self._run_command_with_logging(
-                        ['npx', 'eas-cli', 'build', '--platform', 'android', '--profile', 'preview', '--non-interactive'],
+                        ['npx', 'eas-cli', 'build', '--platform', 'android', '--profile', 'preview', '--local', '--non-interactive'],
                         cwd=mobile_app_dir,
                         timeout=1800  # 30 minute timeout
                     )
@@ -177,13 +178,14 @@ class Command(BaseCommand):
                     raise Exception(f'Build command failed with exit code {e.returncode}')
 
             elif app_type == 'ios':
-                self._update_status(status_file, 'building', 'Building iOS IPA (this may take 10-20 minutes)...')
+                self._update_status(status_file, 'building', 'Building iOS IPA locally (this may take 10-20 minutes)...')
                 self.stdout.write('Building iOS IPA...\n')
-                self._log('\n=== Building iOS IPA with EAS ===\n')
+                self._log('\n=== Building iOS IPA Locally ===\n')
+                self._log('Building locally without Expo cloud services...\n\n')
 
                 try:
                     self._run_command_with_logging(
-                        ['npx', 'eas-cli', 'build', '--platform', 'ios', '--profile', 'preview', '--non-interactive'],
+                        ['npx', 'eas-cli', 'build', '--platform', 'ios', '--profile', 'preview', '--local', '--non-interactive'],
                         cwd=mobile_app_dir,
                         timeout=1800  # 30 minute timeout
                     )
