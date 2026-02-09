@@ -408,6 +408,12 @@ class SystemSetting(models.Model):
     )
     snyk_last_scan = models.DateTimeField(null=True, blank=True, help_text='Timestamp of last Snyk scan')
 
+    # Snyk Product Selection
+    snyk_test_open_source = models.BooleanField(default=True, help_text='Scan dependencies with Snyk Open Source (snyk test)')
+    snyk_test_code = models.BooleanField(default=False, help_text='Scan source code with Snyk Code (snyk code test) - Requires Snyk Code enabled in dashboard')
+    snyk_test_container = models.BooleanField(default=False, help_text='Scan Docker images with Snyk Container (snyk container test)')
+    snyk_test_iac = models.BooleanField(default=False, help_text='Scan IaC files with Snyk IaC (snyk iac test)')
+
     # Bug Reporting
     github_pat = models.CharField(max_length=500, blank=True, help_text='GitHub Personal Access Token for bug reporting (encrypted)')
 
@@ -646,7 +652,7 @@ class ScheduledTask(models.Model):
 
 class SnykScan(models.Model):
     """Track Snyk security scan results."""
-    
+
     STATUS_CHOICES = [
         ('cancelled', 'Cancelled'),
         ('completed', 'Completed'),
@@ -662,9 +668,17 @@ class SnykScan(models.Model):
         ('low', 'Low'),
         ('medium', 'Medium'),
     ]
-    
+
+    SCAN_TYPE_CHOICES = [
+        ('open_source', 'Open Source (Dependencies)'),
+        ('code', 'Code (SAST)'),
+        ('container', 'Container (Docker)'),
+        ('iac', 'Infrastructure as Code'),
+    ]
+
     # Scan metadata
     scan_id = models.CharField(max_length=100, unique=True, help_text="Unique scan identifier")
+    scan_type = models.CharField(max_length=20, choices=SCAN_TYPE_CHOICES, default='open_source', help_text='Type of Snyk product used for this scan')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     cancel_requested = models.BooleanField(default=False, help_text="User requested cancellation")
     started_at = models.DateTimeField(auto_now_add=True)

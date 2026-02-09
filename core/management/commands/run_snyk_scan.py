@@ -24,6 +24,13 @@ class Command(BaseCommand):
             type=int,
             help='User ID who triggered the scan',
         )
+        parser.add_argument(
+            '--scan-type',
+            type=str,
+            default='open_source',
+            choices=['open_source', 'code', 'container', 'iac'],
+            help='Type of Snyk scan to run',
+        )
 
     def handle(self, *args, **options):
         from django.contrib.auth.models import User
@@ -41,17 +48,19 @@ class Command(BaseCommand):
         
         # Create scan record
         scan_id = options.get('scan_id') or f"scan-{uuid.uuid4().hex[:8]}"
+        scan_type = options.get('scan_type', 'open_source')
         user_id = options.get('user_id')
         triggered_by = None
-        
+
         if user_id:
             try:
                 triggered_by = User.objects.get(id=user_id)
             except User.DoesNotExist:
                 pass
-        
+
         scan = SnykScan.objects.create(
             scan_id=scan_id,
+            scan_type=scan_type,
             status='running',
             severity_threshold=settings.snyk_severity_threshold,
             triggered_by=triggered_by,
@@ -100,17 +109,24 @@ class Command(BaseCommand):
             if not snyk_path:
                 raise FileNotFoundError('Snyk CLI is not installed. Install with: npm install -g snyk')
 
-            # Run Snyk test command (Open Source dependency scanning)
-            cmd = [
-                snyk_path,
-                'test',
-                '--json',
-                f'--severity-threshold={settings.snyk_severity_threshold}',
-            ]
+            # Build Snyk command based on scan type
+            if scan_type == 'open_source':
+                cmd = [snyk_path, 'test', '--json', f'--severity-threshold={settings.snyk_severity_threshold}']
+            elif scan_type == 'code':
+                cmd = [snyk_path, 'code', 'test', '--json', f'--severity-threshold={settings.snyk_severity_threshold}']
+            elif scan_type == 'container':
+                # For container, we need a Docker image reference - use project name
+                cmd = [snyk_path, 'container', 'test', '--json', f'--severity-threshold={settings.snyk_severity_threshold}', '.']
+            elif scan_type == 'iac':
+                cmd = [snyk_path, 'iac', 'test', '--json', f'--severity-threshold={settings.snyk_severity_threshold}', '.']
+            else:
+                cmd = [snyk_path, 'test', '--json', f'--severity-threshold={settings.snyk_severity_threshold}']
 
             # Add organization if configured
             if settings.snyk_org_id:
                 cmd.append(f'--org={settings.snyk_org_id}')
+
+            self.stdout.write(f'Running: {" ".join(cmd)}')
 
             # Set environment variables
             env = os.environ.copy()

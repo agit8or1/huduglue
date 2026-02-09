@@ -101,9 +101,33 @@
 
                 {% if has_token and settings.snyk_enabled %}
                 <div class="mb-4 d-flex gap-2">
-                    <button type="button" class="btn btn-primary" id="runScanBtn">
-                        <i class="fas fa-sync"></i> Run Scan Now
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="runScanDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-sync"></i> Run Scan Now
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% if settings.snyk_test_open_source %}
+                            <li><a class="dropdown-item" href="#" onclick="runSnykScan('open_source'); return false;">
+                                <i class="fas fa-cube"></i> Open Source (Dependencies)
+                            </a></li>
+                            {% endif %}
+                            {% if settings.snyk_test_code %}
+                            <li><a class="dropdown-item" href="#" onclick="runSnykScan('code'); return false;">
+                                <i class="fas fa-code"></i> Code (SAST)
+                            </a></li>
+                            {% endif %}
+                            {% if settings.snyk_test_container %}
+                            <li><a class="dropdown-item" href="#" onclick="runSnykScan('container'); return false;">
+                                <i class="fab fa-docker"></i> Container (Docker)
+                            </a></li>
+                            {% endif %}
+                            {% if settings.snyk_test_iac %}
+                            <li><a class="dropdown-item" href="#" onclick="runSnykScan('iac'); return false;">
+                                <i class="fas fa-server"></i> Infrastructure as Code
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
                     <a href="{% url 'core:snyk_scans' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-history"></i> View Scan History
                     </a>
@@ -251,6 +275,51 @@
                             </div>
                         </div>
 
+                        <h5 class="mb-3 mt-4">Snyk Products</h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Select which Snyk products to enable. Different products scan different aspects of your application.
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="snyk_test_open_source" name="snyk_test_open_source"
+                                   {% if settings.snyk_test_open_source %}checked{% endif %}>
+                            <label class="form-check-label" for="snyk_test_open_source">
+                                <strong><i class="fas fa-cube"></i> Snyk Open Source</strong>
+                                <span class="badge bg-success ms-2">FREE</span>
+                            </label>
+                            <div class="form-text">Scan dependencies for known vulnerabilities (requirements.txt, package.json)</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="snyk_test_code" name="snyk_test_code"
+                                   {% if settings.snyk_test_code %}checked{% endif %}>
+                            <label class="form-check-label" for="snyk_test_code">
+                                <strong><i class="fas fa-code"></i> Snyk Code</strong>
+                                <span class="badge bg-warning ms-2">PAID</span>
+                            </label>
+                            <div class="form-text">Static Application Security Testing (SAST) - scans source code for vulnerabilities. Requires Snyk Code enabled in dashboard.</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="snyk_test_container" name="snyk_test_container"
+                                   {% if settings.snyk_test_container %}checked{% endif %}>
+                            <label class="form-check-label" for="snyk_test_container">
+                                <strong><i class="fab fa-docker"></i> Snyk Container</strong>
+                                <span class="badge bg-info ms-2">FREE/PAID</span>
+                            </label>
+                            <div class="form-text">Scan Docker images for vulnerabilities in base images and dependencies</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="snyk_test_iac" name="snyk_test_iac"
+                                   {% if settings.snyk_test_iac %}checked{% endif %}>
+                            <label class="form-check-label" for="snyk_test_iac">
+                                <strong><i class="fas fa-server"></i> Snyk Infrastructure as Code</strong>
+                                <span class="badge bg-info ms-2">FREE/PAID</span>
+                            </label>
+                            <div class="form-text">Scan Terraform, Kubernetes, CloudFormation files for misconfigurations</div>
+                        </div>
+
                         {% if settings.snyk_last_scan %}
                         <div class="mb-3">
                             <label class="form-label">Last Scan</label>
@@ -354,22 +423,16 @@ document.getElementById('testSnykBtn').addEventListener('click', function() {
 
 // Run Scan Now functionality
 {% if has_token and settings.snyk_enabled %}
-document.getElementById('runScanBtn').addEventListener('click', function() {
-    const btn = this;
-    const originalHtml = btn.innerHTML;
+function runSnykScan(scanType) {
     const progressDiv = document.getElementById('scanProgress');
-
-    // Disable button
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Scan...';
 
     // Show progress
     progressDiv.style.display = 'block';
     progressDiv.className = 'alert alert-info';
-    progressDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting security scan...';
+    progressDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting ' + getScanTypeLabel(scanType) + ' scan...';
 
     // Start scan
-    fetch('{% url "core:run_snyk_scan" %}', {
+    fetch('{% url "core:run_snyk_scan" %}?scan_type=' + scanType, {
         method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -418,8 +481,6 @@ document.getElementById('runScanBtn').addEventListener('click', function() {
                     .then(status => {
                         if (status.completed) {
                             clearInterval(pollInterval);
-                            btn.disabled = false;
-                            btn.innerHTML = originalHtml;
 
                             if (status.status === 'completed') {
                                 progressDiv.className = status.critical_count > 0 || status.high_count > 0 ?
@@ -450,17 +511,23 @@ document.getElementById('runScanBtn').addEventListener('click', function() {
         } else {
             progressDiv.className = 'alert alert-danger';
             progressDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> ${data.message}`;
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
         }
     })
     .catch(error => {
         progressDiv.className = 'alert alert-danger';
         progressDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> ${error.message}`;
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
     });
-});
+}
+
+function getScanTypeLabel(scanType) {
+    const labels = {
+        'open_source': 'Open Source',
+        'code': 'Code',
+        'container': 'Container',
+        'iac': 'Infrastructure as Code'
+    };
+    return labels[scanType] || scanType;
+}
 {% endif %}
 
 // Check Snyk CLI version

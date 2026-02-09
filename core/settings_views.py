@@ -979,6 +979,12 @@ def settings_snyk(request):
         settings.snyk_severity_threshold = request.POST.get('snyk_severity_threshold', 'high')
         settings.snyk_scan_frequency = request.POST.get('snyk_scan_frequency', 'daily')
 
+        # Snyk Product Selection
+        settings.snyk_test_open_source = request.POST.get('snyk_test_open_source') == 'on'
+        settings.snyk_test_code = request.POST.get('snyk_test_code') == 'on'
+        settings.snyk_test_container = request.POST.get('snyk_test_container') == 'on'
+        settings.snyk_test_iac = request.POST.get('snyk_test_iac') == 'on'
+
         settings.updated_by = request.user
         settings.save()
 
@@ -1511,37 +1517,48 @@ def run_snyk_scan(request):
     from django.core.management import call_command
     import threading
     import uuid
-    
+
     if request.method != 'POST':
         return JsonResponse({
             'success': False,
             'message': 'Invalid request method'
         })
-    
+
     settings = SystemSetting.get_settings()
-    
+
     if not settings.snyk_enabled:
         return JsonResponse({
             'success': False,
             'message': 'Snyk scanning is not enabled'
         })
-    
+
     if not settings.snyk_api_token:
         return JsonResponse({
             'success': False,
             'message': 'Snyk API token is not configured'
         })
-    
+
+    # Get scan type from query parameter (default to open_source)
+    scan_type = request.GET.get('scan_type', 'open_source')
+
+    # Validate scan type
+    valid_scan_types = ['open_source', 'code', 'container', 'iac']
+    if scan_type not in valid_scan_types:
+        return JsonResponse({
+            'success': False,
+            'message': f'Invalid scan type: {scan_type}'
+        })
+
     # Generate scan ID
     scan_id = f"manual-{uuid.uuid4().hex[:8]}"
-    
+
     # Run scan in background thread
     def run_scan():
         try:
-            call_command('run_snyk_scan', scan_id=scan_id, user_id=request.user.id)
+            call_command('run_snyk_scan', scan_id=scan_id, user_id=request.user.id, scan_type=scan_type)
         except Exception as e:
             print(f"Scan error: {e}")
-    
+
     thread = threading.Thread(target=run_scan)
     thread.daemon = True
     thread.start()
