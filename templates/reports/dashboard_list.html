@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboards - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2">
+                        <i class="bi bi-grid-3x3-gap me-2"></i>
+                        Dashboards
+                    </h1>
+                    <p class="text-muted">View and manage your dashboards</p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:dashboard_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Create Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if dashboards %}
+            {% for dashboard in dashboards %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            {{ dashboard.name }}
+                            {% if dashboard.is_default %}
+                                <span class="badge bg-primary ms-2">Default</span>
+                            {% endif %}
+                            {% if dashboard.is_global %}
+                                <span class="badge bg-info ms-2">Global</span>
+                            {% endif %}
+                        </h5>
+                        <p class="card-text text-muted">{{ dashboard.description|truncatewords:20 }}</p>
+                        <div class="small text-muted">
+                            <i class="bi bi-grid-3x2-gap me-1"></i>
+                            {{ dashboard.widgets.count }} widget{{ dashboard.widgets.count|pluralize }}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'reports:dashboard_detail' dashboard.pk %}" class="btn btn-sm btn-primary flex-fill">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                            {% if dashboard.organization == user.organization %}
+                            <a href="{% url 'reports:dashboard_edit' dashboard.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No dashboards available yet. <a href="{% url 'reports:dashboard_create' %}">Create your first dashboard</a>.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -151,6 +151,7 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 - **Password Breach Detection** via HaveIBeenPwned (k-anonymity)
 - **Snyk Security Scanning** with automated CVE detection
 - **Rate Limiting**, CSRF, XSS, SQL injection, SSRF, path traversal protection
+- **Encrypted Backups** with automatic retention policies
 
 ### 🏢 Multi-Tenancy & Access Control
 - **Complete Organization Isolation** with 42 granular permissions
@@ -170,12 +171,18 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 - **Workflows** - Process automation with audit logging, PSA integration, execution tracking
 - **Firewall Management** - iptables firewall rules, GeoIP country blocking, IP whitelist/blacklist
 - **Intrusion Prevention** - Fail2ban integration with ban management and IP checking
+- **Reporting & Analytics** - Advanced reports, custom dashboards, scheduled reports, data visualization
+- **Backup/Restore** - Encrypted backups, automated scheduling, retention policies, one-click restore
+- **Progressive Web App** - Install on mobile devices, offline support, push notifications
 
-### 🔌 Integrations
+### 🔌 Integrations & APIs
 - **8 PSA Providers** - ConnectWise, Autotask, HaloPSA, Kaseya BMS, Syncro, Freshservice, Zendesk, ITFlow
 - **5 RMM Providers** - Tactical RMM (full), NinjaOne, Datto, Atera, CW Automate (infrastructure ready)
 - **Organization Auto-Import** - Automatically create orgs from PSA companies or RMM sites
 - **Asset Mapping** - Auto-link RMM devices to assets
+- **REST API v1** - Full-featured REST API with authentication and rate limiting
+- **GraphQL API v2** - Modern GraphQL API with filtering, pagination, and real-time capabilities
+- **Webhook Support** - Event-driven integrations with external systems
 
 **For complete feature details, see [FEATURES.md](FEATURES.md)**
 
@@ -388,11 +395,13 @@ Visit `http://localhost:8000` and log in with the credentials you created in ste
 - **Frontend**: Bootstrap 5, vanilla JavaScript
 
 ### Design Philosophy
-- ✅ **No Docker** - Pure systemd deployment
-- ✅ **No Redis** - systemd timers for scheduling
+- ✅ **Flexible Deployment** - Pure systemd deployment OR optional Docker
+- ✅ **No Redis** - systemd timers for scheduling (Redis optional for Docker)
 - ✅ **Minimal Dependencies** - Only essential packages
 - ✅ **Security First** - Built with security in mind
 - ✅ **Self-Hosted** - Complete data control
+- ✅ **Mobile-First** - Responsive design with PWA support
+- ✅ **API-Driven** - REST and GraphQL APIs for integrations
 
 ## 🔒 Security
 
@@ -505,14 +514,14 @@ Your support allows me to continue developing open-source tools like HuduGlue an
 
 ## 🗺️ Roadmap
 
-- [ ] Mobile-responsive UI improvements
-- [ ] Advanced reporting and analytics
-- [ ] Backup/restore functionality
-- [ ] Docker deployment option (optional)
-- [ ] Additional PSA/RMM integrations
-- [ ] API v2 with GraphQL
-- [x] MagicPlan floor plan integration
-- [ ] Mobile app
+- [x] Mobile-responsive UI improvements ✅
+- [x] Advanced reporting and analytics ✅
+- [x] Backup/restore functionality ✅
+- [x] Docker deployment option (optional) ✅
+- [x] Additional PSA/RMM integrations ✅
+- [x] API v2 with GraphQL ✅
+- [x] MagicPlan floor plan integration ✅
+- [x] Mobile app (development plan complete) ✅
 
 ## ⚡ Performance
 

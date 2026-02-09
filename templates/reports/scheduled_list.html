@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Scheduled Reports - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Scheduled Reports
+                    </h1>
+                    <p class="text-muted">Manage your automated report schedules</p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:scheduled_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Create Schedule
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if schedules %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Template</th>
+                                        <th>Frequency</th>
+                                        <th>Status</th>
+                                        <th>Next Run</th>
+                                        <th>Last Run</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in schedules %}
+                                    <tr>
+                                        <td><strong>{{ schedule.name }}</strong></td>
+                                        <td>{{ schedule.template.name }}</td>
+                                        <td><span class="badge bg-info">{{ schedule.get_frequency_display }}</span></td>
+                                        <td>
+                                            {% if schedule.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="bi bi-pause-circle me-1"></i>Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ schedule.next_run|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            {% if schedule.last_run %}
+                                                {{ schedule.last_run|date:"Y-m-d H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">Never</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'reports:scheduled_edit' schedule.pk %}" class="btn btn-outline-primary" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'reports:scheduled_toggle' schedule.pk %}" class="btn btn-outline-{% if schedule.is_active %}warning{% else %}success{% endif %}" title="{% if schedule.is_active %}Disable{% else %}Enable{% endif %}">
+                                                    <i class="bi bi-{% if schedule.is_active %}pause{% else %}play{% endif %}-fill"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No scheduled reports yet. <a href="{% url 'reports:scheduled_create' %}">Create your first schedule</a>.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

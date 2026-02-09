@@ -3,11 +3,19 @@
 <html lang="en" data-theme="{{ user_theme }}" data-bs-theme="{% if user_theme == 'dark' or user_theme == 'dracula' or user_theme == 'monokai' %}dark{% else %}light{% endif %}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}HuduGlue - IT Documentation Platform{% endblock %}</title>
+    <meta name="description" content="Secure, Self-Hosted IT Documentation Platform for MSPs and IT Departments">
     <meta name="generator" content="HuduGlue v{{ app_version }}">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HuduGlue">
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/pwa-icon-192.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
@@ -16,10 +24,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link href="{% static 'css/themes.css' %}" rel="stylesheet">
     <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+    <link href="{% static 'css/mobile.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if user_background_url or user_background_color %}has-background{% endif %}" {% if user_background_url %}style="background-image: url('{{ user_background_url }}');"{% elif user_background_color %}style="background-color: {{ user_background_color }};"{% endif %}>
-    <nav class="navbar navbar-expand {% if user_theme == 'dark' or user_theme == 'dracula' or user_theme == 'monokai' %}navbar-dark{% else %}navbar-light{% endif %}">
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+    <nav class="navbar navbar-expand-lg {% if user_theme == 'dark' or user_theme == 'dracula' or user_theme == 'monokai' %}navbar-dark{% else %}navbar-light{% endif %}">
         <div class="container-fluid navbar-container">
             <a class="navbar-brand" href="{% url 'home' %}">
                 {% if system_settings.custom_logo %}
@@ -28,7 +38,10 @@
                     <img src="{% static 'images/logo-light.svg' %}" alt="{{ system_settings.custom_company_name|default:'HuduGlue' }}" height="30">
                 {% endif %}
             </a>
-            <div class="navbar-collapse" id="navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
                 {% if user.is_authenticated %}
                 <ul class="navbar-nav">
                     <li class="nav-item"><a class="nav-link" href="{% url 'core:dashboard' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View your main dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -85,6 +98,21 @@
                         </ul>
                     </li>
                     {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'reports:home' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Reports and analytics home"><i class="fas fa-home"></i> Reports Home</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:dashboard_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Custom dashboards and widgets"><i class="fas fa-th-large"></i> Dashboards</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:template_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Generate reports from templates"><i class="fas fa-file-pdf"></i> Generate Reports</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:generated_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="View generated reports"><i class="fas fa-history"></i> Report History</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:scheduled_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage scheduled reports"><i class="fas fa-calendar-check"></i> Scheduled Reports</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:analytics_overview' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="System analytics and usage metrics"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'core:favorite_list' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View your favorited items"><i class="fas fa-star text-warning"></i> Favorites</a></li>
                     {% if user.is_superuser %}
                     <li class="nav-item dropdown">
@@ -108,12 +136,6 @@
                             <li><a class="dropdown-item" href="{% url 'accounts:access_management' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="User management, roles, and permissions"><i class="fas fa-users-cog"></i> Access Management</a></li>
                             <li><a class="dropdown-item" href="{% url 'integrations:integration_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="PSA and RMM integrations"><i class="fas fa-plug"></i> Integrations</a></li>
                             <li><a class="dropdown-item" href="{% url 'imports:import_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Import data from CSV or other sources"><i class="fas fa-download"></i> Import Data</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Global Views</h6></li>
-                            <li><a class="dropdown-item" href="{% url 'core:global_dashboard' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Cross-organization overview"><i class="fas fa-globe"></i> Global Dashboard</a></li>
-                            {% if workflows_enabled %}
-                            <li><a class="dropdown-item" href="{% url 'processes:global_process_list' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Global workflow templates for all organizations"><i class="fas fa-tasks"></i> Global Workflows</a></li>
-                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}
@@ -223,7 +245,7 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <main id="main-content" class="container mt-4">
         {% csrf_token %}
         {% if messages %}
             {% for message in messages %}
@@ -235,7 +257,7 @@
         {% endif %}
 
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
     <footer>
         <div class="container text-center">
@@ -538,6 +560,97 @@
         // Make initTooltips globally available for dynamic content
         window.initTooltips = initTooltips;
         {% endif %}
+    </script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registered:', registration.scope);
+
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New service worker available, prompt user to refresh
+                                if (confirm('A new version of HuduGlue is available. Reload to update?')) {
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    });
+                }, function(err) {
+                    console.log('ServiceWorker registration failed:', err);
+                });
+
+                // Listen for controller change (new service worker activated)
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    window.location.reload();
+                });
+            });
+        }
+
+        // PWA install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show install button/banner
+            showInstallPromotion();
+        });
+
+        function showInstallPromotion() {
+            // Only show if not already installed
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                return;
+            }
+
+            // Create install banner if it doesn't exist
+            if (document.getElementById('pwa-install-banner')) {
+                return;
+            }
+
+            const banner = document.createElement('div');
+            banner.id = 'pwa-install-banner';
+            banner.className = 'alert alert-info alert-dismissible fade show position-fixed bottom-0 start-50 translate-middle-x mb-3';
+            banner.style.cssText = 'z-index: 1050; max-width: 500px;';
+            banner.innerHTML = `
+                <i class="fas fa-mobile-alt me-2"></i>
+                <strong>Install HuduGlue</strong>
+                <p class="mb-2 mt-1 small">Install our app for quick access and offline support!</p>
+                <button type="button" class="btn btn-sm btn-primary me-2" id="pwa-install-btn">
+                    <i class="fas fa-download"></i> Install
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to install prompt: ${outcome}`);
+                    deferredPrompt = null;
+                    banner.remove();
+                }
+            });
+        }
+
+        // Track if app was installed
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('HuduGlue was installed');
+        });
+
+        // Detect if running as PWA
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('Running in PWA mode');
+            document.body.classList.add('pwa-mode');
+        }
     </script>
 
     {% block extra_js %}{% endblock %}

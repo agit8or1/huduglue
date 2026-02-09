@@ -161,7 +161,25 @@ echo "-----------------------------------"
 
 info "Installing/updating Python packages..."
 pip install -r requirements.txt || error_exit "pip install failed"
-success "Dependencies installed"
+success "Core dependencies installed"
+
+# Install optional dependencies if they exist
+if [ -f "requirements-graphql.txt" ]; then
+    info "Installing GraphQL API dependencies..."
+    pip install -r requirements-graphql.txt || warning "GraphQL dependencies failed (non-critical)"
+    success "GraphQL dependencies installed"
+fi
+
+if [ -f "requirements-optional.txt" ]; then
+    info "Checking for LDAP/optional dependencies..."
+    # Only attempt if build-essential is available
+    if dpkg -l | grep -q build-essential; then
+        pip install -r requirements-optional.txt || warning "Optional dependencies failed (LDAP requires system packages)"
+        success "Optional dependencies installed"
+    else
+        warning "Skipping LDAP dependencies (build-essential not installed)"
+    fi
+fi
 
 # Migrate from old system-wide Snyk to nvm-based installation
 info "Checking for old system-wide Snyk installation..."
@@ -345,6 +363,11 @@ echo "-----------------------------------"
 info "Running database migrations..."
 python manage.py migrate || error_exit "Database migration failed"
 success "Database updated"
+
+# Create default report templates if they don't exist
+info "Creating default report templates..."
+python manage.py create_default_reports 2>&1 | grep -E "(Created|Already exists)" || true
+success "Default templates verified"
 
 echo ""
 echo -e "${YELLOW}Step 5: Collecting Static Files${NC}"

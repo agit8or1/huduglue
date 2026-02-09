@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ action }} Scheduled Report - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        {{ action }} Scheduled Report
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Schedule Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ schedule.name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="template" class="form-label">Report Template *</label>
+                            <select class="form-select" id="template" name="template" required>
+                                <option value="">Select a template...</option>
+                                {% for tmpl in templates %}
+                                <option value="{{ tmpl.pk }}" {% if schedule.template.pk == tmpl.pk %}selected{% endif %}>
+                                    {{ tmpl.name }} ({{ tmpl.get_report_type_display }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="frequency" class="form-label">Frequency *</label>
+                            <select class="form-select" id="frequency" name="frequency" required>
+                                {% for value, label in frequencies %}
+                                <option value="{{ value }}" {% if schedule.frequency == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="delivery_method" class="form-label">Delivery Method *</label>
+                            <select class="form-select" id="delivery_method" name="delivery_method" required>
+                                {% for value, label in delivery_methods %}
+                                <option value="{{ value }}" {% if schedule.delivery_method == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="recipients" class="form-label">Recipients (Email Addresses)</label>
+                            <input type="text" class="form-control" id="recipients" name="recipients" value="{{ recipients_str }}" placeholder="email1@example.com, email2@example.com">
+                            <div class="form-text">Separate multiple email addresses with commas</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>{{ action }} Schedule
+                            </button>
+                            <a href="{% url 'reports:scheduled_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

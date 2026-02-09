@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'two_factor',
     'axes',
+    'graphene_django',
+    'corsheaders',
 
     # Local apps
     'core.apps.CoreConfig',
@@ -70,12 +72,14 @@ INSTALLED_APPS = [
     'processes.apps.ProcessesConfig',
     'locations.apps.LocationsConfig',
     'imports.apps.ImportsConfig',
+    'reports.apps.ReportsConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'core.security_headers_middleware.SecurityHeadersMiddleware',  # Enhanced security headers
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS for GraphQL API
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'core.csrf_middleware.MultiDomainCsrfViewMiddleware',  # Custom CSRF for multi-domain support
@@ -476,3 +480,30 @@ GITHUB_REPO_OWNER = os.getenv('GITHUB_REPO_OWNER', 'agit8or1')
 GITHUB_REPO_NAME = os.getenv('GITHUB_REPO_NAME', 'huduglue')
 AUTO_UPDATE_ENABLED = os.getenv('AUTO_UPDATE_ENABLED', 'True').lower() == 'true'
 AUTO_UPDATE_CHECK_INTERVAL = int(os.getenv('AUTO_UPDATE_CHECK_INTERVAL', '3600'))  # 1 hour in seconds
+
+# GraphQL Configuration
+GRAPHENE = {
+    'SCHEMA': 'api.graphql.schema.schema',
+    'MIDDLEWARE': [
+        'graphene_django.debug.DjangoDebugMiddleware',
+    ],
+}
+
+# CORS Configuration for GraphQL API
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:19006",  # Expo default
+    "http://localhost:8081",   # React Native default
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]

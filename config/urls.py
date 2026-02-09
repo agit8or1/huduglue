@@ -7,7 +7,9 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.decorators.csrf import csrf_exempt
 from two_factor.urls import urlpatterns as tf_urls
+from graphene_django.views import GraphQLView
 
 urlpatterns = [
     # Favicon
@@ -38,9 +40,13 @@ urlpatterns = [
     path('monitoring/', include('monitoring.urls')),
     path('locations/', include('locations.urls')),
     path('imports/', include('imports.urls')),
+    path('reports/', include('reports.urls')),
 
     # API
     path('api/', include('api.urls')),
+
+    # GraphQL API v2
+    path('api/v2/graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True)), name='graphql'),
 ]
 
 # Serve media files in development and production

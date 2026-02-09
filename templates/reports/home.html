@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reports & Analytics - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2">
+                <i class="bi bi-bar-chart-fill me-2"></i>
+                Reports & Analytics
+            </h1>
+            <p class="text-muted">Generate reports, view dashboards, and analyze your data</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-graph-up fs-1 text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Dashboards</h6>
+                            <h3 class="mb-0">{{ total_dashboards }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <div class="d="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-file-earmark-text fs-1 text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Templates</h6>
+                            <h3 class="mb-0">{{ templates_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-info">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-clock-history fs-1 text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Active Schedules</h6>
+                            <h3 class="mb-0">{{ active_schedules }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-file-earmark-pdf fs-1 text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Recent Reports</h6>
+                            <h3 class="mb-0">{{ recent_reports|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'reports:dashboard_list' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-grid-3x3-gap me-2"></i>View Dashboards
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'reports:template_list' %}" class="btn btn-outline-success w-100">
+                                <i class="bi bi-file-earmark-plus me-2"></i>Generate Report
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'reports:scheduled_list' %}" class="btn btn-outline-info w-100">
+                                <i class="bi bi-calendar-check me-2"></i>Scheduled Reports
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'reports:analytics_overview' %}" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-graph-up me-2"></i>Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Reports</h5>
+                    <a href="{% url 'reports:generated_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Template</th>
+                                        <th>Generated By</th>
+                                        <th>Status</th>
+                                        <th>Format</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in recent_reports %}
+                                    <tr>
+                                        <td>{{ report.template.name }}</td>
+                                        <td>{{ report.generated_by.username }}</td>
+                                        <td>
+                                            {% if report.status == 'completed' %}
+                                                <span class="badge bg-success">Completed</span>
+                                            {% elif report.status == 'generating' %}
+                                                <span class="badge bg-info">Generating</span>
+                                            {% elif report.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif report.status == 'failed' %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ report.get_format_display }}</td>
+                                        <td>{{ report.created_at|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'reports:generated_detail' report.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No reports generated yet. <a href="{% url 'reports:template_list' %}">Generate your first report</a>.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
