@@ -55,8 +55,6 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'two_factor',
     'axes',
-    'graphene_django',
-    'corsheaders',
 
     # Local apps
     'core.apps.CoreConfig',
@@ -75,11 +73,23 @@ INSTALLED_APPS = [
     'reports.apps.ReportsConfig',
 ]
 
+# Optional apps - only add if installed (allows updates without dependencies)
+try:
+    import graphene_django
+    INSTALLED_APPS.append('graphene_django')
+except ImportError:
+    pass
+
+try:
+    import corsheaders
+    INSTALLED_APPS.append('corsheaders')
+except ImportError:
+    pass
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'core.security_headers_middleware.SecurityHeadersMiddleware',  # Enhanced security headers
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # CORS for GraphQL API
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'core.csrf_middleware.MultiDomainCsrfViewMiddleware',  # Custom CSRF for multi-domain support
@@ -94,6 +104,14 @@ MIDDLEWARE = [
     'core.ai_abuse_control.AIAbuseControlMiddleware',  # AI endpoint protection
     'audit.middleware.AuditLoggingMiddleware',
 ]
+
+# Optional middleware - only add if dependencies are installed
+try:
+    import corsheaders
+    # Insert CORS middleware early in the stack (after WhiteNoise, before sessions)
+    MIDDLEWARE.insert(2, 'corsheaders.middleware.CorsMiddleware')
+except ImportError:
+    pass
 
 ROOT_URLCONF = 'config.urls'
 
