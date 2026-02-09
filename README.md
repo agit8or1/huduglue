@@ -1,6 +1,6 @@
 # HuduGlue 🐕
 
-[![Version 2.66.0](https://img.shields.io/badge/version-2.66.0-brightgreen)](https://github.com/agit8or1/huduglue)
+[![Version 2.76.2](https://img.shields.io/badge/version-2.76.2-brightgreen)](https://github.com/agit8or1/huduglue)
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-green)](https://github.com/agit8or1/huduglue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Django 6.0](https://img.shields.io/badge/django-6.0-blue)](https://www.djangoproject.com/)
@@ -189,16 +189,21 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 
 ## 🆕 What's New
 
-### Latest Release - v2.27.1 (January 2026)
+### Latest Release - v2.76.2 (February 2026)
 
-**🎉 New in v2.27:**
+**🎉 New in v2.76:**
+- **Asset Lifespan Tracking** - Track purchase dates, expected lifespan (years), and receive reminders before assets reach end-of-life
+- **Reports & Analytics Toggle** - Enable/disable Reports feature per organization via Feature Toggles
+- **Progressive Web App** - Install HuduGlue on mobile devices with offline support and push notifications
+- **Global View Asset Editing** - Edit assets from any organization while in global view mode
+
+**Recent Highlights (v2.27):**
 - **Bitwarden/Vaultwarden Import** - Import passwords from Bitwarden/Vaultwarden JSON exports with full support for all item types (logins, notes, cards, identities), folders, custom fields, and TOTP secrets
 - **SMS/Navigation Links** - Send location navigation links via SMS using Twilio, Plivo, Vonage, Telnyx, or AWS SNS for Google Maps, Apple Maps, and Waze
-- **Global View Improvements** - Superusers can now access workflow executions and locations without organization context
 - **Firewall & GeoIP** - iptables-based firewall management with country blocking capabilities
 - **Fail2ban Integration** - Automated intrusion prevention with ban/unban management
 
-**Recent Highlights:**
+**Additional Recent Features:**
 - **User-Configurable Tooltips** - Per-user tooltip preferences with helpful hints throughout the interface
 - **RMM Device Location Mapping** - Display devices with location data on interactive map with status-based markers
 - **Workflow Automation** - One-click launch with automatic assignment, complete audit logging, PSA ticket integration

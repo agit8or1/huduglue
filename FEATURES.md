@@ -96,6 +96,10 @@ Complete feature documentation for HuduGlue - Self-hosted IT documentation platf
 - **Status Tracking** - Active, Inactive, Maintenance, Retired
 - **Bulk Operations** - Edit multiple assets at once
 - **Asset History** - Track changes over time
+- **Lifespan Tracking** - Track purchase date, expected lifespan (years), and receive reminders before end-of-life
+  - Recommended lifespans (Firewall: 5-7 years, Server: 3-5 years, Workstation: 3-4 years, Switch: 5-7 years)
+  - Configurable reminder periods (months before end-of-life)
+  - Auto-calculated EOL dates and replacement due dates
 - **Export** - CSV/JSON export capabilities
 - **Import** - Bulk import from CSV
 
@@ -332,9 +336,11 @@ Complete feature documentation for HuduGlue - Self-hosted IT documentation platf
 ## 📊 Reporting & Analytics
 - **Audit Reports** - Activity statistics, security events, resource usage with CSV/JSON export
 - **System Reports** - Organization statistics, user activity, integration status, system health metrics
+- **Feature Toggle** - Enable/disable Reports & Analytics per organization via Feature Toggles
 
 ## 🔧 Administration
 - **System Settings** - Site configuration, security settings, SMTP with encrypted credentials, maintenance mode
+- **Feature Toggles** - Enable/disable features per organization (Reports, Asset Management, Password Vault, Documentation, etc.)
 - **Database Management** - Optimize, analyze, backup, and migration tools
 - **User Management** - Create users with roles, bulk operations, suspension, password reset, 2FA management
 

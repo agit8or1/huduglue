@@ -5,6 +5,122 @@ All notable changes to HuduGlue will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.76.2] - 2026-02-09
+
+### 🔧 Fixes
+
+**Asset Form Template:**
+- Added lifespan tracking fields to asset edit form template
+- Fields now properly display: purchase date, expected lifespan (years), lifespan reminder checkbox, reminder months before EOL
+- Fields appear in new "Lifespan & Replacement Tracking" section after Notes field
+
+### 📝 Technical Changes
+
+**Frontend:**
+- Updated `templates/assets/asset_form.html` with lifespan field rendering
+- Added help text and validation for all lifespan fields
+- Responsive layout with Bootstrap grid (col-md-3 columns)
+
+## [2.76.1] - 2026-02-09
+
+### 🔧 Fixes
+
+**Global View Mode:**
+- Fixed asset editing in global view mode
+- `asset_edit` view now gets asset without organization filter when viewing globally
+- Uses asset's own organization for form context instead of requiring org selection
+- Enables editing any asset while in global view without selecting organization first
+
+### 📝 Technical Changes
+
+**Backend:**
+- Updated `assets/views.py:asset_edit()` to handle `org=None` (global view mode)
+- Conditional query: filters by org if set, otherwise gets asset without org filter
+
+## [2.76.0] - 2026-02-09
+
+### ✨ New Features
+
+**Asset Lifespan Tracking:**
+- **Purchase Date** - Track when asset was purchased or deployed
+- **Expected Lifespan (years)** - Define expected lifespan with recommended values:
+  - Firewall: 5-7 years
+  - Server: 3-5 years
+  - Workstation: 3-4 years
+  - Switch: 5-7 years
+- **Lifespan Reminders** - Enable/disable reminders for approaching end-of-life
+- **Reminder Period** - Configure how many months before EOL to start reminding (default: 6 months)
+- **Auto-Calculated Dates** - Helper methods calculate EOL date and replacement due date
+- **Reminder Check** - Built-in method checks if asset is nearing end-of-life
+
+**Reports & Analytics Toggle:**
+- Added Reports & Analytics feature toggle in System Settings
+- Per-organization control to enable/disable Reports feature
+- Feature Toggles section now includes Reports alongside existing toggles
+
+### 📝 Technical Changes
+
+**Database:**
+- Added `purchase_date` DateField to Asset model (nullable)
+- Added `lifespan_years` PositiveIntegerField to Asset model (nullable)
+- Added `lifespan_reminder_enabled` BooleanField to Asset model (default: False)
+- Added `lifespan_reminder_months` PositiveIntegerField to Asset model (default: 6)
+- Added `reports_enabled` BooleanField to SystemSettings model (default: True)
+- Migration: `assets.0008_asset_lifespan_reminder_enabled_and_more`
+- Migration: `core.0030_systemsetting_reports_enabled`
+
+**Backend:**
+- Updated `assets/models.py:Asset` with helper methods:
+  - `get_end_of_life_date()` - Calculate EOL based on purchase date + lifespan
+  - `get_replacement_due_date()` - Calculate when to show reminder (EOL - reminder months)
+  - `is_nearing_end_of_life()` - Check if asset should show replacement reminder
+- Updated `assets/forms.py:AssetForm` with lifespan fields and widgets
+- Added help text with recommended lifespan values per asset type
+- Updated `core/settings_views.py` to handle reports toggle POST
+- Updated `.gitignore` to exclude Android SDK and Gradle build artifacts
+
+**Frontend:**
+- Updated `templates/core/settings_features.html` with Reports toggle card
+- Reports toggle includes chart-bar icon and feature description
+
+## [2.75.0] - 2026-02-09
+
+### ✨ New Features
+
+**Reports & Analytics Feature Toggle:**
+- Added Reports & Analytics as a configurable feature toggle
+- Per-organization control in System Settings → Feature Toggles
+- Enable/disable Reports feature for each organization
+
+### 📝 Technical Changes
+
+**Database:**
+- Added `reports_enabled` BooleanField to SystemSettings model (default: True)
+- Migration: `core.0030_systemsetting_reports_enabled`
+
+**Backend:**
+- Updated `core/models.py:SystemSettings` with reports_enabled field
+- Updated `core/settings_views.py` to handle reports toggle
+
+**Frontend:**
+- Updated `templates/core/settings_features.html` with Reports toggle UI
+- Added chart-bar icon and toggle description
+
+## [2.74.1] - 2026-02-09
+
+### 🔧 Fixes
+
+**Progressive Web App:**
+- Fixed PWA install button not working when clicked from menu
+- Wrapped all PWA JavaScript in `DOMContentLoaded` event listener
+- Ensures DOM elements exist before attaching event listeners
+
+### 📝 Technical Changes
+
+**Frontend:**
+- Updated `templates/base.html` with proper PWA script initialization timing
+- All PWA event handlers now wait for DOM to be fully loaded
+
 ## [2.25.1] - 2026-01-29
 
 ### ✨ New Features
