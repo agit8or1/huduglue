@@ -263,10 +263,11 @@ def contact_detail(request, pk):
     contact = get_object_or_404(Contact, pk=pk, organization=org)
 
     # Get assets associated with this contact
+    # FIX: Add select_related for query optimization
     assets = Asset.objects.filter(
         organization=org,
         primary_contact=contact
-    )
+    ).select_related('organization', 'equipment_model')
 
     return render(request, 'assets/contact_detail.html', {
         'contact': contact,

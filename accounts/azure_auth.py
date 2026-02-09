@@ -76,7 +76,7 @@ class AzureADBackend(ModelBackend):
             if not enabled:
                 return None
 
-            return {
+            config = {
                 'enabled': enabled,
                 'tenant_id': getattr(settings, 'azure_ad_tenant_id', ''),
                 'client_id': getattr(settings, 'azure_ad_client_id', ''),
@@ -85,6 +85,15 @@ class AzureADBackend(ModelBackend):
                 'auto_create': getattr(settings, 'azure_ad_auto_create_users', True),
                 'sync_groups': getattr(settings, 'azure_ad_sync_groups', False),
             }
+
+            # FIX: Validate all required fields are present
+            required_fields = ['tenant_id', 'client_id', 'client_secret', 'redirect_uri']
+            missing_fields = [field for field in required_fields if not config.get(field)]
+            if missing_fields:
+                logger.error(f"Incomplete Azure AD configuration. Missing fields: {', '.join(missing_fields)}")
+                return None
+
+            return config
         except Exception as e:
             logger.error(f"Error getting Azure config: {e}")
             return None
@@ -168,6 +177,22 @@ class AzureADBackend(ModelBackend):
             )
 
             logger.info(f"Created new user from Azure AD: {email}")
+
+            # FIX: Auto-assign user to default organization
+            from core.models import Organization, Membership
+            try:
+                # Get first active organization as default
+                default_org = Organization.objects.filter(is_active=True).first()
+                if default_org:
+                    Membership.objects.create(
+                        user=user,
+                        organization=default_org,
+                        role='viewer',  # Default to read-only access
+                        is_active=True
+                    )
+                    logger.info(f"Auto-assigned user {email} to organization {default_org.name} as viewer")
+            except Exception as e:
+                logger.warning(f"Failed to auto-assign user {email} to organization: {e}")
 
             # Log user creation
             AuditLog.objects.create(

@@ -55,6 +55,7 @@ def serve_attachment(request, pk):
         return response
     else:
         # Development: serve directly using validated file_path
+        # NOTE: FileResponse automatically closes the file handle when response completes
         return FileResponse(
             open(file_path, 'rb'),
             content_type=attachment.content_type,

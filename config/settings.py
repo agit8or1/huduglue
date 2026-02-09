@@ -309,10 +309,16 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin' if SECURE_SSL_REDIRECT else No
 
 # Content Security Policy - Stricter (use django-csp for full control)
 # NOTE: unsafe-inline is required for some Django admin and DRF browsable API features
-# In production with JSON-only API, you can remove unsafe-inline
+# FIX: Remove unsafe-inline in production for enhanced security
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
+if DEBUG:
+    # Development: Allow unsafe-inline for easier debugging
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
+else:
+    # Production: Remove unsafe-inline for better security (use nonces if needed)
+    CSP_SCRIPT_SRC = ("'self'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
+    CSP_STYLE_SRC = ("'self'", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
 CSP_FONT_SRC = ("'self'", "data:", "cdn.jsdelivr.net", "https://cdn.jsdelivr.net")
 CSP_FRAME_SRC = ("'self'", "https://embed.diagrams.net", "https://*.diagrams.net")
 CSP_FRAME_ANCESTORS = ("'none'",)  # Clickjacking protection

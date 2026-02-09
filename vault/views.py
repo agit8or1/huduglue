@@ -115,8 +115,14 @@ def password_reveal(request, pk):
             )
 
             return JsonResponse({'password': plaintext})
+        except (ValueError, AttributeError) as e:
+            # Encryption/decryption errors
+            logger.error(f"Error revealing password {pk}: {e}")
+            return JsonResponse({'error': 'Failed to decrypt password'}, status=500)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            # Unexpected errors
+            logger.error(f"Unexpected error revealing password {pk}: {e}")
+            return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -183,11 +189,23 @@ def password_test_breach(request, pk):
                 'breach_count': count,
                 'checked_at': breach_check.checked_at.strftime('%b %d, %Y %I:%M %p')
             })
+        except (requests.RequestException, requests.Timeout) as e:
+            # Network/API errors
+            import logging
+            logger = logging.getLogger('vault')
+            logger.error(f"Network error testing password {password.id} for breaches: {e}")
+            return JsonResponse({'error': 'Failed to connect to breach database'}, status=503)
+        except (ValueError, KeyError) as e:
+            # Data parsing errors
+            import logging
+            logger = logging.getLogger('vault')
+            logger.error(f"Data error testing password {password.id} for breaches: {e}")
+            return JsonResponse({'error': 'Failed to parse breach data'}, status=500)
         except Exception as e:
             import logging
             logger = logging.getLogger('vault')
-            logger.error(f"Error testing password {password.id} for breaches: {e}")
-            return JsonResponse({'error': f'Error checking password: {str(e)}'}, status=500)
+            logger.error(f"Unexpected error testing password {password.id} for breaches: {e}")
+            return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
