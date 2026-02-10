@@ -20,8 +20,9 @@ class CurrentOrganizationMiddleware:
 
         if request.user.is_authenticated:
             # Check if user is a staff user (MSP tech)
+            # Pattern: getattr with None default, then explicit null check
             profile = getattr(request.user, 'profile', None)
-            if profile and hasattr(profile, 'is_staff_user'):
+            if profile is not None and hasattr(profile, 'is_staff_user'):
                 request.is_staff_user = profile.is_staff_user()
 
             # Try to get org from session
@@ -70,7 +71,12 @@ class CurrentOrganizationMiddleware:
 def get_request_organization(request):
     """
     Helper to get current organization from request.
-    Returns None if not set, allowing views to handle it gracefully.
+
+    Returns:
+        Organization: The current organization set by CurrentOrganizationMiddleware
+        None: If no organization is set (global view mode) or request not processed
+
+    Note: Views should check for None and handle global view mode appropriately.
     """
     if hasattr(request, 'current_organization'):
         return request.current_organization

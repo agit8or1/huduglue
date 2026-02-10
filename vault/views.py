@@ -1,6 +1,8 @@
 """
-Vault views
+Vault views - Password management and security features
 """
+import logging
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -14,6 +16,9 @@ from .models import Password, PasswordBreachCheck
 from .forms import PasswordForm
 from .breach_checker import PasswordBreachChecker
 from .encryption import EncryptionError
+
+# Initialize logger for this module
+logger = logging.getLogger('vault')
 
 
 @login_required
@@ -486,8 +491,14 @@ def password_qrcode(request, pk):
         )
 
         return HttpResponse(buffer.getvalue(), content_type='image/png')
+    except (ValueError, AttributeError) as e:
+        # Decryption or data errors
+        logger.error(f"Error generating QR code for password {pk}: {e}")
+        return HttpResponse("Failed to generate QR code - invalid TOTP secret", status=500)
     except Exception as e:
-        return HttpResponse(f"Error generating QR code: {str(e)}", status=500)
+        # Unexpected errors
+        logger.error(f"Unexpected error generating QR code for password {pk}: {e}")
+        return HttpResponse("An unexpected error occurred", status=500)
 
 
 # ============================================================================
