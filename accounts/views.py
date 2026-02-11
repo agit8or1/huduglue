@@ -371,18 +371,15 @@ def organization_list(request):
 
     # Sort organizations
     sort_by = request.GET.get('sort', 'name')
-    if sort_by in ['name', '-name', 'organization_type', '-organization_type', 'created_at', '-created_at']:
+    valid_sort_fields = ['name', '-name', 'organization_type', '-organization_type', 'created_at', '-created_at']
+    if sort_by in valid_sort_fields:
         organizations = organizations.order_by(sort_by)
     else:
         organizations = organizations.order_by('name')
 
-    # Get unique organization types for filter dropdown
-    org_types = organizations.exclude(organization_type='').values_list('organization_type', flat=True).distinct().order_by('organization_type')
-    org_types = [(t, t) for t in org_types]
-
     return render(request, 'accounts/organization_list.html', {
         'organizations': organizations,
-        'org_types': org_types,
+        'org_type_choices': Organization.ORGANIZATION_TYPE_CHOICES[1:],  # Exclude empty choice
     })
 
 

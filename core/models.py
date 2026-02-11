@@ -22,6 +22,7 @@ class Organization(models.Model):
     TYPE_OTHER = 'other'
 
     ORGANIZATION_TYPE_CHOICES = [
+        ('', 'Not Specified'),
         (TYPE_FULLY_MANAGED, 'Fully Managed'),
         (TYPE_BREAK_FIX, 'Break/Fix'),
         (TYPE_COMANAGED, 'Co-Managed'),
@@ -33,12 +34,14 @@ class Organization(models.Model):
 
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
     organization_type = models.CharField(
-        max_length=100,
+        max_length=50,
+        choices=ORGANIZATION_TYPE_CHOICES,
         blank=True,
-        help_text="Client service type (e.g., Fully Managed, Break/Fix, etc.)"
+        default='',
+        help_text="Client service type"
     )
+    description = models.TextField(blank=True)
 
     # Company Information
     legal_name = models.CharField(max_length=255, blank=True, help_text="Full legal business name")

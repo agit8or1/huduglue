@@ -23,7 +23,7 @@
                 <label for="type_filter" class="form-label"><i class="fas fa-filter"></i> Filter by Type</label>
                 <select name="type" id="type_filter" class="form-select" onchange="this.form.submit()">
                     <option value="">All Types</option>
-                    {% for type_value, type_label in org_types %}
+                    {% for type_value, type_label in org_type_choices %}
                     <option value="{{ type_value }}" {% if request.GET.type == type_value %}selected{% endif %}>{{ type_label }}</option>
                     {% endfor %}
                 </select>

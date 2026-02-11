@@ -40,7 +40,7 @@ class OrganizationForm(forms.ModelForm):
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Organization Name'}),
-            'organization_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Fully Managed, Break/Fix', 'list': 'org-type-list'}),
+            'organization_type': forms.Select(attrs={'class': 'form-select'}),
             'legal_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full Legal Business Name'}),
             'tax_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Tax ID / EIN'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Description'}),
