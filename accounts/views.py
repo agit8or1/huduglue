@@ -351,6 +351,7 @@ def two_factor_setup(request):
 def organization_list(request):
     """
     List all organizations. Shows all orgs for superusers, only owned orgs for others.
+    Supports filtering by organization_type and sorting.
     """
     if request.user.is_superuser:
         organizations = Organization.objects.all()
@@ -363,8 +364,25 @@ def organization_list(request):
         ).values_list('organization_id', flat=True)
         organizations = Organization.objects.filter(id__in=owned_org_ids)
 
+    # Filter by organization type
+    type_filter = request.GET.get('type', '')
+    if type_filter:
+        organizations = organizations.filter(organization_type=type_filter)
+
+    # Sort organizations
+    sort_by = request.GET.get('sort', 'name')
+    if sort_by in ['name', '-name', 'organization_type', '-organization_type', 'created_at', '-created_at']:
+        organizations = organizations.order_by(sort_by)
+    else:
+        organizations = organizations.order_by('name')
+
+    # Get unique organization types for filter dropdown
+    org_types = organizations.exclude(organization_type='').values_list('organization_type', flat=True).distinct().order_by('organization_type')
+    org_types = [(t, t) for t in org_types]
+
     return render(request, 'accounts/organization_list.html', {
         'organizations': organizations,
+        'org_types': org_types,
     })
 
 

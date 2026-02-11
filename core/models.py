@@ -12,9 +12,33 @@ class Organization(models.Model):
     Multi-tenant organization/tenant model.
     All data is scoped to an organization.
     """
+    # Organization Type Choices (common types, but allows custom values)
+    TYPE_FULLY_MANAGED = 'fully_managed'
+    TYPE_BREAK_FIX = 'break_fix'
+    TYPE_COMANAGED = 'co_managed'
+    TYPE_CONSULTING = 'consulting'
+    TYPE_PROJECT_BASED = 'project_based'
+    TYPE_INTERNAL = 'internal'
+    TYPE_OTHER = 'other'
+
+    ORGANIZATION_TYPE_CHOICES = [
+        (TYPE_FULLY_MANAGED, 'Fully Managed'),
+        (TYPE_BREAK_FIX, 'Break/Fix'),
+        (TYPE_COMANAGED, 'Co-Managed'),
+        (TYPE_CONSULTING, 'Consulting Only'),
+        (TYPE_PROJECT_BASED, 'Project-Based'),
+        (TYPE_INTERNAL, 'Internal / Staff'),
+        (TYPE_OTHER, 'Other'),
+    ]
+
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(blank=True)
+    organization_type = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Client service type (e.g., Fully Managed, Break/Fix, etc.)"
+    )
 
     # Company Information
     legal_name = models.CharField(max_length=255, blank=True, help_text="Full legal business name")

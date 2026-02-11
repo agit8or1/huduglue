@@ -32,7 +32,7 @@ class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
         fields = [
-            'name', 'legal_name', 'tax_id', 'description',
+            'name', 'organization_type', 'legal_name', 'tax_id', 'description',
             'street_address', 'street_address_2', 'city', 'state', 'postal_code', 'country',
             'phone', 'email', 'website',
             'primary_contact_name', 'primary_contact_title', 'primary_contact_email', 'primary_contact_phone',
@@ -40,6 +40,7 @@ class OrganizationForm(forms.ModelForm):
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Organization Name'}),
+            'organization_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Fully Managed, Break/Fix', 'list': 'org-type-list'}),
             'legal_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full Legal Business Name'}),
             'tax_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Tax ID / EIN'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Description'}),

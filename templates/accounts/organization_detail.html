@@ -43,6 +43,11 @@
                     <dt class="col-sm-5">Organization Name:</dt>
                     <dd class="col-sm-7">{{ organization.name }}</dd>
 
+                    {% if organization.organization_type %}
+                    <dt class="col-sm-5">Organization Type:</dt>
+                    <dd class="col-sm-7"><span class="badge bg-info">{{ organization.organization_type }}</span></dd>
+                    {% endif %}
+
                     {% if organization.legal_name %}
                     <dt class="col-sm-5">Legal Name:</dt>
                     <dd class="col-sm-7">{{ organization.legal_name }}</dd>

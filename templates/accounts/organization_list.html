@@ -15,6 +15,41 @@
     </div>
 </div>
 
+<!-- Filter and Sort Controls -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="type_filter" class="form-label"><i class="fas fa-filter"></i> Filter by Type</label>
+                <select name="type" id="type_filter" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Types</option>
+                    {% for type_value, type_label in org_types %}
+                    <option value="{{ type_value }}" {% if request.GET.type == type_value %}selected{% endif %}>{{ type_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="sort_by" class="form-label"><i class="fas fa-sort"></i> Sort By</label>
+                <select name="sort" id="sort_by" class="form-select" onchange="this.form.submit()">
+                    <option value="name" {% if request.GET.sort == 'name' or not request.GET.sort %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                    <option value="organization_type" {% if request.GET.sort == 'organization_type' %}selected{% endif %}>Type (A-Z)</option>
+                    <option value="-organization_type" {% if request.GET.sort == '-organization_type' %}selected{% endif %}>Type (Z-A)</option>
+                    <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                    <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                {% if request.GET.type or request.GET.sort and request.GET.sort != 'name' %}
+                <a href="{% url 'accounts:organization_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
 {% if organizations %}
 <div class="row">
     {% for org in organizations %}
@@ -28,6 +63,11 @@
                     <span class="badge bg-secondary">Inactive</span>
                     {% endif %}
                 </h5>
+                {% if org.organization_type %}
+                <div class="mb-2">
+                    <span class="badge bg-info"><i class="fas fa-briefcase"></i> {{ org.organization_type }}</span>
+                </div>
+                {% endif %}
                 {% if org.description %}
                 <p class="card-text text-muted">{{ org.description|truncatewords:20 }}</p>
                 {% endif %}

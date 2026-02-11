@@ -30,25 +30,32 @@
                             {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors }}</div>{% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
+                            <label for="{{ form.organization_type.id_for_label }}" class="form-label">Organization Type</label>
+                            {{ form.organization_type }}
+                            {% if form.organization_type.errors %}<div class="invalid-feedback d-block">{{ form.organization_type.errors }}</div>{% endif %}
+                            <small class="form-text text-muted">{{ form.organization_type.help_text }}</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label for="{{ form.legal_name.id_for_label }}" class="form-label">Legal Business Name</label>
                             {{ form.legal_name }}
                             {% if form.legal_name.errors %}<div class="invalid-feedback d-block">{{ form.legal_name.errors }}</div>{% endif %}
                             <small class="form-text text-muted">{{ form.legal_name.help_text }}</small>
                         </div>
-                    </div>
-
-                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.tax_id.id_for_label }}" class="form-label">Tax ID / EIN</label>
                             {{ form.tax_id }}
                             {% if form.tax_id.errors %}<div class="invalid-feedback d-block">{{ form.tax_id.errors }}</div>{% endif %}
                             <small class="form-text text-muted">{{ form.tax_id.help_text }}</small>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
-                            {{ form.logo }}
-                            {% if form.logo.errors %}<div class="invalid-feedback d-block">{{ form.logo.errors }}</div>{% endif %}
-                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.logo.id_for_label }}" class="form-label">Logo</label>
+                        {{ form.logo }}
+                        {% if form.logo.errors %}<div class="invalid-feedback d-block">{{ form.logo.errors }}</div>{% endif %}
                     </div>
 
                     <div class="mb-3">
@@ -177,4 +184,15 @@
         </div>
     </div>
 </div>
+
+<!-- Datalist for Organization Type autocomplete -->
+<datalist id="org-type-list">
+    <option value="Fully Managed">
+    <option value="Break/Fix">
+    <option value="Co-Managed">
+    <option value="Consulting Only">
+    <option value="Project-Based">
+    <option value="Internal / Staff">
+    <option value="Other">
+</datalist>
 {% endblock %}
