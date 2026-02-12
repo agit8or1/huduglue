@@ -34,7 +34,7 @@ def webhook_create(request):
             webhook.created_by = request.user
             webhook.save()
             messages.success(request, f'Webhook "{webhook.name}" created successfully.')
-            return redirect('webhook_list')
+            return redirect('core:webhook_list')
     else:
         form = WebhookForm()
 
@@ -60,7 +60,7 @@ def webhook_edit(request, webhook_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Webhook "{webhook.name}" updated successfully.')
-            return redirect('webhook_list')
+            return redirect('core:webhook_list')
     else:
         form = WebhookForm(instance=webhook)
 
@@ -86,7 +86,7 @@ def webhook_delete(request, webhook_id):
         webhook_name = webhook.name
         webhook.delete()
         messages.success(request, f'Webhook "{webhook_name}" deleted successfully.')
-        return redirect('webhook_list')
+        return redirect('core:webhook_list')
 
     context = {
         'webhook': webhook,
@@ -118,7 +118,7 @@ def webhook_test(request, webhook_id):
             else:
                 messages.error(request, 'Test webhook delivery failed. Check the delivery log for details.')
 
-            return redirect('webhook_deliveries', webhook_id=webhook.id)
+            return redirect('core:webhook_deliveries', webhook_id=webhook.id)
     else:
         form = WebhookTestForm()
 
@@ -168,7 +168,7 @@ def webhook_delivery_detail(request, delivery_id):
     # Ensure user has access to this delivery's webhook
     if delivery.webhook.organization != request.user.organization:
         messages.error(request, 'Access denied.')
-        return redirect('webhook_list')
+        return redirect('core:webhook_list')
 
     # Format payload as pretty JSON
     payload_formatted = json.dumps(delivery.payload, indent=2)

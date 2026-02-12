@@ -7,7 +7,7 @@
         <div class="col-lg-10 offset-lg-1">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2>{{ title }}</h2>
-                <a href="{% url 'webhook_deliveries' delivery.webhook.id %}" class="btn btn-secondary">
+                <a href="{% url 'core:webhook_deliveries' delivery.webhook.id %}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Deliveries
                 </a>
             </div>
@@ -51,7 +51,7 @@
                             <dl class="row">
                                 <dt class="col-sm-4">Webhook:</dt>
                                 <dd class="col-sm-8">
-                                    <a href="{% url 'webhook_edit' delivery.webhook.id %}">
+                                    <a href="{% url 'core:webhook_edit' delivery.webhook.id %}">
                                         {{ delivery.webhook.name }}
                                     </a>
                                 </dd>

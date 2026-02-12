@@ -9,7 +9,7 @@
             <p class="text-muted">Configure webhooks to receive notifications about events in HuduGlue</p>
         </div>
         <div class="col-auto">
-            <a href="{% url 'webhook_create' %}" class="btn btn-primary">
+            <a href="{% url 'core:webhook_create' %}" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Create Webhook
             </a>
         </div>
@@ -97,22 +97,22 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{% url 'webhook_deliveries' webhook.id %}"
+                                    <a href="{% url 'core:webhook_deliveries' webhook.id %}"
                                        class="btn btn-outline-secondary"
                                        title="View Deliveries">
                                         <i class="bi bi-list-ul"></i>
                                     </a>
-                                    <a href="{% url 'webhook_test' webhook.id %}"
+                                    <a href="{% url 'core:webhook_test' webhook.id %}"
                                        class="btn btn-outline-primary"
                                        title="Test Webhook">
                                         <i class="bi bi-send"></i>
                                     </a>
-                                    <a href="{% url 'webhook_edit' webhook.id %}"
+                                    <a href="{% url 'core:webhook_edit' webhook.id %}"
                                        class="btn btn-outline-warning"
                                        title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{% url 'webhook_delete' webhook.id %}"
+                                    <a href="{% url 'core:webhook_delete' webhook.id %}"
                                        class="btn btn-outline-danger"
                                        title="Delete">
                                         <i class="bi bi-trash"></i>
@@ -129,7 +129,7 @@
     {% else %}
     <div class="alert alert-info">
         <i class="bi bi-info-circle"></i>
-        No webhooks configured yet. <a href="{% url 'webhook_create' %}">Create your first webhook</a> to start receiving event notifications.
+        No webhooks configured yet. <a href="{% url 'core:webhook_create' %}">Create your first webhook</a> to start receiving event notifications.
     </div>
     {% endif %}
 
