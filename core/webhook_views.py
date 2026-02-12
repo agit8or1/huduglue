@@ -8,13 +8,15 @@ from django.http import JsonResponse
 from core.models import Webhook, WebhookDelivery
 from core.webhook_forms import WebhookForm, WebhookTestForm
 from core.webhook_sender import deliver_webhook
+from core.middleware import get_request_organization
 import json
 
 
 @login_required
 def webhook_list(request):
     """List all webhooks for the current organization."""
-    webhooks = Webhook.objects.filter(organization=request.user.organization)
+    org = get_request_organization(request)
+    webhooks = Webhook.objects.filter(organization=org)
 
     context = {
         'webhooks': webhooks,
@@ -26,11 +28,13 @@ def webhook_list(request):
 @login_required
 def webhook_create(request):
     """Create a new webhook."""
+    org = get_request_organization(request)
+
     if request.method == 'POST':
         form = WebhookForm(request.POST)
         if form.is_valid():
             webhook = form.save(commit=False)
-            webhook.organization = request.user.organization
+            webhook.organization = org
             webhook.created_by = request.user
             webhook.save()
             messages.success(request, f'Webhook "{webhook.name}" created successfully.')
@@ -49,10 +53,11 @@ def webhook_create(request):
 @login_required
 def webhook_edit(request, webhook_id):
     """Edit an existing webhook."""
+    org = get_request_organization(request)
     webhook = get_object_or_404(
         Webhook,
         id=webhook_id,
-        organization=request.user.organization
+        organization=org
     )
 
     if request.method == 'POST':
@@ -76,10 +81,11 @@ def webhook_edit(request, webhook_id):
 @login_required
 def webhook_delete(request, webhook_id):
     """Delete a webhook."""
+    org = get_request_organization(request)
     webhook = get_object_or_404(
         Webhook,
         id=webhook_id,
-        organization=request.user.organization
+        organization=org
     )
 
     if request.method == 'POST':
@@ -98,10 +104,11 @@ def webhook_delete(request, webhook_id):
 @login_required
 def webhook_test(request, webhook_id):
     """Test webhook delivery."""
+    org = get_request_organization(request)
     webhook = get_object_or_404(
         Webhook,
         id=webhook_id,
-        organization=request.user.organization
+        organization=org
     )
 
     if request.method == 'POST':
@@ -133,10 +140,11 @@ def webhook_test(request, webhook_id):
 @login_required
 def webhook_deliveries(request, webhook_id):
     """View delivery logs for a webhook."""
+    org = get_request_organization(request)
     webhook = get_object_or_404(
         Webhook,
         id=webhook_id,
-        organization=request.user.organization
+        organization=org
     )
 
     deliveries = WebhookDelivery.objects.filter(webhook=webhook)[:100]  # Last 100 deliveries
@@ -163,10 +171,11 @@ def webhook_deliveries(request, webhook_id):
 @login_required
 def webhook_delivery_detail(request, delivery_id):
     """View details of a specific delivery."""
+    org = get_request_organization(request)
     delivery = get_object_or_404(WebhookDelivery, id=delivery_id)
 
     # Ensure user has access to this delivery's webhook
-    if delivery.webhook.organization != request.user.organization:
+    if delivery.webhook.organization != org:
         messages.error(request, 'Access denied.')
         return redirect('core:webhook_list')
 
@@ -185,10 +194,11 @@ def webhook_delivery_detail(request, delivery_id):
 def webhook_toggle(request, webhook_id):
     """Toggle webhook active status via AJAX."""
     if request.method == 'POST':
+        org = get_request_organization(request)
         webhook = get_object_or_404(
             Webhook,
             id=webhook_id,
-            organization=request.user.organization
+            organization=org
         )
 
         webhook.is_active = not webhook.is_active
