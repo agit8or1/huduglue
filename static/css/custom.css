@@ -205,12 +205,37 @@ h6 { font-size: 1rem; }
 .navbar-nav .dropdown-menu {
     position: absolute;
     z-index: 1000;
+    max-height: 80vh;  /* Prevent dropdowns from going off-screen */
+    overflow-y: auto;  /* Add scrolling if content is too tall */
 }
 
 /* Allow dropdown menus to overflow navbar bounds */
 @media (min-width: 1850px) {
     .navbar-collapse {
         overflow: visible;
+    }
+}
+
+/* Fix dropdown positioning at high zoom levels (>125%) */
+.dropdown-menu {
+    transform-origin: top center;
+    will-change: transform;
+}
+
+/* Ensure dropdown menu text doesn't wrap awkwardly */
+.dropdown-menu .dropdown-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;  /* Reasonable max width */
+}
+
+/* Better dropdown menu sizing at all zoom levels */
+@supports (zoom: 125%) {
+    .navbar-nav .dropdown-menu {
+        min-width: 200px;
+        max-width: 400px;
+        width: max-content;
     }
 }
 

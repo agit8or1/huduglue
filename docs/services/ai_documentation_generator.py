@@ -285,26 +285,56 @@ Runbook Guidelines:
         if context:
             user_prompt += f"\n\nAdditional Context:\n{context}"
 
-        user_prompt += """\n\nReturn the documentation in JSON format:
-{
-    "title": "documentation title",
-    "content": "markdown formatted documentation content",
-    "metadata": {
-        "tags": ["relevant", "tags"],
-        "category": "suggested category",
-        "difficulty": "beginner/intermediate/advanced"
-    }
-}"""
+        user_prompt += """\n\nPlease provide:
+1. A clear, descriptive title for this documentation
+2. Well-structured markdown content with proper headings, sections, and formatting
+
+Format your response like this:
+TITLE: [Your document title here]
+
+[Your markdown content starts here immediately after the title]
+
+Use proper markdown formatting:
+- Use # for main headings, ## for subheadings, etc.
+- Use code blocks with ``` for commands and configuration
+- Use bullet points and numbered lists where appropriate
+- Include tables where relevant
+- Add bold and italic formatting for emphasis
+
+Do NOT wrap the response in JSON or code blocks. Provide clean, ready-to-use markdown content."""
 
         return user_prompt
 
     def _parse_response(self, content):
-        """Parse Claude API response, extracting JSON if present."""
+        """Parse Claude API response, extracting title and content or JSON."""
         import re
 
-        # Try to find JSON in response with multiple strategies
+        # Strategy 1: Try to parse new TITLE: format (clean markdown)
+        if 'TITLE:' in content:
+            lines = content.split('\n')
+            title = None
+            content_lines = []
+            title_found = False
+
+            for line in lines:
+                if line.startswith('TITLE:') and not title_found:
+                    title = line.replace('TITLE:', '').strip()
+                    title_found = True
+                elif title_found and line.strip():  # Skip empty lines after title
+                    content_lines.append(line)
+                elif title_found:
+                    content_lines.append(line)  # Keep empty lines in content
+
+            markdown_content = '\n'.join(content_lines).strip()
+            return {
+                'title': title or 'Generated Documentation',
+                'content': markdown_content,
+                'metadata': {}
+            }
+
+        # Strategy 2: Try to find JSON in response (for backward compatibility)
         try:
-            # Strategy 1: Look for JSON in code fence (```json ... ```)
+            # Look for JSON in code fence (```json ... ```)
             if '```json' in content.lower():
                 match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL | re.IGNORECASE)
                 if match:
@@ -314,7 +344,7 @@ Runbook Guidelines:
                     if isinstance(parsed, dict):
                         return parsed
 
-            # Strategy 2: Look for JSON in plain code fence (``` ... ```)
+            # Look for JSON in plain code fence (``` ... ```)
             if '```' in content:
                 match = re.search(r'```\s*(.*?)\s*```', content, re.DOTALL)
                 if match:
@@ -328,7 +358,7 @@ Runbook Guidelines:
                         except:
                             pass
 
-            # Strategy 3: Try to extract JSON directly (find first { to last })
+            # Try to extract JSON directly (find first { to last })
             if '{' in content and '}' in content:
                 start = content.find('{')
                 end = content.rfind('}') + 1
@@ -344,7 +374,7 @@ Runbook Guidelines:
             # Other errors, fall through to return raw content
             pass
 
-        # No valid JSON found - return raw content as markdown
+        # No valid format found - return raw content as markdown
         # Clean up any residual code fences or JSON markers
         cleaned_content = content
         cleaned_content = re.sub(r'```json\s*', '', cleaned_content)
