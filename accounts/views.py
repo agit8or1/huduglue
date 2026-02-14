@@ -1,6 +1,7 @@
 """
 Accounts views
 """
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
@@ -10,6 +11,8 @@ from core.models import Organization
 from core.decorators import require_owner
 from .models import Membership, UserProfile
 from .forms import OrganizationForm, MembershipForm, UserProfileForm, PasswordChangeForm, UserCreateForm, UserEditForm, UserPasswordResetForm
+
+logger = logging.getLogger('accounts')
 
 
 @login_required

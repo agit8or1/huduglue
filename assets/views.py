@@ -348,6 +348,26 @@ def contact_edit(request, pk):
 
 @login_required
 @require_write
+def asset_delete(request, pk):
+    """
+    Delete asset.
+    """
+    org = get_request_organization(request)
+    asset = get_object_or_404(Asset, pk=pk, organization=org)
+
+    if request.method == 'POST':
+        name = asset.name
+        asset.delete()
+        messages.success(request, f"Asset '{name}' deleted successfully.")
+        return redirect('assets:asset_list')
+
+    return render(request, 'assets/asset_confirm_delete.html', {
+        'asset': asset,
+    })
+
+
+@login_required
+@require_write
 def contact_delete(request, pk):
     """
     Delete contact.

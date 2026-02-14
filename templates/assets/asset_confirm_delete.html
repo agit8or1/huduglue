@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Asset - HuduGlue{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirm Deletion
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger" role="alert">
+                    <strong>Warning:</strong> You are about to permanently delete this asset. This action cannot be undone.
+                </div>
+
+                <h5>Asset Details:</h5>
+                <dl class="row">
+                    <dt class="col-sm-3">Name:</dt>
+                    <dd class="col-sm-9"><strong>{{ asset.name }}</strong></dd>
+
+                    {% if asset.asset_type %}
+                    <dt class="col-sm-3">Type:</dt>
+                    <dd class="col-sm-9">{{ asset.get_asset_type_display }}</dd>
+                    {% endif %}
+
+                    {% if asset.serial_number %}
+                    <dt class="col-sm-3">Serial Number:</dt>
+                    <dd class="col-sm-9">{{ asset.serial_number }}</dd>
+                    {% endif %}
+
+                    {% if asset.equipment_model %}
+                    <dt class="col-sm-3">Model:</dt>
+                    <dd class="col-sm-9">{{ asset.equipment_model }}</dd>
+                    {% endif %}
+
+                    {% if asset.location %}
+                    <dt class="col-sm-3">Location:</dt>
+                    <dd class="col-sm-9">{{ asset.location }}</dd>
+                    {% endif %}
+
+                    <dt class="col-sm-3">Created:</dt>
+                    <dd class="col-sm-9">{{ asset.created_at|date:"F j, Y g:i A" }}</dd>
+                </dl>
+
+                <div class="alert alert-warning mt-3" role="alert">
+                    <strong>Note:</strong> This will also delete:
+                    <ul class="mb-0">
+                        <li>All associated port configurations and connections</li>
+                        <li>All relationships with other assets</li>
+                        <li>All attached files and images</li>
+                        <li>All associated comments and notes</li>
+                    </ul>
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'assets:asset_detail' asset.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Yes, Delete Asset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,7 +7,12 @@
     <h1>{{ asset.name }}</h1>
     <div>
         {% include "includes/favorite_button.html" with object=asset %}
-        <a href="{% url 'assets:asset_edit' asset.pk %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'assets:asset_edit' asset.pk %}" class="btn btn-secondary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'assets:asset_delete' asset.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
         <a href="{% url 'assets:asset_list' %}" class="btn btn-outline-secondary">Back to List</a>
     </div>
 </div>
