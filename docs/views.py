@@ -1188,6 +1188,7 @@ def ai_generate(request):
         prompt = data.get('prompt', '')
         template_type = data.get('template_type')
         context = data.get('context')
+        output_format = data.get('output_format', 'markdown')  # 'markdown' or 'html'
 
         if not prompt:
             return JsonResponse({
@@ -1196,7 +1197,7 @@ def ai_generate(request):
             }, status=400)
 
         generator = AIDocumentationGenerator()
-        result = generator.generate_documentation(prompt, template_type, context)
+        result = generator.generate_documentation(prompt, template_type, context, output_format)
 
         return JsonResponse(result)
 
@@ -1228,6 +1229,7 @@ def ai_enhance(request):
         title = data.get('title', '')
         content = data.get('content', '')
         enhancement_type = data.get('enhancement_type', 'grammar')
+        output_format = data.get('output_format', 'markdown')  # 'markdown' or 'html'
 
         if not content:
             return JsonResponse({
@@ -1236,7 +1238,7 @@ def ai_enhance(request):
             }, status=400)
 
         generator = AIDocumentationGenerator()
-        result = generator.enhance_documentation(title, content, enhancement_type)
+        result = generator.enhance_documentation(title, content, enhancement_type, output_format)
 
         return JsonResponse(result)
 

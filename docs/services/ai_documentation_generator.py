@@ -20,7 +20,7 @@ class AIDocumentationGenerator:
         self.client = anthropic.Anthropic(api_key=api_key)
         self.model = settings.CLAUDE_MODEL
 
-    def generate_documentation(self, prompt, template_type=None, context=None):
+    def generate_documentation(self, prompt, template_type=None, context=None, output_format='markdown'):
         """
         Generate documentation from a prompt using Claude AI.
 
@@ -28,15 +28,16 @@ class AIDocumentationGenerator:
             prompt: User's description of what to document
             template_type: Optional template type (m365, ad, network, process, etc.)
             context: Optional additional context (existing data, config, etc.)
+            output_format: Output format ('markdown' or 'html')
 
         Returns:
             dict: Generated documentation with title and content
         """
         # Build system prompt with guardrails
-        system_prompt = self._build_system_prompt(template_type)
+        system_prompt = self._build_system_prompt(template_type, output_format)
 
         # Build user prompt
-        user_prompt = self._build_user_prompt(prompt, context)
+        user_prompt = self._build_user_prompt(prompt, context, output_format)
 
         try:
             # Call Claude API
@@ -68,7 +69,7 @@ class AIDocumentationGenerator:
                 'error': str(e)
             }
 
-    def enhance_documentation(self, title, content, enhancement_type='grammar'):
+    def enhance_documentation(self, title, content, enhancement_type='grammar', output_format='markdown'):
         """
         Enhance existing documentation.
 
@@ -76,6 +77,7 @@ class AIDocumentationGenerator:
             title: Document title
             content: Document content
             enhancement_type: Type of enhancement (grammar, expand, simplify, technical)
+            output_format: Output format ('markdown' or 'html')
 
         Returns:
             dict: Enhanced documentation
@@ -90,17 +92,34 @@ class AIDocumentationGenerator:
 
         enhancement_instruction = enhancement_prompts.get(enhancement_type, enhancement_prompts['grammar'])
 
-        system_prompt = """You are a technical documentation expert. Your task is to enhance existing documentation.
+        # Build format-specific instructions
+        if output_format == 'html':
+            format_instructions = """- Format using clean, semantic HTML5
+- Use Bootstrap 5 classes for styling (cards, badges, alerts, tables)
+- Add color and visual hierarchy with appropriate classes
+- Use icons (Font Awesome) where appropriate (e.g., <i class="fas fa-check text-success"></i>)
+- Structure with proper sections: <section>, <article>, <header>
+- Use styled code blocks: <pre><code class="language-python">...</code></pre>
+- Add callout boxes for important notes: <div class="alert alert-info">...</div>
+- Use badges for labels: <span class="badge bg-primary">Important</span>
+- Create styled tables: <table class="table table-striped table-hover">
+- Add visual breaks with <hr> or styled dividers"""
+        else:
+            format_instructions = "- Format using Markdown"
+
+        system_prompt = f"""You are a technical documentation expert. Your task is to enhance existing documentation.
 
 Guidelines:
 - Preserve all technical accuracy
 - Maintain the original intent and structure
 - Use clear, professional language
 - Follow documentation best practices
-- Format using Markdown
+{format_instructions}
 - Do not remove important information
-- Add value without unnecessary verbosity"""
+- Add value without unnecessary verbosity
+- Make it visually appealing and easy to scan"""
 
+        content_format = 'HTML' if output_format == 'html' else 'markdown'
         user_prompt = f"""Please enhance this documentation:
 
 Title: {title}
@@ -113,7 +132,7 @@ Enhancement Type: {enhancement_instruction}
 Return the enhanced documentation in this JSON format:
 {{
     "title": "enhanced title if needed",
-    "content": "enhanced markdown content",
+    "content": "enhanced {content_format} content",
     "changes_made": ["list of key changes made"]
 }}"""
 
@@ -201,19 +220,35 @@ Return your analysis in JSON format:
                 'error': str(e)
             }
 
-    def _build_system_prompt(self, template_type):
+    def _build_system_prompt(self, template_type, output_format='markdown'):
         """Build system prompt with guardrails based on template type."""
-        base_prompt = """You are an expert technical documentation writer. Generate clear, comprehensive, and well-structured documentation.
+
+        # Format-specific instructions
+        if output_format == 'html':
+            format_guide = """- Format using clean, semantic HTML5
+- Use Bootstrap 5 classes for styling (cards, badges, alerts, tables)
+- Add color and visual hierarchy with appropriate classes
+- Use icons (Font Awesome) where appropriate
+- Structure with proper sections: <section>, <article>, <header>
+- Use styled code blocks: <pre><code class="language-python">...</code></pre>
+- Add callout boxes: <div class="alert alert-info">...</div>
+- Use badges: <span class="badge bg-primary">Important</span>
+- Create styled tables: <table class="table table-striped">"""
+        else:
+            format_guide = "- Format using Markdown"
+
+        base_prompt = f"""You are an expert technical documentation writer. Generate clear, comprehensive, and well-structured documentation.
 
 General Guidelines:
 - Use professional, clear language
 - Structure content with proper headings and sections
 - Include examples and use cases where appropriate
 - Follow documentation best practices
-- Format using Markdown
+{format_guide}
 - Include security considerations and best practices
 - Add troubleshooting sections where relevant
-- Consider different skill levels (provide both quick start and detailed sections)"""
+- Consider different skill levels (provide both quick start and detailed sections)
+- Make it visually appealing and easy to scan"""
 
         template_prompts = {
             'm365': """
@@ -278,14 +313,34 @@ Runbook Guidelines:
 
         return base_prompt
 
-    def _build_user_prompt(self, prompt, context):
+    def _build_user_prompt(self, prompt, context, output_format='markdown'):
         """Build user prompt with context."""
         user_prompt = f"Please create comprehensive technical documentation for the following:\n\n{prompt}"
 
         if context:
             user_prompt += f"\n\nAdditional Context:\n{context}"
 
-        user_prompt += """\n\nPlease provide:
+        if output_format == 'html':
+            user_prompt += """\n\nPlease provide:
+1. A clear, descriptive title for this documentation
+2. Well-structured HTML content with proper styling
+
+Format your response like this:
+TITLE: [Your document title here]
+
+[Your HTML content starts here immediately after the title]
+
+Use proper HTML formatting with Bootstrap 5 classes:
+- Use <h1>, <h2>, etc. for headings
+- Use <pre><code class="language-xxx"> for code blocks
+- Use <div class="alert alert-info"> for callouts
+- Use <span class="badge bg-primary"> for labels
+- Use <table class="table table-striped"> for tables
+- Add <i class="fas fa-icon-name"> for icons where appropriate
+
+Do NOT wrap the response in JSON or code blocks. Provide clean, ready-to-use HTML content."""
+        else:
+            user_prompt += """\n\nPlease provide:
 1. A clear, descriptive title for this documentation
 2. Well-structured markdown content with proper headings, sections, and formatting
 
