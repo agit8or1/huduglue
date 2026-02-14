@@ -1115,23 +1115,35 @@ def organization_merge(request):
                     # Log merge operation
                     AuditLog.objects.create(
                         user=request.user,
-                        action='MERGE',
-                        resource_type='organization',
-                        resource_id=source_org.id,
-                        details=f"Merged organization '{source_org.name}' into '{target_org.name}'"
+                        username=request.user.username,
+                        action='delete',
+                        object_type='organization',
+                        object_id=source_org.id,
+                        object_repr=source_org.name,
+                        description=f"Merged organization '{source_org.name}' into '{target_org.name}'",
+                        organization=target_org,
+                        ip_address=request.META.get('REMOTE_ADDR'),
+                        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                        path=request.path
                     )
-                    
+
                     # Delete source organization
                     source_org_name = source_org.name
                     source_org.delete()
-                
+
                 # Log target organization update
                 AuditLog.objects.create(
                     user=request.user,
-                    action='UPDATE',
-                    resource_type='organization',
-                    resource_id=target_org.id,
-                    details=f"Merged {len(source_orgs)} organizations into '{target_org.name}': {merge_stats}"
+                    username=request.user.username,
+                    action='update',
+                    object_type='organization',
+                    object_id=target_org.id,
+                    object_repr=target_org.name,
+                    description=f"Merged {len(source_orgs)} organizations into '{target_org.name}': {merge_stats}",
+                    organization=target_org,
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                    path=request.path
                 )
                 
                 # Build success message
