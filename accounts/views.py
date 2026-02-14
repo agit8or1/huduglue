@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash
 from core.models import Organization
 from core.decorators import require_owner
+from audit.models import AuditLog
 from .models import Membership, UserProfile
 from .forms import OrganizationForm, MembershipForm, UserProfileForm, PasswordChangeForm, UserCreateForm, UserEditForm, UserPasswordResetForm
 
