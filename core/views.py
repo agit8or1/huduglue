@@ -183,12 +183,18 @@ def apply_update(request):
         log_file = settings.BASE_DIR / 'logs' / 'web-update.log'
         log_file.parent.mkdir(exist_ok=True)
 
+        # Set proper environment with PATH so script can find commands
+        import os
+        env = os.environ.copy()
+        env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
         with open(log_file, 'w') as log:
             subprocess.Popen(
                 [str(script_path)],
                 cwd=str(settings.BASE_DIR),
                 stdout=log,
                 stderr=subprocess.STDOUT,
+                env=env,
                 start_new_session=True  # Fully detach from parent
             )
 
