@@ -147,14 +147,14 @@ fi
 log_info "Step 8/8: Restarting services..."
 
 # Restart Gunicorn
-if sudo systemctl is-active --quiet clientst0r-gunicorn.service; then
-    sudo systemctl restart clientst0r-gunicorn.service
+if sudo systemctl is-active --quiet huduglue-gunicorn.service; then
+    sudo systemctl restart huduglue-gunicorn.service
     sleep 3
-    if sudo systemctl is-active --quiet clientst0r-gunicorn.service; then
+    if sudo systemctl is-active --quiet huduglue-gunicorn.service; then
         log_success "Gunicorn restarted successfully"
     else
         log_error "Gunicorn failed to restart!"
-        sudo systemctl status clientst0r-gunicorn.service
+        sudo systemctl status huduglue-gunicorn.service
         exit 1
     fi
 else
@@ -162,26 +162,26 @@ else
 fi
 
 # Restart Scheduler (if exists)
-if sudo systemctl is-active --quiet clientst0r-scheduler.service; then
-    sudo systemctl restart clientst0r-scheduler.service
+if sudo systemctl is-active --quiet huduglue-scheduler.service; then
+    sudo systemctl restart huduglue-scheduler.service
     log_success "Scheduler restarted"
 fi
 
 # Restart PSA Sync (if exists)
-if sudo systemctl is-active --quiet clientst0r-psa-sync.service; then
-    sudo systemctl restart clientst0r-psa-sync.service
+if sudo systemctl is-active --quiet huduglue-psa-sync.service; then
+    sudo systemctl restart huduglue-psa-sync.service
     log_success "PSA Sync restarted"
 fi
 
 # Restart RMM Sync (if exists)
-if sudo systemctl is-active --quiet clientst0r-rmm-sync.service; then
-    sudo systemctl restart clientst0r-rmm-sync.service
+if sudo systemctl is-active --quiet huduglue-rmm-sync.service; then
+    sudo systemctl restart huduglue-rmm-sync.service
     log_success "RMM Sync restarted"
 fi
 
 # Restart Monitor (if exists)
-if sudo systemctl is-active --quiet clientst0r-monitor.service; then
-    sudo systemctl restart clientst0r-monitor.service
+if sudo systemctl is-active --quiet huduglue-monitor.service; then
+    sudo systemctl restart huduglue-monitor.service
     log_success "Monitor restarted"
 fi
 

@@ -762,7 +762,7 @@ class UpdateService:
                     f"cd {self.base_dir}\n"
                     "git fetch origin\n"
                     "git reset --hard origin/main\n"
-                    "sudo systemctl restart clientst0r-gunicorn.service\n\n"
+                    "sudo systemctl restart huduglue-gunicorn.service\n\n"
                     "After this one-time fix, future updates will handle this automatically.\n\n"
                     "See Issue #24 on GitHub for more details."
                 )
@@ -821,7 +821,7 @@ class UpdateService:
         """Check if running as a systemd service."""
         try:
             result = subprocess.run(
-                ['/usr/bin/systemctl', 'is-active', 'clientst0r-gunicorn.service'],
+                ['/usr/bin/systemctl', 'is-active', 'huduglue-gunicorn.service'],
                 capture_output=True,
                 text=True,
                 timeout=5
@@ -841,7 +841,7 @@ class UpdateService:
         try:
             # Test if we can run sudo without password using -n (non-interactive)
             result = subprocess.run(
-                ['/usr/bin/sudo', '-n', '/usr/bin/systemctl', 'status', 'clientst0r-gunicorn.service'],
+                ['/usr/bin/sudo', '-n', '/usr/bin/systemctl', 'status', 'huduglue-gunicorn.service'],
                 capture_output=True,
                 text=True,
                 timeout=5
