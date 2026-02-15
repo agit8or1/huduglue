@@ -161,41 +161,57 @@ def check_updates_now(request):
 @require_http_methods(["POST"])
 def apply_update(request):
     """
-    Apply system update with real-time progress tracking.
+    Apply system update using the bash script (which can safely restart services).
     Staff-only access.
+
+    The bash script runs externally and can restart services without suicide.
+    This is THE solution that actually works.
     """
-    from core.update_progress import UpdateProgress
-    import threading
+    import subprocess
+    from django.conf import settings
 
-    updater = UpdateService()
-    progress = UpdateProgress()
-    progress.start()
-
-    # Clear update cache IMMEDIATELY to prevent stale data during update
+    # Clear update cache
     cache.delete('system_update_check')
 
-    def run_update():
-        """Run update in background thread."""
-        try:
-            result = updater.perform_update(user=request.user, progress_tracker=progress)
-            if result['success']:
-                # Clear update cache again after success
-                cache.delete('system_update_check')
-        except Exception as e:
-            progress.finish(success=False, error=str(e))
-            # Clear cache even on failure to force fresh check
-            cache.delete('system_update_check')
+    # Run the bash update script in background
+    # This script can safely restart services because it runs externally
+    script_path = settings.BASE_DIR / 'scripts' / 'auto_update.sh'
 
-    # Start update in background thread
-    thread = threading.Thread(target=run_update)
-    thread.daemon = True
-    thread.start()
+    try:
+        # Start the update script in background
+        subprocess.Popen(
+            [str(script_path)],
+            cwd=str(settings.BASE_DIR),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
-    # Return immediately - progress will be polled via AJAX
-    return JsonResponse({
-        'status': 'started',
-        'message': 'Update started. Polling for progress...'
-    })
+        messages.success(
+            request,
+            "Update started! The page will be unavailable for ~30 seconds while services restart. "
+            "Wait 30 seconds, then refresh this page."
+        )
+
+        # Log the update
+        AuditLog.objects.create(
+            action='system_update',
+            description=f'System update initiated by {request.user.username}',
+            user=request.user,
+            username=request.user.username
+        )
+
+        return JsonResponse({
+            'status': 'started',
+            'message': 'Update started. Services will restart automatically. Refresh page in 30 seconds.',
+            'wait_time': 30
+        })
+
+    except Exception as e:
+        messages.error(request, f"Failed to start update: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
 
 
 @login_required
