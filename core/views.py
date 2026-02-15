@@ -399,6 +399,50 @@ def force_restart_services(request):
         }, status=500)
 
 
+def emergency_restart_webhook(request):
+    """
+    Emergency restart webhook - no authentication required but needs secret key.
+    This endpoint can be called remotely to force restart stuck servers.
+
+    Usage: POST /emergency-restart/?secret=YOUR_SECRET_KEY
+
+    Secret key can be set in settings.EMERGENCY_RESTART_SECRET or defaults to a hash.
+    """
+    from django.conf import settings
+    import hashlib
+    import subprocess
+
+    # Get secret from settings or generate default from SECRET_KEY
+    expected_secret = getattr(settings, 'EMERGENCY_RESTART_SECRET',
+                             hashlib.sha256(settings.SECRET_KEY.encode()).hexdigest()[:32])
+
+    # Check secret
+    provided_secret = request.GET.get('secret') or request.POST.get('secret')
+    if not provided_secret or provided_secret != expected_secret:
+        return JsonResponse({'error': 'Invalid secret'}, status=403)
+
+    # Run auto-heal command
+    try:
+        result = subprocess.run(
+            ['python', 'manage.py', 'auto_heal_version'],
+            cwd=settings.BASE_DIR,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        return JsonResponse({
+            'success': result.returncode == 0,
+            'output': result.stdout,
+            'error': result.stderr if result.returncode != 0 else None
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
 @login_required
 @ratelimit(key='user', rate='10/h', method='POST', block=False)
 def report_bug(request):
