@@ -162,20 +162,14 @@ def check_updates_now(request):
 @require_http_methods(["POST"])
 def apply_update(request):
     """
-    Trigger an update by creating a flag file.
-    A cron job checks for this file and runs the update.
-    This avoids the suicide problem completely.
+    Trigger an update immediately by running the update script in background.
+    Uses nohup to completely detach the process so it survives the service restart.
     """
     import os
+    import subprocess
     from django.conf import settings
 
-    trigger_file = '/tmp/clientst0r-update-trigger'
-
     try:
-        # Create the trigger file
-        with open(trigger_file, 'w') as f:
-            f.write(f"Triggered by {request.user.username} at {timezone.now()}\n")
-
         # Clear cache
         cache.delete('system_update_check')
 
@@ -187,20 +181,34 @@ def apply_update(request):
             username=request.user.username
         )
 
+        # Run update script immediately using nohup for complete detachment
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        update_script = os.path.join(project_dir, 'scripts', 'auto_update.sh')
+        log_file = '/var/log/clientst0r/web-triggered-update.log'
+
+        # Use nohup to completely detach - survives parent death
+        subprocess.Popen(
+            ['nohup', 'bash', update_script],
+            stdout=open(log_file, 'a'),
+            stderr=subprocess.STDOUT,
+            start_new_session=True,  # Create new session (detach from terminal)
+            cwd=project_dir
+        )
+
         messages.success(
             request,
-            "✅ Update triggered! The update will start within 60 seconds. "
-            "Services will restart automatically. Wait 2 minutes, then refresh this page."
+            "✅ Update started! Services will restart in ~30 seconds. "
+            "This page will reload automatically."
         )
 
         return JsonResponse({
-            'status': 'triggered',
-            'message': 'Update will start within 60 seconds. Services will restart. Wait 2 minutes then refresh.',
-            'wait_time': 120
+            'status': 'started',
+            'message': 'Update started. Services restarting. Page will reload automatically.',
+            'wait_time': 60
         })
 
     except Exception as e:
-        messages.error(request, f"Failed to trigger update: {e}")
+        messages.error(request, f"Failed to start update: {e}")
         return JsonResponse({
             'status': 'error',
             'message': str(e)
