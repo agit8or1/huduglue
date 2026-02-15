@@ -126,6 +126,7 @@ urlpatterns = [
     path('settings/updates/', views.system_updates, name='system_updates'),
     path('settings/updates/check/', views.check_updates_now, name='check_updates_now'),
     path('settings/updates/apply/', views.apply_update, name='apply_update'),
+    path('settings/updates/force-restart/', views.force_restart_services, name='force_restart_services'),
     path('api/update-status/', views.update_status_api, name='update_status_api'),
     path('api/update-progress/', views.update_progress_api, name='update_progress_api'),
 ]

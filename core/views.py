@@ -229,6 +229,106 @@ def update_progress_api(request):
 
 
 @login_required
+@user_passes_test(is_superuser)
+@require_http_methods(["POST"])
+def force_restart_services(request):
+    """
+    Force restart all services and clear cache.
+    Use this when Update Now completes but version doesn't change.
+    This is a bootstrap fix for when old buggy UpdateService is running.
+    """
+    import subprocess
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Clear Django cache first
+        cache.delete('system_update_check')
+        logger.info("Cleared Django cache")
+
+        # Detect which gunicorn service exists
+        service_names = ['huduglue-gunicorn.service', 'clientst0r-gunicorn.service', 'itdocs-gunicorn.service']
+        gunicorn_service = None
+
+        for service in service_names:
+            result = subprocess.run(
+                ['systemctl', 'list-unit-files', service],
+                capture_output=True,
+                text=True
+            )
+            if service in result.stdout:
+                gunicorn_service = service
+                logger.info(f"Found service: {gunicorn_service}")
+                break
+
+        if not gunicorn_service:
+            return JsonResponse({
+                'success': False,
+                'error': 'No gunicorn service found'
+            }, status=500)
+
+        # Stop service
+        subprocess.run(['sudo', 'systemctl', 'stop', gunicorn_service], check=False)
+        logger.info(f"Stopped {gunicorn_service}")
+
+        # Kill any lingering processes
+        subprocess.run(['sudo', 'pkill', '-9', '-f', 'gunicorn'], check=False)
+        logger.info("Killed lingering gunicorn processes")
+
+        # Wait a moment
+        import time
+        time.sleep(2)
+
+        # Clear Python bytecode cache
+        import os
+        import shutil
+        from django.conf import settings
+
+        for root, dirs, files in os.walk(settings.BASE_DIR):
+            if 'venv' in root or 'node_modules' in root:
+                continue
+            if '__pycache__' in dirs:
+                cache_dir = os.path.join(root, '__pycache__')
+                shutil.rmtree(cache_dir, ignore_errors=True)
+
+        logger.info("Cleared Python bytecode cache")
+
+        # Start service
+        subprocess.run(['sudo', 'systemctl', 'start', gunicorn_service], check=True)
+        logger.info(f"Started {gunicorn_service}")
+
+        # Wait for service to start
+        time.sleep(3)
+
+        # Check if service is running
+        result = subprocess.run(
+            ['sudo', 'systemctl', 'is-active', gunicorn_service],
+            capture_output=True,
+            text=True
+        )
+
+        if result.stdout.strip() == 'active':
+            messages.success(request, 'Services restarted successfully! Refresh page to see new version.')
+            return JsonResponse({
+                'success': True,
+                'message': 'Services restarted successfully'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Service failed to start'
+            }, status=500)
+
+    except Exception as e:
+        logger.error(f"Force restart failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
 @ratelimit(key='user', rate='10/h', method='POST', block=False)
 def report_bug(request):
     """
