@@ -182,13 +182,15 @@
                         </button>
                     </form>
 
+                    <button type="button" class="btn btn-warning" onclick="forceRestartServices()" title="Restart services to load new code">
+                        <i class="fas fa-power-off"></i> Restart Services
+                    </button>
+
                     {% if update_info.update_available %}
-                    <button type="button" class="btn btn-success ms-2" onclick="showUpdateModal()">
-                        <i class="fas fa-download"></i> Apply Update
-                    </button>
-                    <button type="button" class="btn btn-warning ms-2" onclick="forceRestartServices()" title="If update completed but version didn't change, click this to force restart services">
-                        <i class="fas fa-power-off"></i> Force Restart Services
-                    </button>
+                    <div class="alert alert-warning mt-3">
+                        <strong>Update Available:</strong> v{{ update_info.latest_version }}<br>
+                        To update: Run <code>python manage.py auto_update</code> via SSH, then click "Restart Services" above.
+                    </div>
                     {% endif %}
 
                     <div class="alert alert-info mt-3 mb-0">

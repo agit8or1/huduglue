@@ -161,79 +161,17 @@ def check_updates_now(request):
 @require_http_methods(["POST"])
 def apply_update(request):
     """
-    Apply system update using the bash script (which can safely restart services).
-    Staff-only access.
-
-    The bash script runs externally and can restart services without suicide.
-    This is THE solution that actually works.
+    SIMPLE: Just show instructions to run update via CLI.
+    This ALWAYS works and never breaks anything.
     """
-    import subprocess
-    from django.conf import settings
+    messages.info(
+        request,
+        "To apply updates, run this command via SSH:\n\n"
+        "cd /home/administrator && python manage.py auto_update\n\n"
+        "This will pull code, run migrations, and restart services safely."
+    )
 
-    # Clear update cache
-    cache.delete('system_update_check')
-
-    # Run the bash update script in background
-    # This script can safely restart services because it runs externally
-    script_path = settings.BASE_DIR / 'scripts' / 'auto_update.sh'
-
-    try:
-        # Use systemd-run to make the update script COMPLETELY independent
-        # This prevents the script from dying when gunicorn stops
-        import logging
-        logger = logging.getLogger(__name__)
-
-        cmd = [
-            'sudo', 'systemd-run',
-            '--unit=clientst0r-web-update',
-            '--description=Client St0r Web Update',
-            str(script_path)
-        ]
-
-        logger.info(f"Running command: {' '.join(cmd)}")
-
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-
-        logger.info(f"Return code: {result.returncode}")
-        logger.info(f"Stdout: {result.stdout}")
-        logger.info(f"Stderr: {result.stderr}")
-
-        if result.returncode != 0:
-            error_msg = f"systemd-run failed (code {result.returncode})\nStdout: {result.stdout}\nStderr: {result.stderr}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-
-        messages.success(
-            request,
-            "Update started! The page will be unavailable for ~30 seconds while services restart. "
-            "Wait 30 seconds, then refresh this page."
-        )
-
-        # Log the update
-        AuditLog.objects.create(
-            action='system_update',
-            description=f'System update initiated by {request.user.username}',
-            user=request.user,
-            username=request.user.username
-        )
-
-        return JsonResponse({
-            'status': 'started',
-            'message': 'Update started. Services will restart automatically. Refresh page in 30 seconds.',
-            'wait_time': 30
-        })
-
-    except Exception as e:
-        messages.error(request, f"Failed to start update: {e}")
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        }, status=500)
+    return redirect('core:system_updates')
 
 
 @login_required
