@@ -235,18 +235,36 @@ def import_organization_from_rmm(connection, site_data):
     if not base_slug:
         base_slug = f"rmm-{external_id}"
 
-    # Check if organization already exists by name (with prefix)
-    # Note: RMM connections don't use ExternalObjectMap (PSA-only)
-    org = Organization.objects.filter(name=display_name).first()
+    # Check if organization already exists by external_id mapping
+    # Use ExternalObjectMap for reliable tracking (prevents slug collisions)
+    org = find_existing_organization_by_rmm_id(connection, external_id)
 
     if not org:
-        # Try slug match as fallback
+        # Fallback: Try name match (for backward compatibility)
+        org = Organization.objects.filter(name=display_name).first()
+
+    if not org:
+        # Fallback: Try slug match
         org = Organization.objects.filter(slug=base_slug).first()
 
     if org:
         # Update existing organization
         org.name = display_name
         org.save()
+
+        # Create/update ExternalObjectMap for stable tracking
+        # Use 'rmm_client' if client_id exists, otherwise 'rmm_site'
+        external_type = 'rmm_client' if site_data.get('client_id') else 'rmm_site'
+        ExternalObjectMap.objects.update_or_create(
+            connection=connection,
+            external_type=external_type,
+            external_id=str(external_id),
+            defaults={
+                'organization': org,
+                'local_type': 'organization',
+                'local_id': org.id,
+            }
+        )
 
         logger.info(f"Updated organization {org.slug} from RMM: {org_name} (client: {client_name}, site: {site_name})")
 
@@ -282,6 +300,18 @@ def import_organization_from_rmm(connection, site_data):
         memberships_created = create_inherited_memberships(org, connection.organization)
         if memberships_created > 0:
             logger.info(f"Created {memberships_created} inherited memberships for {org.name}")
+
+        # Create ExternalObjectMap for stable tracking (prevents slug collisions)
+        # Use 'rmm_client' if client_id exists, otherwise 'rmm_site'
+        external_type = 'rmm_client' if site_data.get('client_id') else 'rmm_site'
+        ExternalObjectMap.objects.create(
+            connection=connection,
+            external_type=external_type,
+            external_id=str(external_id),
+            organization=org,
+            local_type='organization',
+            local_id=org.id,
+        )
 
         AuditLog.objects.create(
             action='sync',
@@ -327,16 +357,37 @@ def find_existing_organization_by_psa_id(connection, external_id):
 
 def find_existing_organization_by_rmm_id(connection, external_id):
     """
-    Find existing organization by RMM site ID.
+    Find existing organization by RMM client/site ID.
 
-    For RMM connections, we don't use ExternalObjectMap (PSA-only).
-    Instead, search by organization name/slug that would have been created.
+    Searches ExternalObjectMap for matching RMM client ID.
+    This ensures stable mapping and prevents slug collisions.
 
     Returns:
         Organization instance or None
     """
-    # RMM connections don't use ExternalObjectMap - just return None
-    # Organizations will be matched by name in import_organization_from_rmm
+    if not external_id:
+        return None
+
+    # Search for ExternalObjectMap with matching RMM client/site ID
+    # Use 'rmm_client' or 'rmm_site' as external_type
+    for external_type in ['rmm_client', 'rmm_site']:
+        mapping = ExternalObjectMap.objects.filter(
+            connection=connection,
+            external_type=external_type,
+            external_id=str(external_id),
+            local_type='organization'
+        ).first()
+
+        if mapping:
+            # Get the organization by local_id
+            try:
+                return Organization.objects.get(id=mapping.local_id)
+            except Organization.DoesNotExist:
+                # Orphaned mapping, delete it
+                logger.warning(f"Found orphaned ExternalObjectMap for organization ID {mapping.local_id}, deleting")
+                mapping.delete()
+                return None
+
     return None
 
 
