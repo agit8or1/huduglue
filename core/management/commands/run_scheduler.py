@@ -65,6 +65,8 @@ class Command(BaseCommand):
             self.run_domain_expiry_check()
         elif task.task_type == 'update_check':
             self.run_update_check()
+        elif task.task_type == 'cleanup_stuck_scans':
+            self.run_cleanup_stuck_scans()
         else:
             raise ValueError(f"Unknown task type: {task.task_type}")
 
@@ -159,3 +161,11 @@ class Command(BaseCommand):
             call_command('check_updates', verbosity=1)
         except Exception as e:
             self.stdout.write(f"    Update check failed: {e}")
+
+    def run_cleanup_stuck_scans(self):
+        """Cleanup stuck security scans (Snyk scans running > 2 hours)."""
+        from django.core.management import call_command
+        try:
+            call_command('cleanup_stuck_scans', verbosity=1)
+        except Exception as e:
+            self.stdout.write(f"    Cleanup stuck scans failed: {e}")
