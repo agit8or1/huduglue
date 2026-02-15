@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.core.cache import cache
+from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from config.version import get_version, get_full_version
 from .updater import UpdateService
@@ -161,17 +162,49 @@ def check_updates_now(request):
 @require_http_methods(["POST"])
 def apply_update(request):
     """
-    SIMPLE: Just show instructions to run update via CLI.
-    This ALWAYS works and never breaks anything.
+    Trigger an update by creating a flag file.
+    A cron job checks for this file and runs the update.
+    This avoids the suicide problem completely.
     """
-    messages.info(
-        request,
-        "To apply updates, run this command via SSH:\n\n"
-        "cd /home/administrator && python manage.py auto_update\n\n"
-        "This will pull code, run migrations, and restart services safely."
-    )
+    import os
+    from django.conf import settings
 
-    return redirect('core:system_updates')
+    trigger_file = '/tmp/clientst0r-update-trigger'
+
+    try:
+        # Create the trigger file
+        with open(trigger_file, 'w') as f:
+            f.write(f"Triggered by {request.user.username} at {timezone.now()}\n")
+
+        # Clear cache
+        cache.delete('system_update_check')
+
+        # Log the action
+        AuditLog.objects.create(
+            action='system_update',
+            description=f'Update triggered by {request.user.username}',
+            user=request.user,
+            username=request.user.username
+        )
+
+        messages.success(
+            request,
+            "✅ Update triggered! The update will start within 60 seconds. "
+            "Services will restart automatically. Wait 2 minutes, then refresh this page."
+        )
+
+        return JsonResponse({
+            'status': 'triggered',
+            'message': 'Update will start within 60 seconds. Services will restart. Wait 2 minutes then refresh.',
+            'wait_time': 120
+        })
+
+    except Exception as e:
+        messages.error(request, f"Failed to trigger update: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
 
 
 @login_required
