@@ -230,6 +230,77 @@ def update_progress_api(request):
 
 @login_required
 @user_passes_test(is_superuser)
+def version_diagnostic(request):
+    """
+    Diagnostic endpoint to debug version mismatch issues.
+    Shows: file content vs Python import vs worker reports
+    """
+    import subprocess
+    import os
+    from django.conf import settings
+
+    diagnostics = {}
+
+    # 1. Read version.py file directly
+    version_file = os.path.join(settings.BASE_DIR, 'config', 'version.py')
+    try:
+        with open(version_file, 'r') as f:
+            content = f.read()
+            for line in content.split('\n'):
+                if line.strip().startswith('VERSION ='):
+                    diagnostics['file_content'] = line.strip()
+                    break
+    except Exception as e:
+        diagnostics['file_content'] = f"Error reading file: {e}"
+
+    # 2. Python import (current process)
+    try:
+        from config.version import VERSION
+        diagnostics['python_import'] = f"VERSION = '{VERSION}'"
+    except Exception as e:
+        diagnostics['python_import'] = f"Error importing: {e}"
+
+    # 3. Force reload and check again
+    try:
+        import importlib
+        import config.version
+        importlib.reload(config.version)
+        diagnostics['python_reload'] = f"VERSION = '{config.version.VERSION}'"
+    except Exception as e:
+        diagnostics['python_reload'] = f"Error reloading: {e}"
+
+    # 4. UpdateService reports
+    try:
+        updater = UpdateService()
+        diagnostics['update_service'] = f"VERSION = '{updater.current_version}'"
+    except Exception as e:
+        diagnostics['update_service'] = f"Error: {e}"
+
+    # 5. Git info
+    try:
+        result = subprocess.run(['git', 'log', '-1', '--oneline'],
+                               capture_output=True, text=True, cwd=settings.BASE_DIR)
+        diagnostics['git_commit'] = result.stdout.strip()
+    except Exception as e:
+        diagnostics['git_commit'] = f"Error: {e}"
+
+    # 6. Check for .pyc files
+    try:
+        pyc_path = os.path.join(settings.BASE_DIR, 'config', '__pycache__', 'version.cpython-312.pyc')
+        if os.path.exists(pyc_path):
+            import time
+            mtime = os.path.getmtime(pyc_path)
+            diagnostics['pyc_file'] = f"Exists (modified: {time.ctime(mtime)})"
+        else:
+            diagnostics['pyc_file'] = "Not found"
+    except Exception as e:
+        diagnostics['pyc_file'] = f"Error: {e}"
+
+    return JsonResponse(diagnostics, json_dumps_params={'indent': 2})
+
+
+@login_required
+@user_passes_test(is_superuser)
 @require_http_methods(["POST"])
 def force_restart_services(request):
     """

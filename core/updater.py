@@ -696,15 +696,26 @@ class UpdateService:
                     except Exception as e:
                         logger.warning(f"Cache cleanup warning (non-critical): {e}")
 
-                    # Step 4: Start service fresh (delayed to allow this response to complete)
-                    restart_output = self._run_command([
-                        '/usr/bin/sudo', '/usr/bin/systemd-run', '--on-active=2',
-                        '/usr/bin/systemctl', 'start', 'huduglue-gunicorn.service'
-                    ])
-                    logger.info(f"Service start scheduled: {restart_output}")
-                    result['steps_completed'].append('restart_service')
-                    result['output'].append(f"✓ Service restart scheduled with full cleanup (2s delay)")
-                    result['output'].append("⚠️  Please wait 10 seconds, then refresh the page to see the new version")
+                    # Step 4: Start service fresh
+                    # Use background subprocess to allow this response to complete first
+                    import subprocess
+                    import time
+
+                    # Wait a moment for this response to be sent
+                    time.sleep(1)
+
+                    # Start service directly (blocking)
+                    try:
+                        restart_output = self._run_command([
+                            '/usr/bin/sudo', '/usr/bin/systemctl', 'start', 'huduglue-gunicorn.service'
+                        ])
+                        logger.info(f"Service started: {restart_output}")
+                        result['steps_completed'].append('restart_service')
+                        result['output'].append(f"✓ Service restarted with full cleanup")
+                        result['output'].append("⚠️  Please wait 5 seconds, then refresh the page to see the new version")
+                    except Exception as e:
+                        logger.error(f"Service start failed: {e}")
+                        result['output'].append(f"⚠️  Service restart may have failed. Run: sudo systemctl start huduglue-gunicorn.service")
                     if progress_tracker:
                         progress_tracker.step_complete('Restart Service')
                 except Exception as e:
