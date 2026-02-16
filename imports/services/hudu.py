@@ -67,7 +67,9 @@ class HuduImportService(BaseImportService):
                         self.job.items_imported += 1
 
                     except Exception as e:
-                        logger.error(f"Failed to import asset {item.get('id')}: {e}")
+                        error_msg = f"Failed to import asset {item.get('id')}: {str(e)}"
+                        logger.error(error_msg)
+                        self.job.add_log(f"ERROR: {error_msg}")
                         self.job.items_failed += 1
 
                 # Hudu pagination
@@ -171,7 +173,9 @@ class HuduImportService(BaseImportService):
                         self.job.items_imported += 1
 
                     except Exception as e:
-                        logger.error(f"Failed to import password {item.get('id')}: {e}")
+                        error_msg = f"Failed to import password {item.get('id')}: {str(e)}"
+                        logger.error(error_msg)
+                        self.job.add_log(f"ERROR: {error_msg}")
                         self.job.items_failed += 1
 
                 # Hudu pagination
@@ -247,7 +251,9 @@ class HuduImportService(BaseImportService):
                         self.job.items_imported += 1
 
                     except Exception as e:
-                        logger.error(f"Failed to import document {item.get('id')}: {e}")
+                        error_msg = f"Failed to import document {item.get('id')}: {str(e)}"
+                        logger.error(error_msg)
+                        self.job.add_log(f"ERROR: {error_msg}")
                         self.job.items_failed += 1
 
                 # Hudu pagination

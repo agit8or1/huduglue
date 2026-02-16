@@ -487,6 +487,13 @@ class RMMConnectionForm(forms.ModelForm):
         cleaned_data = super().clean()
         provider_type = cleaned_data.get('provider_type')
 
+        # Validate that organization is provided (required for RMM connections)
+        if not self.organization:
+            raise forms.ValidationError(
+                "An organization must be selected before creating an RMM connection. "
+                "Please select an organization from the top navigation bar and try again."
+            )
+
         # Validate that required credentials are provided for selected provider
         if provider_type == 'ninjaone':
             required_fields = ['ninja_client_id', 'ninja_client_secret', 'ninja_refresh_token']
