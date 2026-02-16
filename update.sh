@@ -382,17 +382,32 @@ echo -e "${YELLOW}Step 6: Restarting Service${NC}"
 echo "-----------------------------------"
 
 if [ "$RESTART_SERVICE" = true ]; then
-    info "Restarting Gunicorn service..."
-    sudo systemctl restart huduglue-gunicorn.service || warning "Service restart failed - you may need to restart manually"
+    info "Detecting Gunicorn service name..."
+
+    # Auto-detect service name (supports both clientst0r-gunicorn and huduglue-gunicorn)
+    SERVICE_NAME=""
+    if systemctl list-units --type=service --all | grep -q "clientst0r-gunicorn.service"; then
+        SERVICE_NAME="clientst0r-gunicorn.service"
+        info "Found service: clientst0r-gunicorn.service"
+    elif systemctl list-units --type=service --all | grep -q "huduglue-gunicorn.service"; then
+        SERVICE_NAME="huduglue-gunicorn.service"
+        info "Found service: huduglue-gunicorn.service"
+    else
+        warning "Could not find gunicorn service. Trying huduglue-gunicorn.service..."
+        SERVICE_NAME="huduglue-gunicorn.service"
+    fi
+
+    info "Restarting $SERVICE_NAME..."
+    sudo systemctl restart "$SERVICE_NAME" || warning "Service restart failed - you may need to restart manually"
 
     # Wait a moment for service to start
     sleep 2
 
     # Check service status
-    if sudo systemctl is-active --quiet huduglue-gunicorn.service; then
+    if sudo systemctl is-active --quiet "$SERVICE_NAME"; then
         success "Service restarted successfully"
     else
-        warning "Service may not have restarted correctly. Check with: sudo systemctl status huduglue-gunicorn.service"
+        warning "Service may not have restarted correctly. Check with: sudo systemctl status $SERVICE_NAME"
     fi
 else
     warning "Please restart the Gunicorn service manually"
