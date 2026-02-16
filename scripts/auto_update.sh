@@ -184,13 +184,14 @@ log_info "Killing any lingering gunicorn processes..."
 sudo pkill -9 -f "python.*gunicorn" 2>/dev/null || true
 sleep 2
 
-log_info "Clearing Python bytecode cache..."
-find "$PROJECT_DIR" -type d -name __pycache__ -not -path "*/venv/*" -exec rm -rf {} + 2>/dev/null || true
-find "$PROJECT_DIR" -name "*.pyc" -not -path "*/venv/*" -delete 2>/dev/null || true
-
 log_info "Starting service fresh..."
 sudo systemctl start "$GUNICORN_SERVICE"
 sleep 5
+
+# Clear bytecode cache in background (non-blocking)
+log_info "Clearing Python bytecode cache (background)..."
+(find "$PROJECT_DIR" -type d -name __pycache__ -not -path "*/venv/*" -exec rm -rf {} + 2>/dev/null || true) &
+(find "$PROJECT_DIR" -name "*.pyc" -not -path "*/venv/*" -delete 2>/dev/null || true) &
 
 if sudo systemctl is-active --quiet "$GUNICORN_SERVICE"; then
     log_success "Gunicorn restarted successfully with clean cache"
