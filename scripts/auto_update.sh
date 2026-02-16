@@ -178,7 +178,7 @@ log_info "Using service: $GUNICORN_SERVICE"
 # ENHANCED RESTART: Stop, kill processes, clear cache, start fresh
 log_info "Stopping service..."
 echo "[DEBUG] About to stop service at $(date)" >> "$LOG_FILE"
-sudo systemctl stop "$GUNICORN_SERVICE" 2>/dev/null || true
+timeout 30 sudo systemctl stop "$GUNICORN_SERVICE" 2>/dev/null || true
 echo "[DEBUG] Service stopped at $(date)" >> "$LOG_FILE"
 
 log_info "Killing any lingering gunicorn processes..."
