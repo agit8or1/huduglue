@@ -666,68 +666,27 @@ class UpdateService:
                     except Exception as e:
                         logger.warning(f"Daemon reload failed (non-critical): {e}")
 
-                    # ENHANCED RESTART: Stop service, kill processes, clear cache, start fresh
-                    # This ensures Python imports are not cached in memory
-                    logger.info("Performing enhanced service restart with cache cleanup")
+                    # DELAYED RESTART: Schedule restart using systemd-run
+                    # This prevents suicide - restart happens AFTER this response completes
+                    logger.info("Scheduling delayed service restart to avoid suicide problem")
 
-                    # Step 1: Stop the service
-                    stop_output = self._run_command([
-                        '/usr/bin/sudo', '/usr/bin/systemctl', 'stop', 'huduglue-gunicorn.service'
-                    ])
-                    logger.info(f"Service stopped: {stop_output}")
-                    result['output'].append("✓ Service stopped")
-
-                    # Step 2: Kill any lingering gunicorn processes (ensures no cached imports)
                     try:
-                        kill_output = self._run_command([
-                            '/usr/bin/sudo', '/usr/bin/pkill', '-9', '-f', 'gunicorn'
-                        ])
-                        logger.info(f"Gunicorn processes killed: {kill_output}")
-                        result['output'].append("✓ Cleared all gunicorn processes")
-                    except Exception as e:
-                        # This is OK if no processes found
-                        logger.info(f"No gunicorn processes to kill (normal): {e}")
-
-                    # Step 3: Clear Python bytecode cache
-                    import shutil
-                    cache_cleared = 0
-                    try:
-                        for root, dirs, files in os.walk(self.base_dir):
-                            # Skip venv directory
-                            if 'venv' in root or 'node_modules' in root:
-                                continue
-                            # Remove __pycache__ directories
-                            if '__pycache__' in dirs:
-                                cache_dir = os.path.join(root, '__pycache__')
-                                shutil.rmtree(cache_dir, ignore_errors=True)
-                                cache_cleared += 1
-                            # Remove .pyc files
-                            for file in files:
-                                if file.endswith('.pyc'):
-                                    os.remove(os.path.join(root, file))
-                        logger.info(f"Cleared {cache_cleared} __pycache__ directories")
-                        result['output'].append(f"✓ Cleared Python bytecode cache ({cache_cleared} directories)")
-                    except Exception as e:
-                        logger.warning(f"Cache cleanup warning (non-critical): {e}")
-
-                    # Step 4: Start service fresh using systemd-run
-                    # This schedules the start AFTER this response completes (prevents suicide)
-                    try:
+                        # Schedule restart in 5 seconds - gives time for response to complete
                         restart_output = self._run_command([
                             '/usr/bin/sudo', '/usr/bin/systemd-run',
-                            '--on-active=3',  # Wait 3 seconds for response to complete
-                            '/usr/bin/systemctl', 'start', 'huduglue-gunicorn.service'
+                            '--on-active=5',  # Wait 5 seconds for response to complete
+                            '/usr/bin/systemctl', 'restart', 'huduglue-gunicorn.service'
                         ])
-                        logger.info(f"Service start scheduled: {restart_output}")
+                        logger.info(f"Service restart scheduled: {restart_output}")
 
                         # Verify systemd-run succeeded
                         if 'Failed' in restart_output or 'failed' in restart_output.lower():
                             raise Exception(f"systemd-run failed: {restart_output}")
 
                         result['steps_completed'].append('restart_service')
-                        result['output'].append(f"✓ Service restart scheduled (3 second delay)")
+                        result['output'].append(f"✓ Service restart scheduled (5 second delay)")
                         result['output'].append("⚠️  Please wait 10 seconds, then refresh the page")
-                        result['output'].append("If version doesn't update, click 'Force Restart Services'")
+                        result['output'].append("The service will restart automatically to load new code")
                     except Exception as e:
                         logger.error(f"Service restart scheduling failed: {e}")
                         # Don't fail the whole update - just warn
