@@ -14,7 +14,19 @@ NC='\033[0m' # No Color
 # Get project directory (where this script is)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-VENV_DIR="$PROJECT_DIR/venv"
+
+# Auto-detect venv location (try multiple common paths)
+if [ -d "$PROJECT_DIR/venv" ]; then
+    VENV_DIR="$PROJECT_DIR/venv"
+elif [ -d "$PROJECT_DIR/huduglue/venv" ]; then
+    VENV_DIR="$PROJECT_DIR/huduglue/venv"
+elif [ -d "$(dirname "$PROJECT_DIR")/venv" ]; then
+    VENV_DIR="$(dirname "$PROJECT_DIR")/venv"
+else
+    # Try to find it
+    VENV_DIR=$(find "$PROJECT_DIR" -maxdepth 2 -type d -name "venv" 2>/dev/null | head -1)
+fi
+
 LOG_FILE="/var/log/clientst0r/auto-update.log"
 
 # Ensure log directory exists
