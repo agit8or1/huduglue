@@ -180,7 +180,8 @@ log_info "Stopping service..."
 sudo systemctl stop "$GUNICORN_SERVICE" 2>/dev/null || true
 
 log_info "Killing any lingering gunicorn processes..."
-sudo pkill -9 -f gunicorn 2>/dev/null || true
+# Only kill python gunicorn workers, not this bash script
+sudo pkill -9 -f "python.*gunicorn" 2>/dev/null || true
 sleep 2
 
 log_info "Clearing Python bytecode cache..."
