@@ -89,6 +89,7 @@ urlpatterns = [
     path('settings/scheduler/', settings_views.settings_scheduler, name='settings_scheduler'),
     path('settings/directory/', settings_views.settings_directory, name='settings_directory'),
     path('settings/ai/', settings_views.settings_ai, name='settings_ai'),
+    path('settings/ai/test/', settings_views.test_llm_connection, name='test_llm_connection'),
     path('settings/snyk/', settings_views.settings_snyk, name='settings_snyk'),
     path('settings/snyk/test/', settings_views.test_snyk_connection, name='test_snyk_connection'),
     path('settings/snyk/check-version/', settings_views.check_snyk_version, name='check_snyk_version'),

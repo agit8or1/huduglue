@@ -1050,6 +1050,100 @@ def settings_ai(request):
 
 @login_required
 @user_passes_test(is_superuser)
+@require_POST
+def test_llm_connection(request):
+    """Test LLM provider API connection."""
+    from django.http import JsonResponse
+    from docs.services.llm_providers import get_llm_provider
+    import json
+
+    try:
+        data = json.loads(request.body)
+        provider_name = data.get('provider', '').strip().lower()
+
+        if not provider_name:
+            return JsonResponse({
+                'success': False,
+                'error': 'Provider name is required'
+            }, status=400)
+
+        # Build provider kwargs based on provider type
+        provider_kwargs = {}
+
+        if provider_name == 'anthropic':
+            api_key = data.get('api_key', '').strip()
+            model = data.get('model', 'claude-sonnet-4-5-20250929')
+            if not api_key:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Anthropic API key is required'
+                }, status=400)
+            provider_kwargs = {'api_key': api_key, 'model': model}
+
+        elif provider_name == 'moonshot':
+            api_key = data.get('api_key', '').strip()
+            model = data.get('model', 'moonshot-v1-8k')
+            if not api_key:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Moonshot API key is required'
+                }, status=400)
+            provider_kwargs = {'api_key': api_key, 'model': model}
+
+        elif provider_name == 'minimax':
+            api_key = data.get('api_key', '').strip()
+            group_id = data.get('group_id', '').strip()
+            model = data.get('model', 'abab6.5-chat')
+            if not api_key or not group_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'MiniMax requires both API key and Group ID'
+                }, status=400)
+            provider_kwargs = {'api_key': api_key, 'group_id': group_id, 'model': model}
+
+        elif provider_name == 'openai':
+            api_key = data.get('api_key', '').strip()
+            model = data.get('model', 'gpt-4o')
+            if not api_key:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'OpenAI API key is required'
+                }, status=400)
+            provider_kwargs = {'api_key': api_key, 'model': model}
+
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'Unknown provider: {provider_name}'
+            }, status=400)
+
+        # Get provider instance
+        provider = get_llm_provider(provider_name, **provider_kwargs)
+        if not provider:
+            return JsonResponse({
+                'success': False,
+                'error': f'Failed to initialize provider: {provider_name}'
+            }, status=500)
+
+        # Test connection
+        result = provider.test_connection()
+        return JsonResponse(result)
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON in request body'
+        }, status=400)
+    except Exception as e:
+        logger.exception(f"LLM connection test failed: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+@user_passes_test(is_superuser)
 def settings_snyk(request):
     """Snyk security scanning settings."""
     from .models import SnykScan
