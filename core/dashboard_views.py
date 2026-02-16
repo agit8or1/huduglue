@@ -176,10 +176,11 @@ def global_dashboard(request):
     }
 
     # Organization stats (top 10 by member count)
+    # IMPORTANT: Use distinct=True to avoid Cartesian product when counting multiple relations
     top_orgs = Organization.objects.filter(is_active=True).annotate(
-        member_count=Count('memberships', filter=Q(memberships__is_active=True)),
-        asset_count=Count('assets'),
-        document_count=Count('documents'),
+        member_count=Count('memberships', filter=Q(memberships__is_active=True), distinct=True),
+        asset_count=Count('assets', distinct=True),
+        document_count=Count('documents', distinct=True),
     ).order_by('-member_count')[:10]
 
     # Recent global activity (last 20 actions)
