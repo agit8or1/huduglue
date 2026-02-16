@@ -198,11 +198,9 @@ def apply_update(request):
             username=request.user.username
         )
 
-        messages.success(request, "✅ Update started!")
-
         return JsonResponse({
             'status': 'started',
-            'message': 'Update started. Follow progress below.'
+            'message': 'Update in progress...'
         })
 
     except Exception as e:
