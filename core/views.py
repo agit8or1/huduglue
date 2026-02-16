@@ -187,12 +187,17 @@ def apply_update(request):
         log_file = '/var/log/clientst0r/web-triggered-update.log'
 
         # Use nohup to completely detach - survives parent death
+        # Set proper PATH for subprocess
+        env = os.environ.copy()
+        env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
         subprocess.Popen(
             ['/usr/bin/nohup', '/bin/bash', update_script],
             stdout=open(log_file, 'a'),
             stderr=subprocess.STDOUT,
             start_new_session=True,  # Create new session (detach from terminal)
-            cwd=project_dir
+            cwd=project_dir,
+            env=env
         )
 
         messages.success(
