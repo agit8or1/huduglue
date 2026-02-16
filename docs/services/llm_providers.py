@@ -79,9 +79,14 @@ class AnthropicProvider(LLMProvider):
                 'content': content_text
             }
         except Exception as e:
+            # Enhanced error handling for better diagnostics
+            error_msg = str(e)
+            # Check if it's an API error with status code
+            if hasattr(e, 'status_code'):
+                error_msg = f"API Error {e.status_code}: {error_msg}"
             return {
                 'success': False,
-                'error': str(e)
+                'error': error_msg
             }
 
     def get_model_name(self) -> str:
@@ -148,9 +153,17 @@ class MiniMaxCodingProvider(LLMProvider):
                 'content': content_text
             }
         except Exception as e:
+            # Enhanced error handling for better diagnostics
+            error_msg = str(e)
+            # Check if it's an API error with status code
+            if hasattr(e, 'status_code'):
+                error_msg = f"API Error {e.status_code}: {error_msg}"
+            # Check if it's a JSON parsing error (HTML response)
+            if "Unexpected token" in error_msg or "not valid JSON" in error_msg:
+                error_msg = f"MiniMax API returned HTML instead of JSON - likely authentication or API error. Check API key and model name. Original error: {error_msg}"
             return {
                 'success': False,
-                'error': str(e)
+                'error': error_msg
             }
 
     def get_model_name(self) -> str:
