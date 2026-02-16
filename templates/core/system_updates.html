@@ -652,8 +652,26 @@ function startUpdate() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.status === 'started') {
-            // Start polling for progress
+        if (data.status === 'update_triggered') {
+            // Show simple waiting message and reload after specified time
+            const reloadSeconds = data.reload_seconds || 120;
+            document.getElementById('updateProgressText').textContent = data.message;
+            document.querySelector('#updateProgressModalLabel').textContent = 'Update In Progress';
+
+            // Show countdown
+            let remaining = reloadSeconds;
+            const countdownInterval = setInterval(function() {
+                remaining--;
+                document.getElementById('updateProgressText').textContent =
+                    `Update in progress... Page will reload in ${remaining} seconds. DO NOT CLOSE THIS TAB.`;
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('updateProgressText').textContent = 'Reloading...';
+                    location.reload();
+                }
+            }, 1000);
+        } else if (data.status === 'started') {
+            // Legacy: Start polling for progress
             pollProgress();
         } else {
             showError('Failed to start update');

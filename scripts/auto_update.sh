@@ -177,16 +177,23 @@ log_info "Using service: $GUNICORN_SERVICE"
 
 # ENHANCED RESTART: Stop, kill processes, clear cache, start fresh
 log_info "Stopping service..."
+echo "[DEBUG] About to stop service at $(date)" >> "$LOG_FILE"
 sudo systemctl stop "$GUNICORN_SERVICE" 2>/dev/null || true
+echo "[DEBUG] Service stopped at $(date)" >> "$LOG_FILE"
 
 log_info "Killing any lingering gunicorn processes..."
+echo "[DEBUG] About to kill processes at $(date)" >> "$LOG_FILE"
 # Only kill python gunicorn workers, not this bash script
 sudo pkill -9 -f "python.*gunicorn" 2>/dev/null || true
+echo "[DEBUG] Processes killed at $(date)" >> "$LOG_FILE"
 sleep 2
 
 log_info "Starting service fresh..."
+echo "[DEBUG] About to start service at $(date)" >> "$LOG_FILE"
 sudo systemctl start "$GUNICORN_SERVICE"
+echo "[DEBUG] Start command issued at $(date)" >> "$LOG_FILE"
 sleep 5
+echo "[DEBUG] Finished waiting after start at $(date)" >> "$LOG_FILE"
 
 # Clear bytecode cache in background (non-blocking)
 log_info "Clearing Python bytecode cache (background)..."

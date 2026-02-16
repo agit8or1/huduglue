@@ -207,9 +207,9 @@ def apply_update(request):
         )
 
         return JsonResponse({
-            'status': 'started',
-            'message': 'Update started. Services restarting. Page will reload automatically.',
-            'wait_time': 60
+            'status': 'update_triggered',  # Different status to avoid polling
+            'message': 'Update started. Please wait 2 minutes for services to restart.',
+            'reload_seconds': 120  # Tell page to reload after 2 minutes
         })
 
     except Exception as e:
