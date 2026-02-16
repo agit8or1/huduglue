@@ -2,11 +2,11 @@
 Version information for Client St0r
 """
 
-VERSION = '2.92.3'
+VERSION = '2.92.4'
 VERSION_INFO = {
     'major': 2,
     'minor': 92,
-    'patch': 3,
+    'patch': 4,
     'status': 'stable',  # alpha, beta, rc, stable
 }
 
