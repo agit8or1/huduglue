@@ -131,7 +131,7 @@ class ImportJob(BaseModel):
     def add_log(self, message):
         """Add a message to the import log."""
         from django.utils import timezone
-        timestamp = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M:%S %Z')
         self.import_log += f"[{timestamp}] {message}\n"
         self.save(update_fields=['import_log'])
 
