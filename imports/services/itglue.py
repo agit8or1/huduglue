@@ -28,6 +28,50 @@ class ITGlueImportService(BaseImportService):
             'Accept': 'application/vnd.api+json'
         }
 
+    def list_organizations(self):
+        """
+        List all organizations from IT Glue.
+
+        Endpoint: GET /organizations
+        Returns: list of dicts with 'id' and 'name'
+        """
+        organizations = []
+        page = 1
+
+        try:
+            while True:
+                response = self._make_request(
+                    'GET',
+                    '/organizations',
+                    params={'page[number]': page, 'page[size]': 50}
+                )
+                data = response.json()
+
+                orgs = data.get('data', [])
+                if not orgs:
+                    break
+
+                for org in orgs:
+                    attributes = org.get('attributes', {})
+                    organizations.append({
+                        'id': org['id'],
+                        'name': attributes.get('name', '')
+                    })
+
+                # IT Glue pagination - check if there's a next page
+                meta = data.get('meta', {})
+                if not meta.get('next-page'):
+                    break
+
+                page += 1
+
+            logger.info(f"Found {len(organizations)} organizations in IT Glue")
+            return organizations
+
+        except Exception as e:
+            logger.error(f"Failed to list organizations: {e}")
+            raise
+
     def import_assets(self):
         """
         Import configuration items from IT Glue.

@@ -27,6 +27,47 @@ class HuduImportService(BaseImportService):
             'Accept': 'application/json'
         }
 
+    def list_organizations(self):
+        """
+        List all companies from Hudu.
+
+        Endpoint: GET /api/v1/companies
+        Returns: list of dicts with 'id' and 'name'
+        """
+        organizations = []
+        page = 1
+
+        try:
+            while True:
+                response = self._make_request(
+                    'GET',
+                    '/api/v1/companies',
+                    params={'page': page, 'page_size': 100}
+                )
+                data = response.json()
+
+                companies = data.get('companies', [])
+                if not companies:
+                    break
+
+                for company in companies:
+                    organizations.append({
+                        'id': company['id'],
+                        'name': company['name']
+                    })
+
+                # Hudu pagination
+                page += 1
+                if len(companies) < 100:
+                    break
+
+            logger.info(f"Found {len(organizations)} companies in Hudu")
+            return organizations
+
+        except Exception as e:
+            logger.error(f"Failed to list organizations: {e}")
+            raise
+
     def import_assets(self):
         """
         Import assets from Hudu.
