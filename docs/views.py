@@ -219,7 +219,31 @@ def document_edit(request, slug):
     Edit document (creates version automatically).
     """
     org = get_request_organization(request)
-    document = get_object_or_404(Document, slug=slug, organization=org)
+
+    # Try to find document - handle cross-org editing for staff users
+    try:
+        if org:
+            # Normal case: user has org context, try that first
+            document = Document.objects.get(slug=slug, organization=org)
+        else:
+            # Global view or no org: get any matching document
+            document = Document.objects.get(slug=slug)
+    except Document.DoesNotExist:
+        # If not found in current org, check if user is staff and document exists elsewhere
+        if request.user.is_superuser or getattr(request, 'is_staff_user', False):
+            try:
+                document = Document.objects.get(slug=slug)
+                # Found in different org - switch context temporarily for this edit
+                org = document.organization
+                messages.info(request, f"Editing document from organization: {org.name if org else 'Global KB'}")
+            except Document.DoesNotExist:
+                # Document truly doesn't exist
+                from django.http import Http404
+                raise Http404("No Document matches the given query.")
+        else:
+            # Regular user can't access documents outside their org
+            from django.http import Http404
+            raise Http404("No Document matches the given query.")
 
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES, instance=document, organization=org)
