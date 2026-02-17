@@ -65,15 +65,16 @@ def is_fail2ban_installed():
         return False, False, False, 'fail2ban package not installed'
 
     # Check if sudo permissions are configured FIRST
-    # Try a simple sudo -n test to check passwordless sudo
+    # Test using an actual command we need (systemctl is-active is in sudoers whitelist)
     sudo_configured = False
     try:
         test_result = subprocess.run(
-            ['sudo', '-n', 'true'],
+            ['sudo', '-n', 'systemctl', 'is-active', 'fail2ban'],
             capture_output=True,
             text=True,
             timeout=5
         )
+        # If this succeeds, sudo is configured for our needs
         sudo_configured = test_result.returncode == 0
     except Exception:
         sudo_configured = False
