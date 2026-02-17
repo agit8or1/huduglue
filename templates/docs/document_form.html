@@ -427,8 +427,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize Quill
     function initQuill() {
-        if (quillEditor) return;
+        console.log('initQuill: Function called');
+        if (quillEditor) {
+            console.log('initQuill: Editor already exists, returning early');
+            return;
+        }
 
+        console.log('initQuill: Creating new Quill editor...');
         // Create editor container for Quill
         const editorDiv = document.createElement('div');
         editorDiv.id = 'quill-editor';
@@ -467,42 +472,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Set initial content if exists
-        // Use clipboard.dangerouslyPasteHTML instead of innerHTML to preserve formatting
+        console.log('initQuill: Loading content into editor...');
+        console.log('initQuill: Content length:', bodyTextarea.value.length);
+        console.log('initQuill: Content preview:', bodyTextarea.value.substring(0, 200));
+
         if (bodyTextarea.value) {
-            const delta = quillEditor.clipboard.convert(bodyTextarea.value);
-            quillEditor.setContents(delta, 'silent');
+            try {
+                const delta = quillEditor.clipboard.convert(bodyTextarea.value);
+                console.log('initQuill: Delta conversion successful, delta ops count:', delta.ops ? delta.ops.length : 0);
+                quillEditor.setContents(delta, 'silent');
+                console.log('initQuill: Content set successfully, editor length:', quillEditor.getLength());
+            } catch (error) {
+                console.error('initQuill: Error loading content:', error);
+            }
+        } else {
+            console.log('initQuill: No content to load (textarea is empty)');
         }
     }
 
     // Toggle editor based on content type
     function toggleEditor() {
         const contentType = contentTypeSelect.value;
+        console.log('toggleEditor: Called, content type =', contentType);
 
         // IMPORTANT: Sync current editor content to hidden textarea before switching
         // This preserves content when user switches between HTML/Markdown modes
         if (quillEditor && quillContainer.style.display !== 'none') {
             // Switching away from HTML mode - save Quill content
+            console.log('toggleEditor: Saving Quill content to textarea before switch');
             bodyTextarea.value = quillEditor.root.innerHTML;
         } else if (markdownTextarea && markdownContainer.style.display !== 'none') {
             // Switching away from Markdown mode - save Markdown content
+            console.log('toggleEditor: Saving Markdown content to textarea before switch');
             bodyTextarea.value = markdownTextarea.value;
         }
 
         if (contentType === 'html') {
+            console.log('toggleEditor: Switching to HTML mode');
             // Show WYSIWYG
             quillContainer.style.display = 'block';
             markdownContainer.style.display = 'none';
             fileUploadContainer.style.display = 'none';
 
             if (!quillEditor) {
+                console.log('toggleEditor: Quill editor does not exist, calling initQuill()');
                 initQuill();
             } else {
+                console.log('toggleEditor: Quill editor exists, reloading content');
                 document.getElementById('quill-editor').style.display = 'block';
 
                 // Reload content from textarea (always, not just when empty)
                 if (bodyTextarea.value) {
+                    console.log('toggleEditor: Reloading', bodyTextarea.value.length, 'chars into existing editor');
                     const delta = quillEditor.clipboard.convert(bodyTextarea.value);
                     quillEditor.setContents(delta, 'silent');
+                } else {
+                    console.log('toggleEditor: No content to reload');
                 }
             }
         } else if (contentType === 'markdown') {
