@@ -371,7 +371,27 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(data)
         })
-        .then(response => response.json())
+        .then(async response => {
+            // Check if response is OK (status 200-299)
+            if (!response.ok) {
+                // Try to get error details
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                } else {
+                    // Server returned HTML or other non-JSON response
+                    const errorText = await response.text();
+                    // Extract useful info from HTML error page if possible
+                    const match = errorText.match(/<title>(.*?)<\/title>/i);
+                    const errorTitle = match ? match[1] : 'Server Error';
+                    throw new Error(`${errorTitle} (${response.status}) - Server returned HTML instead of JSON. Check server logs for details.`);
+                }
+            }
+
+            // Parse JSON response
+            return response.json();
+        })
         .then(result => {
             loadingIndicator.style.display = 'none';
 
@@ -392,8 +412,9 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             loadingIndicator.style.display = 'none';
-            document.getElementById('error-message').textContent = 'Network error: ' + error.message;
+            document.getElementById('error-message').textContent = error.message || 'Network error occurred';
             errorContainer.style.display = 'block';
+            console.error('AI Generation Error:', error);
         });
     });
 });

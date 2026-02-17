@@ -774,7 +774,27 @@
                 output_format: outputFormat
             })
         })
-        .then(response => response.json())
+        .then(async response => {
+            // Check if response is OK (status 200-299)
+            if (!response.ok) {
+                // Try to get error details
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                } else {
+                    // Server returned HTML or other non-JSON response
+                    const errorText = await response.text();
+                    // Extract useful info from HTML error page if possible
+                    const match = errorText.match(/<title>(.*?)<\/title>/i);
+                    const errorTitle = match ? match[1] : 'Server Error';
+                    throw new Error(`${errorTitle} (${response.status}) - Server returned HTML instead of JSON. Check server logs for details.`);
+                }
+            }
+
+            // Parse JSON response
+            return response.json();
+        })
         .then(result => {
             document.getElementById('ai-enhance-loading').style.display = 'none';
             document.querySelectorAll('.enhancement-option').forEach(btn => btn.disabled = false);
@@ -838,8 +858,9 @@
         .catch(error => {
             document.getElementById('ai-enhance-loading').style.display = 'none';
             document.querySelectorAll('.enhancement-option').forEach(btn => btn.disabled = false);
-            document.getElementById('ai-enhance-error-message').textContent = 'Network error: ' + error.message;
+            document.getElementById('ai-enhance-error-message').textContent = error.message || 'Network error occurred';
             document.getElementById('ai-enhance-error').style.display = 'block';
+            console.error('AI Enhancement Error:', error);
         });
     }
 </script>
