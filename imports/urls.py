@@ -14,5 +14,6 @@ urlpatterns = [
     path('<int:pk>/edit/', views.import_edit, name='import_edit'),
     path('<int:pk>/delete/', views.import_delete, name='import_delete'),
     path('<int:pk>/start/', views.import_start, name='import_start'),
+    path('<int:pk>/rollback/', views.import_rollback, name='import_rollback'),
     path('<int:pk>/log/', views.import_log, name='import_log'),
 ]

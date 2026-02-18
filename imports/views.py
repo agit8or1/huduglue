@@ -106,6 +106,70 @@ def import_delete(request, pk):
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
+def import_rollback(request, pk):
+    """
+    Rollback import job - delete all imported objects.
+
+    This allows users to undo an import for testing/debugging purposes.
+    All objects created during the import (tracked via ImportMapping) will be deleted.
+    """
+    job = get_object_or_404(
+        ImportJob.objects.select_related('target_organization', 'started_by', 'rolled_back_by'),
+        pk=pk
+    )
+
+    # Check if rollback is allowed
+    if not job.can_rollback():
+        if job.rolled_back_at:
+            messages.error(request, f'Import already rolled back on {job.rolled_back_at} by {job.rolled_back_by}.')
+        elif job.dry_run:
+            messages.error(request, 'Cannot rollback a dry-run import (no data was created).')
+        elif job.status != 'completed':
+            messages.error(request, f'Can only rollback completed imports. Current status: {job.get_status_display()}')
+        else:
+            messages.error(request, 'Cannot rollback this import.')
+        return redirect('imports:import_detail', pk=job.pk)
+
+    # Get statistics for confirmation
+    mapping_count = job.mappings.count()
+    org_count = job.organization_mappings.count()
+
+    if request.method == 'POST':
+        try:
+            # Perform rollback
+            stats = job.rollback(request.user)
+
+            # Show success message with statistics
+            deleted_summary = ', '.join([f"{count} {model_name.lower()}s" for model_name, count in stats['by_type'].items()])
+            messages.success(
+                request,
+                f"Successfully rolled back import! Deleted: {deleted_summary}. "
+                f"Total: {stats['total_deleted']} objects removed."
+            )
+
+            # Show any errors
+            if stats['errors']:
+                for error in stats['errors']:
+                    messages.warning(request, f"Warning: {error}")
+
+            return redirect('imports:import_detail', pk=job.pk)
+
+        except Exception as e:
+            import logging
+            logger = logging.getLogger('imports')
+            logger.error(f"Rollback failed for import {job.id}: {str(e)}", exc_info=True)
+            messages.error(request, f'Rollback failed: {str(e)}')
+            return redirect('imports:import_detail', pk=job.pk)
+
+    return render(request, 'imports/import_confirm_rollback.html', {
+        'job': job,
+        'mapping_count': mapping_count,
+        'org_count': org_count,
+    })
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
 def import_start(request, pk):
     """Start an import job."""
     job = get_object_or_404(ImportJob, pk=pk)

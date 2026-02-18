@@ -26,6 +26,11 @@
                 <i class="fas fa-edit"></i> Edit
             </a>
             {% endif %}
+            {% if job.status == 'completed' and not job.rolled_back_at and not job.dry_run %}
+            <a href="{% url 'imports:import_rollback' job.pk %}" class="btn btn-warning">
+                <i class="fas fa-undo"></i> Rollback
+            </a>
+            {% endif %}
             <a href="{% url 'imports:import_delete' job.pk %}" class="btn btn-danger">
                 <i class="fas fa-trash"></i> Delete
             </a>
@@ -53,8 +58,21 @@
                                     <span class="badge bg-danger">Failed</span>
                                 {% elif job.status == 'cancelled' %}
                                     <span class="badge bg-warning">Cancelled</span>
+                                {% elif job.status == 'rolled_back' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-undo"></i> Rolled Back
+                                    </span>
                                 {% endif %}
                             </p>
+                            {% if job.rolled_back_at %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-undo"></i> <strong>Import Rolled Back</strong><br>
+                                <small>
+                                    On {{ job.rolled_back_at|date:"Y-m-d H:i:s" }} by {{ job.rolled_back_by.username }}<br>
+                                    All imported objects have been deleted.
+                                </small>
+                            </div>
+                            {% endif %}
                             <p><strong>Dry Run:</strong>
                                 {% if job.dry_run %}
                                     <span class="badge bg-info">Yes (Preview Only)</span>

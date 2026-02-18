@@ -25,6 +25,7 @@ class ImportJob(BaseModel):
         ('completed', 'Completed'),
         ('failed', 'Failed'),
         ('cancelled', 'Cancelled'),
+        ('rolled_back', 'Rolled Back'),
     ]
 
     # Source configuration
@@ -102,6 +103,10 @@ class ImportJob(BaseModel):
     completed_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
+    # Rollback tracking
+    rolled_back_at = models.DateTimeField(null=True, blank=True, help_text="When this import was rolled back")
+    rolled_back_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='import_jobs_rolled_back', help_text="User who rolled back this import")
+
     # Results
     total_items = models.PositiveIntegerField(default=0, help_text="Total items to import")
     items_imported = models.PositiveIntegerField(default=0, help_text="Successfully imported items")
@@ -156,6 +161,97 @@ class ImportJob(BaseModel):
         self.completed_at = timezone.now()
         self.error_message = error_message
         self.save(update_fields=['status', 'completed_at', 'error_message'])
+
+    def can_rollback(self):
+        """Check if this import can be rolled back."""
+        return self.status == 'completed' and not self.rolled_back_at and not self.dry_run
+
+    def rollback(self, user):
+        """
+        Rollback this import by deleting all imported objects.
+
+        Args:
+            user: User performing the rollback
+
+        Returns:
+            dict: Statistics about the rollback (deleted counts per type)
+        """
+        from django.utils import timezone
+        from django.apps import apps
+        import logging
+
+        logger = logging.getLogger('imports')
+
+        if not self.can_rollback():
+            raise ValueError(f"Cannot rollback import {self.id}: status={self.status}, rolled_back={bool(self.rolled_back_at)}, dry_run={self.dry_run}")
+
+        stats = {
+            'total_deleted': 0,
+            'by_type': {},
+            'errors': []
+        }
+
+        # Get all mappings for this import
+        mappings = self.mappings.all().select_related('target_organization')
+
+        logger.info(f"Starting rollback of import {self.id} ({mappings.count()} mappings)")
+        self.add_log(f"Starting rollback - {mappings.count()} objects to delete")
+
+        # Group by model type for efficient deletion
+        objects_by_model = {}
+        for mapping in mappings:
+            model_name = mapping.target_model
+            if model_name not in objects_by_model:
+                objects_by_model[model_name] = []
+            objects_by_model[model_name].append(mapping.target_id)
+
+        # Delete objects for each model type
+        for model_name, object_ids in objects_by_model.items():
+            try:
+                # Get the model class
+                if model_name == 'Asset':
+                    Model = apps.get_model('assets', 'Asset')
+                elif model_name == 'Password':
+                    Model = apps.get_model('vault', 'Password')
+                elif model_name == 'Document':
+                    Model = apps.get_model('docs', 'Document')
+                elif model_name == 'Contact':
+                    Model = apps.get_model('assets', 'Contact')
+                elif model_name == 'Organization':
+                    Model = apps.get_model('core', 'Organization')
+                elif model_name == 'Location':
+                    Model = apps.get_model('locations', 'Location')
+                elif model_name == 'FloorPlan':
+                    Model = apps.get_model('locations', 'FloorPlan')
+                else:
+                    logger.warning(f"Unknown model type: {model_name}")
+                    stats['errors'].append(f"Unknown model type: {model_name}")
+                    continue
+
+                # Delete all objects of this type
+                deleted_count, _ = Model.objects.filter(id__in=object_ids).delete()
+                stats['by_type'][model_name] = deleted_count
+                stats['total_deleted'] += deleted_count
+
+                logger.info(f"Deleted {deleted_count} {model_name} objects")
+                self.add_log(f"Deleted {deleted_count} {model_name} objects")
+
+            except Exception as e:
+                error_msg = f"Error deleting {model_name} objects: {str(e)}"
+                logger.error(error_msg)
+                stats['errors'].append(error_msg)
+                self.add_log(f"ERROR: {error_msg}")
+
+        # Mark import as rolled back
+        self.status = 'rolled_back'
+        self.rolled_back_at = timezone.now()
+        self.rolled_back_by = user
+        self.save(update_fields=['status', 'rolled_back_at', 'rolled_back_by'])
+
+        logger.info(f"Rollback complete: {stats['total_deleted']} objects deleted")
+        self.add_log(f"Rollback complete: {stats['total_deleted']} objects deleted")
+
+        return stats
 
 
 class OrganizationMapping(BaseModel):

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Rollback Import - {{ job }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'imports:import_list' %}">Imports</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'imports:import_detail' job.pk %}">{{ job.get_source_type_display }} Import</a></li>
+            <li class="breadcrumb-item active">Rollback</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-undo"></i> Rollback Import
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This action will permanently delete all objects created by this import.
+                        This operation cannot be undone!
+                    </div>
+
+                    <h5>Import Details</h5>
+                    <dl class="row">
+                        <dt class="col-sm-4">Source:</dt>
+                        <dd class="col-sm-8">{{ job.get_source_type_display }}</dd>
+
+                        <dt class="col-sm-4">Target Organization:</dt>
+                        <dd class="col-sm-8">{{ job.target_organization|default:"All Organizations" }}</dd>
+
+                        <dt class="col-sm-4">Completed:</dt>
+                        <dd class="col-sm-8">{{ job.completed_at }}</dd>
+
+                        <dt class="col-sm-4">Started By:</dt>
+                        <dd class="col-sm-8">{{ job.started_by }}</dd>
+                    </dl>
+
+                    <hr>
+
+                    <h5>What Will Be Deleted</h5>
+                    <div class="alert alert-info">
+                        <p><strong>{{ mapping_count }}</strong> imported objects will be permanently deleted:</p>
+                        <ul class="mb-0">
+                            <li>Assets: <strong>{{ job.items_imported }}</strong> total items imported</li>
+                            {% if org_count > 0 %}
+                            <li>Organizations: <strong>{{ org_count }}</strong> created during import</li>
+                            {% endif %}
+                            <li>All associated passwords, documents, contacts, etc.</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Important:</strong>
+                        <ul class="mb-0">
+                            <li>All imported data will be <strong>permanently deleted</strong></li>
+                            <li>This includes any edits made after the import</li>
+                            <li>External mappings will be removed</li>
+                            <li>This operation cannot be reversed</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmRollback" required>
+                            <label class="form-check-label" for="confirmRollback">
+                                I understand that this will permanently delete <strong>{{ mapping_count }} objects</strong> and cannot be undone
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'imports:import_detail' job.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="rollbackBtn" disabled>
+                                <i class="fas fa-undo"></i> Rollback Import
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirmRollback');
+    const rollbackBtn = document.getElementById('rollbackBtn');
+
+    checkbox.addEventListener('change', function() {
+        rollbackBtn.disabled = !this.checked;
+    });
+});
+</script>
+{% endblock %}
