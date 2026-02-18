@@ -170,7 +170,7 @@ def global_dashboard(request):
         'users': User.objects.filter(is_active=True).count(),
         'total_passwords': Password.objects.count(),
         'total_assets': Asset.objects.count(),
-        'total_documents': Document.objects.filter(is_published=True).count(),
+        'total_documents': Document.objects.filter(is_published=True, is_archived=False).count(),
         'total_processes': Process.objects.count(),
         'total_monitors': WebsiteMonitor.objects.count(),
     }
