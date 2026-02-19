@@ -172,9 +172,10 @@ class BaseRMMProvider(BaseProvider):
         """
         Parse provider datetime string to Python datetime.
         Override in subclass if provider has non-standard format.
+        Also handles Unix timestamps (integers or numeric strings).
 
         Args:
-            date_string: ISO 8601 datetime string or None
+            date_string: ISO 8601 datetime string, Unix timestamp, or None
 
         Returns:
             datetime object or None
@@ -182,9 +183,20 @@ class BaseRMMProvider(BaseProvider):
         if not date_string:
             return None
         try:
+            # If it's an integer or float, treat as Unix timestamp
+            if isinstance(date_string, (int, float)):
+                return datetime.fromtimestamp(date_string, tz=timezone.utc)
+
+            # Try parsing as numeric string (Unix timestamp)
+            try:
+                timestamp = float(date_string)
+                return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+            except (ValueError, TypeError):
+                pass  # Not a number, try ISO format
+
             # Try ISO 8601 format with Z timezone
             return datetime.fromisoformat(date_string.replace('Z', '+00:00'))
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError, TypeError):
             return None
 
     def _parse_location(self, location_string: Optional[str]) -> tuple[Optional[float], Optional[float]]:

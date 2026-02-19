@@ -152,11 +152,13 @@ class BitwardenImporter:
         password = login.get('password') or ''
         totp = login.get('totp') or ''
 
-        # Get first URI if available
+        # Get first URI if available (truncate if longer than 2000 chars)
         url = ''
         uris = login.get('uris', [])
         if uris and len(uris) > 0:
             url = uris[0].get('uri') or ''
+            if len(url) > 2000:
+                url = url[:1997] + '...'  # Truncate with ellipsis
 
         # Get folder
         folder = self._get_folder(item_data.get('folderId'))

@@ -83,7 +83,7 @@ class Password(BaseModel):
     folder = models.ForeignKey(PasswordFolder, on_delete=models.SET_NULL, null=True, blank=True, related_name='passwords', help_text='Password folder for organization')
     title = models.CharField(max_length=255)
     username = models.CharField(max_length=255, blank=True)
-    url = models.URLField(max_length=1000, blank=True)
+    url = models.URLField(max_length=2000, blank=True)
     notes = models.TextField(blank=True)
 
     # Type of password entry
