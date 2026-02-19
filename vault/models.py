@@ -197,29 +197,78 @@ class Password(BaseModel):
         """
         Generate current TOTP code.
         Returns dict with code and seconds until expiry, or None if no secret.
+        Returns error dict if generation fails.
         """
+        import logging
+        logger = logging.getLogger('vault')
+
         if not self.otp_secret:
             return None
 
         import pyotp
         import time
+        import urllib.parse
 
-        secret = self.get_otp_secret()
-        if not secret:
-            return None
+        try:
+            secret = self.get_otp_secret()
+            if not secret:
+                return None
 
-        totp = pyotp.TOTP(secret)
-        code = totp.now()
+            # Handle otpauth:// URI format from Bitwarden
+            if secret.startswith('otpauth://'):
+                logger.debug(f"Password {self.id}: TOTP secret is otpauth:// URI, parsing...")
+                try:
+                    parsed = urllib.parse.urlparse(secret)
+                    params = urllib.parse.parse_qs(parsed.query)
+                    if 'secret' in params:
+                        secret = params['secret'][0]
+                        logger.info(f"Password {self.id}: Extracted secret from otpauth:// URI")
+                    else:
+                        logger.error(f"Password {self.id}: otpauth:// URI missing 'secret' parameter")
+                        return {
+                            'error': True,
+                            'message': 'Invalid TOTP URI format (missing secret parameter)'
+                        }
+                except Exception as e:
+                    logger.error(f"Password {self.id}: Failed to parse otpauth:// URI: {e}")
+                    return {
+                        'error': True,
+                        'message': f'Failed to parse TOTP URI: {str(e)}'
+                    }
 
-        # Calculate seconds until next code
-        current_time = time.time()
-        time_remaining = 30 - (int(current_time) % 30)
+            # Clean the secret (remove spaces, ensure uppercase)
+            secret = secret.strip().replace(' ', '').replace('-', '').upper()
 
-        return {
-            'code': code,
-            'time_remaining': time_remaining,
-            'issuer': self.otp_issuer or self.title
-        }
+            # Validate base32 format
+            try:
+                import base64
+                base64.b32decode(secret)
+            except Exception as e:
+                logger.error(f"Password {self.id}: Invalid base32 secret: {e}")
+                return {
+                    'error': True,
+                    'message': 'Invalid TOTP secret format (not valid base32)'
+                }
+
+            totp = pyotp.TOTP(secret)
+            code = totp.now()
+
+            # Calculate seconds until next code
+            current_time = time.time()
+            time_remaining = 30 - (int(current_time) % 30)
+
+            return {
+                'code': code,
+                'time_remaining': time_remaining,
+                'issuer': self.otp_issuer or self.title
+            }
+
+        except Exception as e:
+            logger.error(f"Password {self.id} ({self.title}): OTP generation failed: {e}", exc_info=True)
+            return {
+                'error': True,
+                'message': f'OTP generation error: {str(e)}'
+            }
 
     @property
     def is_expired(self):

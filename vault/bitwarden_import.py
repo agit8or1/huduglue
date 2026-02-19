@@ -4,6 +4,7 @@ Supports importing password vault data from Bitwarden JSON exports.
 """
 import json
 import logging
+import urllib.parse
 from datetime import datetime
 from django.utils import timezone
 from django.db import transaction
@@ -186,7 +187,9 @@ class BitwardenImporter:
             if folder:
                 existing.folder = folder
             if totp:
-                existing.otp_secret = totp
+                # Parse otpauth:// URI if needed
+                parsed_totp = self._parse_totp_secret(totp)
+                existing.set_otp_secret(parsed_totp)
                 existing.password_type = 'otp'
 
             # Import custom fields
@@ -217,7 +220,9 @@ class BitwardenImporter:
             new_password.set_password(password)
 
             if totp:
-                new_password.set_otp_secret(totp)
+                # Parse otpauth:// URI if needed
+                parsed_totp = self._parse_totp_secret(totp)
+                new_password.set_otp_secret(parsed_totp)
 
             new_password.save()
 
@@ -403,6 +408,39 @@ class BitwardenImporter:
         if not folder_id:
             return None
         return self.folder_map.get(folder_id)
+
+    def _parse_totp_secret(self, totp):
+        """
+        Parse TOTP secret from Bitwarden export.
+        Handles both raw base32 secrets and otpauth:// URIs.
+
+        Args:
+            totp: TOTP secret (raw base32 or otpauth:// URI)
+
+        Returns:
+            str: Cleaned base32 secret, or original value if parsing fails
+        """
+        if not totp:
+            return totp
+
+        # Handle otpauth:// URI format
+        if totp.startswith('otpauth://'):
+            try:
+                parsed = urllib.parse.urlparse(totp)
+                params = urllib.parse.parse_qs(parsed.query)
+                if 'secret' in params:
+                    secret = params['secret'][0]
+                    logger.info(f"Extracted base32 secret from otpauth:// URI")
+                    return secret
+                else:
+                    logger.warning(f"otpauth:// URI missing 'secret' parameter, storing as-is")
+                    return totp
+            except Exception as e:
+                logger.error(f"Failed to parse otpauth:// URI: {e}, storing as-is")
+                return totp
+
+        # Return raw secret as-is
+        return totp
 
 
 def import_bitwarden_json(file_content, organization, user, folder_prefix='', update_existing=False):
