@@ -4,6 +4,8 @@ Integrations models - PSA connections and synced data
 import json
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from core.models import Organization, BaseModel
 from core.utils import OrganizationManager
 from vault.encryption import encrypt, decrypt, encrypt_dict, decrypt_dict
@@ -132,18 +134,23 @@ class PSAConnection(BaseModel):
 
 class ExternalObjectMap(BaseModel):
     """
-    Mapping table between external PSA objects and local objects.
+    Mapping table between external PSA/RMM objects and local objects.
+    Uses GenericForeignKey to support both PSAConnection and RMMConnection.
     """
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='external_object_maps')
-    connection = models.ForeignKey(PSAConnection, on_delete=models.CASCADE, related_name='object_maps')
+
+    # Generic connection field (supports PSAConnection or RMMConnection)
+    connection_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    connection_id = models.PositiveIntegerField()
+    connection = GenericForeignKey('connection_type', 'connection_id')
 
     # External object
     external_id = models.CharField(max_length=255, db_index=True)
-    external_type = models.CharField(max_length=50)  # e.g., 'company', 'contact', 'ticket'
+    external_type = models.CharField(max_length=50)  # e.g., 'company', 'contact', 'ticket', 'rmm_client', 'rmm_site'
     external_hash = models.CharField(max_length=64, blank=True)  # For change detection
 
     # Local object
-    local_type = models.CharField(max_length=50)  # e.g., 'psa_company', 'psa_contact'
+    local_type = models.CharField(max_length=50)  # e.g., 'psa_company', 'psa_contact', 'organization'
     local_id = models.PositiveIntegerField()
 
     # Sync metadata
@@ -151,14 +158,16 @@ class ExternalObjectMap(BaseModel):
 
     class Meta:
         db_table = 'external_object_maps'
-        unique_together = [['connection', 'external_type', 'external_id']]
+        unique_together = [['connection_type', 'connection_id', 'external_type', 'external_id']]
         indexes = [
             models.Index(fields=['organization', 'external_type', 'external_id']),
             models.Index(fields=['local_type', 'local_id']),
+            models.Index(fields=['connection_type', 'connection_id']),
         ]
 
     def __str__(self):
-        return f"{self.connection.name}:{self.external_type}:{self.external_id} -> {self.local_type}:{self.local_id}"
+        conn_name = getattr(self.connection, 'name', 'Unknown')
+        return f"{conn_name}:{self.external_type}:{self.external_id} -> {self.local_type}:{self.local_id}"
 
 
 class PSACompany(BaseModel):

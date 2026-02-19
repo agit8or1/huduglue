@@ -47,10 +47,10 @@ class PSATicketAdmin(admin.ModelAdmin):
 @admin.register(ExternalObjectMap)
 class ExternalObjectMapAdmin(admin.ModelAdmin):
     list_display = ['connection', 'external_type', 'external_id', 'local_type', 'local_id', 'last_synced_at']
-    list_filter = ['external_type', 'local_type', 'connection']
+    list_filter = ['external_type', 'local_type', 'connection_type']
     search_fields = ['external_id']
-    readonly_fields = ['created_at', 'updated_at', 'last_synced_at']
-    raw_id_fields = ['organization', 'connection']
+    readonly_fields = ['created_at', 'updated_at', 'last_synced_at', 'connection_type', 'connection_id']
+    raw_id_fields = ['organization']  # Removed 'connection' (GenericForeignKey can't use raw_id_fields)
 
 
 # ============================================================================
