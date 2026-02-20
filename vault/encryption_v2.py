@@ -246,6 +246,9 @@ def decrypt_v2(
         EncryptionError: If decryption fails or AAD doesn't match
         ValueError: If encrypted is None or invalid
     """
+    import logging
+    logger = logging.getLogger('vault')
+
     # FIX: Raise explicit error for None instead of silent handling
     if encrypted is None:
         raise ValueError("Cannot decrypt None value - encrypted must be a string")
@@ -255,31 +258,53 @@ def decrypt_v2(
 
     try:
         # Decode from base64
-        combined = base64.b64decode(encrypted)
+        try:
+            combined = base64.b64decode(encrypted)
+            logger.debug(f"Decryption: Successfully decoded base64, length={len(combined)}")
+        except Exception as e:
+            logger.error(f"Decryption: Base64 decode failed: {e}")
+            raise EncryptionError(f"Invalid base64 encoding: {e}")
 
         # Check if this is versioned (version 2)
         if len(combined) > 13:  # min: 1 byte version + 12 byte nonce + 1 byte ciphertext
             version = struct.unpack('B', combined[:1])[0]
+            logger.debug(f"Decryption: Detected version byte: {version}")
 
             if version == ENCRYPTION_VERSION:
                 # Version 2: Enhanced encryption
+                logger.debug(f"Decryption: Using v2 decryption with context={context}, org_id={org_id}, record_type={record_type}")
                 nonce = combined[1:13]
                 ciphertext = combined[13:]
 
-                # Derive key and build AAD (must match encryption)
-                key = derive_key(context)
-                aesgcm = AESGCM(key)
-                aad = build_aad(org_id, record_type, record_id)
+                try:
+                    # Derive key and build AAD (must match encryption)
+                    key = derive_key(context)
+                    aesgcm = AESGCM(key)
+                    aad = build_aad(org_id, record_type, record_id)
+                    logger.debug(f"Decryption: AAD={aad}")
 
-                # Decrypt with AAD verification
-                plaintext_bytes = aesgcm.decrypt(nonce, ciphertext, aad if aad else None)
-                return plaintext_bytes.decode('utf-8')
+                    # Decrypt with AAD verification
+                    plaintext_bytes = aesgcm.decrypt(nonce, ciphertext, aad if aad else None)
+                    result = plaintext_bytes.decode('utf-8')
+                    logger.debug(f"Decryption: v2 successful, plaintext length={len(result)}")
+                    return result
+                except Exception as e:
+                    logger.error(f"Decryption: v2 decrypt failed: {e}")
+                    raise
 
         # Fall back to legacy v1 decryption (no version byte)
+        logger.debug(f"Decryption: Falling back to v1 decryption")
         from .encryption import decrypt
-        return decrypt(encrypted)
+        try:
+            result = decrypt(encrypted)
+            logger.debug(f"Decryption: v1 successful, plaintext length={len(result)}")
+            return result
+        except Exception as e:
+            logger.error(f"Decryption: v1 decrypt failed: {e}")
+            raise
 
     except Exception as e:
+        logger.error(f"Decryption: Final error: {e}", exc_info=True)
         raise EncryptionError(f"Decryption failed: {e}")
     finally:
         # Clear sensitive data from memory
