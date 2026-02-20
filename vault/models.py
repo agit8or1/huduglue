@@ -260,19 +260,41 @@ class Password(BaseModel):
                         'message': f'Failed to parse TOTP URI: {str(e)}'
                     }
 
-            # Clean the secret (remove spaces, ensure uppercase)
-            secret = secret.strip().replace(' ', '').replace('-', '').upper()
+            # Clean the secret (remove spaces, dashes, underscores)
+            secret = secret.strip().replace(' ', '').replace('-', '').replace('_', '').upper()
+
+            # Handle URL encoding (e.g., %3D for =)
+            if '%' in secret:
+                logger.debug(f"Password {self.id}: Secret contains URL encoding, decoding...")
+                import urllib.parse
+                try:
+                    secret = urllib.parse.unquote(secret)
+                    logger.info(f"Password {self.id}: URL-decoded secret")
+                except Exception as e:
+                    logger.warning(f"Password {self.id}: URL decode failed: {e}")
+
+            # Log secret characteristics (without exposing the full secret)
+            logger.debug(f"Password {self.id}: Secret length={len(secret)}, starts_with={secret[:4]}..., ends_with=...{secret[-4:]}")
 
             # Validate base32 format
             try:
                 import base64
                 base64.b32decode(secret)
             except Exception as e:
-                logger.error(f"Password {self.id}: Invalid base32 secret: {e}")
-                return {
-                    'error': True,
-                    'message': 'Invalid TOTP secret format (not valid base32)'
-                }
+                # Check for common issues
+                invalid_chars = set(c for c in secret if c not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=')
+                if invalid_chars:
+                    logger.error(f"Password {self.id}: Secret contains invalid base32 characters: {invalid_chars}")
+                    return {
+                        'error': True,
+                        'message': f'Invalid TOTP secret: contains invalid characters ({", ".join(sorted(invalid_chars))})'
+                    }
+                else:
+                    logger.error(f"Password {self.id}: Invalid base32 secret: {e}")
+                    return {
+                        'error': True,
+                        'message': f'Invalid TOTP secret format (base32 decode error: {str(e)[:50]})'
+                    }
 
             totp = pyotp.TOTP(secret)
             code = totp.now()
