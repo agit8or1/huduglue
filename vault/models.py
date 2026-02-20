@@ -205,6 +205,18 @@ class Password(BaseModel):
                 logger.error(f"Password {self.id}: Failed to re-encrypt TOTP secret: {e}")
             return plaintext_secret  # Return the plaintext URI for parsing
 
+        # Check for corrupted encrypted data (less than minimum viable length)
+        try:
+            import base64
+            encrypted_bytes = base64.b64decode(self.otp_secret)
+            if len(encrypted_bytes) < 28:  # Minimum: 12 (nonce) + 16 (tag for empty plaintext)
+                logger.error(f"Password {self.id}: TOTP secret is corrupted (only {len(encrypted_bytes)} bytes, expected 28+)")
+                logger.error(f"Password {self.id}: This appears to be incomplete encrypted data from a failed import")
+                # Mark the field as corrupted so it can be identified
+                return None
+        except Exception as e:
+            logger.warning(f"Password {self.id}: Could not check encrypted data length: {e}")
+
         try:
             logger.debug(f"Password {self.id}: Attempting TOTP decryption with org_id={self.organization_id}")
             return decrypt_totp_secret(
