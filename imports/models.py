@@ -219,6 +219,26 @@ class ImportJob(BaseModel):
                     Model = apps.get_model('assets', 'Contact')
                 elif model_name == 'Organization':
                     Model = apps.get_model('core', 'Organization')
+                    # Special handling: only delete orgs that were created during import
+                    org_mappings = self.organization_mappings.filter(organization_id__in=object_ids)
+                    created_org_ids = [m.organization_id for m in org_mappings if m.was_created]
+                    matched_org_ids = [m.organization_id for m in org_mappings if not m.was_created]
+
+                    if created_org_ids:
+                        deleted_count, _ = Model.objects.filter(id__in=created_org_ids).delete()
+                        stats['by_type']['Organization (created)'] = deleted_count
+                        stats['total_deleted'] += deleted_count
+                        logger.info(f"Deleted {deleted_count} Organization objects (created during import)")
+                        self.add_log(f"Deleted {deleted_count} Organization objects (created during import)")
+
+                    if matched_org_ids:
+                        skipped_count = len(matched_org_ids)
+                        stats['by_type']['Organization (skipped)'] = skipped_count
+                        logger.info(f"Skipped {skipped_count} Organization objects (existed before import)")
+                        self.add_log(f"Skipped {skipped_count} Organization objects (existed before import)")
+
+                    continue  # Skip the normal deletion logic below
+
                 elif model_name == 'Location':
                     Model = apps.get_model('locations', 'Location')
                 elif model_name == 'FloorPlan':
