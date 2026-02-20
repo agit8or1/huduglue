@@ -276,6 +276,12 @@ class Password(BaseModel):
             # Log secret characteristics (without exposing the full secret)
             logger.debug(f"Password {self.id}: Secret length={len(secret)}, starts_with={secret[:4]}..., ends_with=...{secret[-4:]}")
 
+            # Add base32 padding if needed (must be multiple of 8)
+            padding_needed = len(secret) % 8
+            if padding_needed:
+                secret += '=' * (8 - padding_needed)
+                logger.debug(f"Password {self.id}: Added {8 - padding_needed} characters of base32 padding")
+
             # Validate base32 format
             try:
                 import base64

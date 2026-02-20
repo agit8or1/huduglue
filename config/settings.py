@@ -512,6 +512,11 @@ LOGGING = {
             'filename': '/var/log/itdocs/django.log',
             'formatter': 'verbose',
         },
+        'vault_file': {
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/itdocs/vault.log',
+            'formatter': 'verbose',
+        },
     },
     'root': {
         'handlers': ['console'],
@@ -526,6 +531,11 @@ LOGGING = {
         'integrations': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        'vault': {
+            'handlers': ['console', 'vault_file'],
+            'level': 'DEBUG',
             'propagate': False,
         },
     },
