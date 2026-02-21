@@ -98,6 +98,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'core.security_headers_middleware.SecurityHeadersMiddleware',  # Enhanced security headers
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.gzip.GZipMiddleware',  # Compress responses
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'core.csrf_middleware.MultiDomainCsrfViewMiddleware',  # Custom CSRF for multi-domain support
@@ -169,8 +170,21 @@ else:
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
                 'charset': 'utf8mb4',
             },
+            'CONN_MAX_AGE': 600,  # Keep connections open for 10 minutes (connection pooling)
         }
     }
+
+# Caching - Use database cache for production, dummy cache for debug
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+        'TIMEOUT': 300,  # 5 minutes default timeout
+        'OPTIONS': {
+            'MAX_ENTRIES': 10000,  # Maximum number of cache entries
+        }
+    }
+}
 
 # Password validation & hashing
 AUTH_PASSWORD_HASHERS = [

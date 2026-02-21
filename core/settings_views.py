@@ -436,6 +436,7 @@ def settings_directory(request):
 def system_status(request):
     """System status and health check page."""
     from config.version import get_full_version
+    from core.models import ScheduledTask
 
     # System information
     system_info = {
@@ -564,7 +565,6 @@ def system_status(request):
         services_status['gunicorn'] = bool(result.stdout.strip())
 
         # Check PSA Sync - check if scheduled task exists and is enabled
-        from core.models import ScheduledTask
         psa_task = ScheduledTask.objects.filter(
             task_name__in=['psa_sync_contacts', 'psa_sync']
         ).first()
