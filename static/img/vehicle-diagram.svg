@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Generic Vehicle Side View with Labeled Sections -->
+
+  <!-- Vehicle Body -->
+  <g id="vehicle-body">
+    <!-- Front Bumper -->
+    <rect id="front-bumper" x="50" y="150" width="80" height="100" fill="#4a5568" stroke="#2d3748" stroke-width="2" data-area="Front Bumper"/>
+
+    <!-- Hood -->
+    <rect id="hood" x="130" y="150" width="120" height="100" fill="#718096" stroke="#2d3748" stroke-width="2" data-area="Hood"/>
+
+    <!-- Windshield -->
+    <polygon id="windshield" points="250,150 300,130 300,200 250,200" fill="#90cdf4" stroke="#2d3748" stroke-width="2" opacity="0.7" data-area="Windshield"/>
+
+    <!-- Roof -->
+    <rect id="roof" x="300" y="130" width="250" height="70" fill="#718096" stroke="#2d3748" stroke-width="2" data-area="Roof"/>
+
+    <!-- Rear Windshield -->
+    <polygon id="rear-windshield" points="550,130 600,150 600,200 550,200" fill="#90cdf4" stroke="#2d3748" stroke-width="2" opacity="0.7" data-area="Rear Windshield"/>
+
+    <!-- Trunk -->
+    <rect id="trunk" x="600" y="150" width="100" height="100" fill="#718096" stroke="#2d3748" stroke-width="2" data-area="Trunk/Tailgate"/>
+
+    <!-- Rear Bumper -->
+    <rect id="rear-bumper" x="700" y="150" width="50" height="100" fill="#4a5568" stroke="#2d3748" stroke-width="2" data-area="Rear Bumper"/>
+
+    <!-- Driver Door -->
+    <rect id="driver-door" x="300" y="200" width="120" height="100" fill="#a0aec0" stroke="#2d3748" stroke-width="3" data-area="Driver Door"/>
+    <circle cx="310" cy="250" r="4" fill="#2d3748"/> <!-- Door handle -->
+
+    <!-- Rear Door -->
+    <rect id="rear-door" x="420" y="200" width="130" height="100" fill="#a0aec0" stroke="#2d3748" stroke-width="3" data-area="Rear Door"/>
+    <circle cx="430" cy="250" r="4" fill="#2d3748"/> <!-- Door handle -->
+
+    <!-- Front Wheel Well -->
+    <ellipse id="front-wheel-well" cx="180" cy="300" rx="50" ry="30" fill="#2d3748" data-area="Front Wheel Well"/>
+    <circle cx="180" cy="300" r="35" fill="#1a202c" stroke="#718096" stroke-width="4" data-area="Front Wheel"/>
+    <circle cx="180" cy="300" r="15" fill="#4a5568"/> <!-- Rim -->
+
+    <!-- Rear Wheel Well -->
+    <ellipse id="rear-wheel-well" cx="620" cy="300" rx="50" ry="30" fill="#2d3748" data-area="Rear Wheel Well"/>
+    <circle cx="620" cy="300" r="35" fill="#1a202c" stroke="#718096" stroke-width="4" data-area="Rear Wheel"/>
+    <circle cx="620" cy="300" r="15" fill="#4a5568"/> <!-- Rim -->
+
+    <!-- Side Mirrors -->
+    <rect id="driver-mirror" x="280" y="165" width="25" height="15" fill="#4a5568" stroke="#2d3748" stroke-width="1" data-area="Driver Side Mirror"/>
+    <line x1="280" y1="172" x2="265" y2="172" stroke="#2d3748" stroke-width="2"/> <!-- Mirror arm -->
+
+    <!-- Headlights -->
+    <rect id="headlight" x="55" y="160" width="30" height="20" fill="#fbbf24" stroke="#2d3748" stroke-width="1" rx="5" data-area="Headlight"/>
+
+    <!-- Taillights -->
+    <rect id="taillight" x="705" y="160" width="30" height="20" fill="#ef4444" stroke="#2d3748" stroke-width="1" rx="5" data-area="Taillight"/>
+  </g>
+
+  <!-- Labels -->
+  <g id="labels" font-family="Arial, sans-serif" font-size="12" fill="#2d3748" opacity="0.8">
+    <text x="90" y="145" text-anchor="middle">Front</text>
+    <text x="190" y="145" text-anchor="middle">Hood</text>
+    <text x="360" y="125" text-anchor="middle">Roof</text>
+    <text x="650" y="145" text-anchor="middle">Trunk</text>
+    <text x="725" y="145" text-anchor="middle">Rear</text>
+    <text x="360" y="195" text-anchor="middle">Driver Door</text>
+    <text x="485" y="195" text-anchor="middle">Rear Door</text>
+    <text x="180" y="350" text-anchor="middle" font-size="10">Front Wheel</text>
+    <text x="620" y="350" text-anchor="middle" font-size="10">Rear Wheel</text>
+  </g>
+</svg>

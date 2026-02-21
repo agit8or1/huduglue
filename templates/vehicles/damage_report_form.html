@@ -43,8 +43,19 @@
                             {{ form.repair_status }}
                         </div>
                     </div>
+
+                    <!-- Interactive Vehicle Diagram -->
                     <div class="mb-3">
                         <label class="form-label">Damage Location</label>
+                        <div class="card bg-light p-3 mb-2">
+                            <div class="text-center mb-2">
+                                <small class="text-muted"><i class="fas fa-hand-pointer"></i> Click on the diagram to select damage location</small>
+                            </div>
+                            <div id="vehicle-diagram-container" style="max-width: 600px; margin: 0 auto;">
+                                {% load static %}
+                                <object data="{% static 'img/vehicle-diagram.svg' %}" type="image/svg+xml" id="vehicle-svg" style="width: 100%; height: auto;"></object>
+                            </div>
+                        </div>
                         {{ form.damage_location }}
                     </div>
                     <div class="row">
@@ -114,4 +125,90 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<style>
+#vehicle-diagram-container [data-area] {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#vehicle-diagram-container [data-area]:hover {
+    filter: brightness(1.3);
+    stroke-width: 4 !important;
+}
+
+#vehicle-diagram-container [data-area].selected {
+    filter: brightness(1.5) drop-shadow(0 0 10px #ef4444);
+    stroke: #ef4444 !important;
+    stroke-width: 5 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const svgObject = document.getElementById('vehicle-svg');
+
+    svgObject.addEventListener('load', function() {
+        const svgDoc = svgObject.contentDocument;
+        const damageLocationInput = document.querySelector('[name="damage_location"]');
+
+        // Get all clickable areas
+        const areas = svgDoc.querySelectorAll('[data-area]');
+
+        // Add click handlers
+        areas.forEach(area => {
+            area.addEventListener('click', function() {
+                const areaName = this.getAttribute('data-area');
+
+                // Update input field
+                damageLocationInput.value = areaName;
+
+                // Visual feedback - remove previous selection
+                areas.forEach(a => a.classList.remove('selected'));
+
+                // Highlight selected area
+                this.classList.add('selected');
+
+                // Show confirmation
+                const container = document.getElementById('vehicle-diagram-container');
+                const existingMsg = container.querySelector('.selection-message');
+                if (existingMsg) existingMsg.remove();
+
+                const msg = document.createElement('div');
+                msg.className = 'alert alert-success alert-dismissible fade show selection-message mt-2';
+                msg.innerHTML = `
+                    <i class="fas fa-check-circle"></i> Selected: <strong>${areaName}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                container.appendChild(msg);
+
+                // Auto-dismiss after 3 seconds
+                setTimeout(() => {
+                    if (msg.parentNode) {
+                        const bsAlert = new bootstrap.Alert(msg);
+                        bsAlert.close();
+                    }
+                }, 3000);
+            });
+
+            // Add hover tooltip
+            area.addEventListener('mouseenter', function() {
+                const areaName = this.getAttribute('data-area');
+                this.setAttribute('title', `Click to select: ${areaName}`);
+            });
+        });
+
+        // Highlight pre-selected area if editing
+        if (damageLocationInput.value) {
+            areas.forEach(area => {
+                if (area.getAttribute('data-area') === damageLocationInput.value) {
+                    area.classList.add('selected');
+                }
+            });
+        }
+    });
+});
+</script>
 {% endblock %}
