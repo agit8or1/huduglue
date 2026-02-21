@@ -298,6 +298,9 @@ def rack_detail(request, pk):
     # Get devices ordered by position
     devices = rack.rack_devices.select_related('asset', 'equipment_model').order_by('start_unit')
 
+    # Get rack resources (patch panels, switches, etc.) with positions
+    rack_resources = rack.resources.filter(rack_position__isnull=False).order_by('rack_position')
+
     # Create rack layout (list of units)
     rack_units = []
     for unit_num in range(rack.units, 0, -1):  # Top to bottom
@@ -335,6 +338,7 @@ def rack_detail(request, pk):
     return render(request, 'monitoring/rack_detail.html', {
         'rack': rack,
         'devices': devices,
+        'rack_resources': rack_resources,
         'rack_units': rack_units,
         'available_rack_assets': available_rack_assets,
         'rack_images': rack_images,

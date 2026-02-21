@@ -76,6 +76,7 @@ urlpatterns = [
 
     # Rack Device API endpoints
     path('api/racks/<int:pk>/devices/', api_views.rack_devices_list, name='api_rack_devices_list'),
+    path('api/racks/<int:pk>/resources/', api_views.rack_resources_list, name='api_rack_resources_list'),
     path('api/rack-devices/<int:pk>/update-position/', api_views.update_rack_device_position, name='api_update_rack_device_position'),
     path('api/rack-devices/<int:pk>/', api_views.rack_device_detail, name='api_rack_device_detail'),
     path('api/racks/<int:pk>/devices/create/', api_views.create_rack_device, name='api_create_rack_device'),

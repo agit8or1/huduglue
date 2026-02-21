@@ -533,3 +533,33 @@ def patch_panel_port_update(request, pk, port_num):
             'success': False,
             'error': f'Server error: {str(e)}'
         }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def rack_resources_list(request, pk):
+    """
+    GET /api/racks/<id>/resources/
+    Return JSON list of all rack resources (patch panels, switches, etc.) with positions.
+    """
+    org = get_request_organization(request)
+    rack = get_object_or_404(Rack, pk=pk, organization=org)
+
+    resources = rack.resources.filter(rack_position__isnull=False)
+
+    resources_data = []
+    for resource in resources:
+        resources_data.append({
+            'id': resource.id,
+            'name': resource.name,
+            'resource_type': resource.resource_type,
+            'resource_type_display': resource.get_resource_type_display(),
+            'rack_position': resource.rack_position,
+            'port_count': resource.port_count,
+            'color': '#9b59b6',  # Purple for resources
+        })
+
+    return JsonResponse({
+        'success': True,
+        'resources': resources_data
+    })
