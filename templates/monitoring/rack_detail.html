@@ -747,6 +747,16 @@ let boardDragState = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing rack view...');
+
+    // Check if Sortable is loaded
+    if (typeof Sortable === 'undefined') {
+        console.error('SortableJS library not loaded!');
+        showToast('Error: Drag-and-drop library failed to load', 'danger');
+        return;
+    }
+
+    console.log('SortableJS loaded successfully');
     loadRackDevices();
     initializeToolbar();
 });
@@ -787,7 +797,14 @@ function renderCurrentView() {
 
 // Render the rack visualization
 function renderRack() {
+    console.log('Rendering rack with', rackDevices.length, 'devices');
     const rackVisual = document.getElementById('rack-visual');
+
+    if (!rackVisual) {
+        console.error('rack-visual element not found!');
+        return;
+    }
+
     rackVisual.innerHTML = '';
 
     // Create unit divs (top to bottom)
@@ -798,7 +815,13 @@ function renderRack() {
     }
 
     // Initialize drag-and-drop
-    initializeSortable();
+    try {
+        initializeSortable();
+        console.log('Sortable initialized successfully');
+    } catch (error) {
+        console.error('Error initializing Sortable:', error);
+        showToast('Error initializing drag-and-drop: ' + error.message, 'danger');
+    }
 }
 
 // Create a unit div element
@@ -937,26 +960,37 @@ function getDeviceAtUnit(unitNumber) {
 // Initialize SortableJS for rack
 function initializeSortable() {
     const rackVisual = document.getElementById('rack-visual');
+    console.log('Initializing Sortable on rack-visual');
+
+    if (!rackVisual) {
+        console.error('rack-visual element not found');
+        return;
+    }
 
     // Destroy existing sortable if any
     const existingSortable = Sortable.get(rackVisual);
     if (existingSortable) {
+        console.log('Destroying existing Sortable instance');
         existingSortable.destroy();
     }
 
     // Create single Sortable instance with group support
-    new Sortable(rackVisual, {
+    console.log('Creating new Sortable instance');
+    const sortableInstance = new Sortable(rackVisual, {
         group: {
             name: 'rack',
             pull: false,
             put: ['assets']  // Can accept assets from sidebar
         },
         animation: 200,
-        handle: '.device-name',  // Drag by device name
-        filter: '.device-continuation',  // Can't drag continuation units
+        // Removed handle restriction - drag entire device
+        filter: '.device-continuation, .rack-unit-empty',  // Can't drag continuation units or empty spaces
         draggable: '.draggable',
         ghostClass: 'sortable-ghost',
         dragClass: 'sortable-drag',
+        forceFallback: true,  // Use fallback for better compatibility
+        fallbackClass: 'sortable-fallback',
+        fallbackOnBody: true,
 
         // On drag start
         onStart: function(evt) {
@@ -1003,8 +1037,17 @@ function initializeSortable() {
     // Initialize asset sidebar if it exists
     const assetsSidebar = document.getElementById('available-assets');
     if (assetsSidebar) {
+        console.log('Initializing asset sidebar');
         initializeAssetSidebar();
+    } else {
+        console.log('No asset sidebar found');
     }
+
+    // Log draggable elements count
+    const draggableCount = rackVisual.querySelectorAll('.draggable').length;
+    console.log(`Found ${draggableCount} draggable devices in rack`);
+
+    return sortableInstance;
 }
 
 // Initialize asset sidebar drag-and-drop
