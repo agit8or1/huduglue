@@ -72,6 +72,20 @@
     cursor: grabbing;
 }
 
+.rack-unit.drag-over {
+    background: #0d6efd !important;
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+}
+
+[draggable="true"] {
+    cursor: grab;
+}
+
+[draggable="true"]:active {
+    cursor: grabbing;
+}
+
 .rack-device:hover {
     opacity: 0.9;
     box-shadow: 0 0 12px rgba(255,255,255,0.5);
@@ -982,10 +996,10 @@ function renderRack() {
 
     // Initialize drag-and-drop
     try {
-        initializeSortable();
-        console.log('Sortable initialized successfully');
+        setupDragListeners();
+        console.log('Drag-and-drop initialized successfully');
     } catch (error) {
-        console.error('Error initializing Sortable:', error);
+        console.error('Error initializing drag-and-drop:', error);
         showToast('Error initializing drag-and-drop: ' + error.message, 'danger');
     }
 
@@ -1203,97 +1217,144 @@ function getDeviceAtUnit(unitNumber) {
     );
 }
 
-// Initialize SortableJS for rack
+// Initialize native HTML5 drag-and-drop for rack
+let draggedDevice = null;
+
 function initializeSortable() {
     const rackVisual = document.getElementById('rack-visual');
-    console.log('Initializing Sortable on rack-visual');
+    console.log('Initializing native drag-and-drop on rack-visual');
 
     if (!rackVisual) {
         console.error('rack-visual element not found');
         return;
     }
 
-    // Destroy existing sortable if any
-    const existingSortable = Sortable.get(rackVisual);
-    if (existingSortable) {
-        console.log('Destroying existing Sortable instance');
-        existingSortable.destroy();
-    }
-
-    // Create single Sortable instance with group support
-    console.log('Creating new Sortable instance');
-    const sortableInstance = new Sortable(rackVisual, {
-        group: {
-            name: 'rack',
-            pull: false,
-            put: ['assets']  // Can accept assets from sidebar
-        },
-        animation: 200,
-        // Removed handle restriction - drag entire device
-        filter: '.device-continuation, .rack-unit-empty, .device-edit-icon',  // Can't drag continuation units, empty spaces, or edit icon
-        draggable: '.draggable',
-        ghostClass: 'sortable-ghost',
-        dragClass: 'sortable-drag',
-        forceFallback: true,  // Use fallback for better compatibility
-        fallbackClass: 'sortable-fallback',
-        fallbackOnBody: true,
-
-        // On drag start
-        onStart: function(evt) {
-            const deviceId = evt.item.dataset.deviceId;
-            if (deviceId) {
-                const device = rackDevices.find(d => d.id == deviceId);
-                if (device) {
-                    console.log('Dragging device:', device.name);
-                }
-            }
-        },
-
-        // On drop (device repositioned)
-        onEnd: function(evt) {
-            const deviceId = parseInt(evt.item.dataset.deviceId);
-            const oldStartUnit = parseInt(evt.item.dataset.startUnit);
-
-            if (deviceId && oldStartUnit) {
-                // Calculate new start unit based on drop position
-                let newStartUnit = RACK_UNITS - evt.newIndex;
-                // Update device position via API
-                updateDevicePosition(deviceId, oldStartUnit, newStartUnit);
-            }
-        },
-
-        // On asset added from sidebar
-        onAdd: function(evt) {
-            const assetId = parseInt(evt.item.dataset.assetId);
-            const units = parseInt(evt.item.dataset.units);
-
-            if (assetId) {
-                // Calculate target unit based on drop index
-                const targetUnit = RACK_UNITS - evt.newIndex;
-
-                // Remove the cloned element
-                evt.item.remove();
-
-                // Create device from asset
-                createDeviceFromAsset(assetId, targetUnit, units);
-            }
-        }
-    });
-
-    // Initialize asset sidebar if it exists
-    const assetsSidebar = document.getElementById('available-assets');
-    if (assetsSidebar) {
-        console.log('Initializing asset sidebar');
-        initializeAssetSidebar();
-    } else {
-        console.log('No asset sidebar found');
-    }
+    // Set up drag event listeners on all rack units
+    setupDragListeners();
 
     // Log draggable elements count
     const draggableCount = rackVisual.querySelectorAll('.draggable').length;
     console.log(`Found ${draggableCount} draggable devices in rack`);
+}
 
-    return sortableInstance;
+// Set up drag listeners on rack units
+function setupDragListeners() {
+    const rackVisual = document.getElementById('rack-visual');
+    const allUnits = rackVisual.querySelectorAll('.rack-unit');
+
+    allUnits.forEach(unit => {
+        // Make draggable devices draggable
+        if (unit.classList.contains('draggable')) {
+            unit.setAttribute('draggable', 'true');
+
+            // Drag start - remember what we're dragging
+            unit.addEventListener('dragstart', function(e) {
+                const deviceId = parseInt(this.dataset.deviceId);
+                const device = rackDevices.find(d => d.id === deviceId);
+
+                if (device) {
+                    draggedDevice = device;
+                    this.style.opacity = '0.4';
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', this.innerHTML);
+                    console.log('Dragging device:', device.name, 'from unit', device.start_unit);
+                }
+            });
+
+            // Drag end - reset styling
+            unit.addEventListener('dragend', function(e) {
+                this.style.opacity = '1';
+                draggedDevice = null;
+
+                // Remove all drop indicators
+                document.querySelectorAll('.drag-over').forEach(el => {
+                    el.classList.remove('drag-over');
+                });
+            });
+        }
+
+        // All units can be drop targets
+        unit.addEventListener('dragover', function(e) {
+            if (draggedDevice) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                return false;
+            }
+        });
+
+        unit.addEventListener('dragenter', function(e) {
+            if (draggedDevice && !this.classList.contains('device-continuation')) {
+                this.classList.add('drag-over');
+            }
+        });
+
+        unit.addEventListener('dragleave', function(e) {
+            this.classList.remove('drag-over');
+        });
+
+        // Handle drop
+        unit.addEventListener('drop', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            this.classList.remove('drag-over');
+
+            if (!draggedDevice) return;
+
+            // Get the target unit number
+            const targetUnit = parseInt(this.dataset.unit);
+            const oldStartUnit = draggedDevice.start_unit;
+
+            console.log('Dropped at unit:', targetUnit);
+
+            // Can't drop on continuation units
+            if (this.classList.contains('device-continuation')) {
+                console.log('Cannot drop on continuation unit');
+                showToast('Cannot drop on occupied space', 'warning');
+                return false;
+            }
+
+            // Check if target unit is valid (not occupied by another device)
+            const targetDevice = getDeviceAtUnit(targetUnit);
+            if (targetDevice && targetDevice.id !== draggedDevice.id) {
+                console.log('Target unit occupied by another device');
+                showToast('Target unit is occupied', 'warning');
+                return false;
+            }
+
+            // Check if device would fit (no overlap with other devices)
+            const deviceFits = checkDeviceFits(targetUnit, draggedDevice.units, draggedDevice.id);
+            if (!deviceFits) {
+                showToast('Device would not fit at this location', 'warning');
+                return false;
+            }
+
+            // Update position
+            if (targetUnit !== oldStartUnit) {
+                updateDevicePosition(draggedDevice.id, oldStartUnit, targetUnit);
+            }
+
+            return false;
+        });
+    });
+}
+
+// Check if device would fit at target unit
+function checkDeviceFits(targetUnit, units, deviceId) {
+    // Check if device extends beyond rack boundaries
+    if (targetUnit + units - 1 > RACK_UNITS || targetUnit < 1) {
+        return false;
+    }
+
+    // Check for overlaps with other devices
+    for (let u = targetUnit; u < targetUnit + units; u++) {
+        const existing = getDeviceAtUnit(u);
+        if (existing && existing.id !== deviceId) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // Initialize asset sidebar drag-and-drop
