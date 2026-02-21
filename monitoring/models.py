@@ -664,6 +664,7 @@ class RackResource(BaseModel):
     # Network equipment specifics
     port_count = models.PositiveIntegerField(null=True, blank=True, help_text="Number of ports (for switches/patch panels)")
     port_speed = models.CharField(max_length=50, blank=True, help_text="e.g., 1Gbps, 10Gbps")
+    port_configuration = models.JSONField(default=dict, blank=True, help_text="Port configuration and connections for patch panels/switches")
 
     # Power specs
     power_draw_watts = models.PositiveIntegerField(null=True, blank=True)

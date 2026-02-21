@@ -79,4 +79,10 @@ urlpatterns = [
     path('api/rack-devices/<int:pk>/update-position/', api_views.update_rack_device_position, name='api_update_rack_device_position'),
     path('api/rack-devices/<int:pk>/', api_views.rack_device_detail, name='api_rack_device_detail'),
     path('api/racks/<int:pk>/devices/create/', api_views.create_rack_device, name='api_create_rack_device'),
+
+    # Patch Panel Port API endpoints
+    path('api/patch-panels/<int:pk>/ports/', api_views.patch_panel_ports_list, name='api_patch_panel_ports_list'),
+    path('api/patch-panels/<int:pk>/ports/<int:port_num>/connect/', api_views.patch_panel_port_connect, name='api_patch_panel_port_connect'),
+    path('api/patch-panels/<int:pk>/ports/<int:port_num>/disconnect/', api_views.patch_panel_port_disconnect, name='api_patch_panel_port_disconnect'),
+    path('api/patch-panels/<int:pk>/ports/<int:port_num>/', api_views.patch_panel_port_update, name='api_patch_panel_port_update'),
 ]

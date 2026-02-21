@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from core.middleware import get_request_organization
-from .models import Rack, RackDevice
+from .models import Rack, RackDevice, RackResource
 from assets.models import Asset
 import json
 
@@ -283,6 +283,250 @@ def create_rack_device(request, pk):
         return JsonResponse({
             'success': False,
             'error': f'Invalid value: {str(e)}'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        }, status=500)
+
+# ============================================================================
+# Patch Panel Port Management API
+# ============================================================================
+
+@login_required
+@require_http_methods(["GET"])
+def patch_panel_ports_list(request, pk):
+    """
+    GET /api/patch-panels/<id>/ports/
+    Return JSON list of all ports in patch panel.
+    """
+    org = get_request_organization(request)
+    patch_panel = get_object_or_404(
+        RackResource,
+        pk=pk,
+        rack__organization=org,
+        resource_type__in=['patch_panel', 'fiber_panel', 'switch']
+    )
+
+    # Initialize port configuration if not exists
+    if not patch_panel.port_configuration:
+        patch_panel.port_configuration = {'ports': []}
+        
+    # Ensure ports list exists and has correct count
+    ports = patch_panel.port_configuration.get('ports', [])
+    port_count = patch_panel.port_count or 24  # Default to 24 if not set
+    
+    # Initialize ports if needed
+    if len(ports) < port_count:
+        for i in range(len(ports), port_count):
+            ports.append({
+                'port_number': i + 1,
+                'label': f'Port {i + 1}',
+                'status': 'available',
+                'connected_to': None,
+                'cable_color': '#0d6efd',
+                'notes': ''
+            })
+        patch_panel.port_configuration['ports'] = ports
+        patch_panel.save()
+
+    return JsonResponse({
+        'success': True,
+        'patch_panel': {
+            'id': patch_panel.id,
+            'name': patch_panel.name,
+            'port_count': port_count,
+        },
+        'ports': ports
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def patch_panel_port_connect(request, pk, port_num):
+    """
+    POST /api/patch-panels/<id>/ports/<port_num>/connect/
+    Connect a port to another location.
+    Request body: {"connected_to": "Room 101", "cable_color": "#ff0000", "label": "Server A"}
+    """
+    org = get_request_organization(request)
+    patch_panel = get_object_or_404(
+        RackResource,
+        pk=pk,
+        rack__organization=org,
+        resource_type__in=['patch_panel', 'fiber_panel', 'switch']
+    )
+
+    try:
+        data = json.loads(request.body)
+        port_num = int(port_num)
+
+        # Validate port number
+        if port_num < 1 or port_num > (patch_panel.port_count or 24):
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid port number. Must be between 1 and {patch_panel.port_count or 24}'
+            }, status=400)
+
+        # Initialize or get port configuration
+        if not patch_panel.port_configuration:
+            patch_panel.port_configuration = {'ports': []}
+        
+        ports = patch_panel.port_configuration.get('ports', [])
+        
+        # Ensure port exists
+        while len(ports) < port_num:
+            ports.append({
+                'port_number': len(ports) + 1,
+                'label': f'Port {len(ports) + 1}',
+                'status': 'available',
+                'connected_to': None,
+                'cable_color': '#0d6efd',
+                'notes': ''
+            })
+
+        # Update port
+        port_index = port_num - 1
+        ports[port_index].update({
+            'status': 'in-use',
+            'connected_to': data.get('connected_to', ''),
+            'cable_color': data.get('cable_color', '#0d6efd'),
+            'label': data.get('label', ports[port_index].get('label', f'Port {port_num}')),
+            'notes': data.get('notes', '')
+        })
+
+        patch_panel.port_configuration['ports'] = ports
+        
+        with transaction.atomic():
+            patch_panel.save()
+
+        return JsonResponse({
+            'success': True,
+            'port': ports[port_index]
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON in request body'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def patch_panel_port_disconnect(request, pk, port_num):
+    """
+    POST /api/patch-panels/<id>/ports/<port_num>/disconnect/
+    Disconnect a port.
+    """
+    org = get_request_organization(request)
+    patch_panel = get_object_or_404(
+        RackResource,
+        pk=pk,
+        rack__organization=org,
+        resource_type__in=['patch_panel', 'fiber_panel', 'switch']
+    )
+
+    try:
+        port_num = int(port_num)
+
+        if not patch_panel.port_configuration:
+            return JsonResponse({
+                'success': False,
+                'error': 'Patch panel has no port configuration'
+            }, status=400)
+
+        ports = patch_panel.port_configuration.get('ports', [])
+        
+        if port_num < 1 or port_num > len(ports):
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid port number'
+            }, status=400)
+
+        # Update port
+        port_index = port_num - 1
+        ports[port_index].update({
+            'status': 'available',
+            'connected_to': None,
+            'notes': ''
+        })
+
+        patch_panel.port_configuration['ports'] = ports
+        
+        with transaction.atomic():
+            patch_panel.save()
+
+        return JsonResponse({
+            'success': True,
+            'port': ports[port_index]
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["PATCH"])
+def patch_panel_port_update(request, pk, port_num):
+    """
+    PATCH /api/patch-panels/<id>/ports/<port_num>/
+    Update port label, color, or notes.
+    """
+    org = get_request_organization(request)
+    patch_panel = get_object_or_404(
+        RackResource,
+        pk=pk,
+        rack__organization=org,
+        resource_type__in=['patch_panel', 'fiber_panel', 'switch']
+    )
+
+    try:
+        data = json.loads(request.body)
+        port_num = int(port_num)
+
+        if not patch_panel.port_configuration:
+            patch_panel.port_configuration = {'ports': []}
+        
+        ports = patch_panel.port_configuration.get('ports', [])
+        
+        if port_num < 1 or port_num > len(ports):
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid port number'
+            }, status=400)
+
+        # Update allowed fields
+        port_index = port_num - 1
+        allowed_fields = ['label', 'cable_color', 'notes']
+        
+        for field in allowed_fields:
+            if field in data:
+                ports[port_index][field] = data[field]
+
+        patch_panel.port_configuration['ports'] = ports
+        
+        with transaction.atomic():
+            patch_panel.save()
+
+        return JsonResponse({
+            'success': True,
+            'port': ports[port_index]
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON in request body'
         }, status=400)
     except Exception as e:
         return JsonResponse({
