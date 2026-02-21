@@ -66,6 +66,7 @@ def rack_devices_list(request, pk):
     })
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def update_rack_device_position(request, pk):
@@ -206,6 +207,7 @@ def rack_device_detail(request, pk):
         }, status=500)
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def create_rack_device(request, pk):
@@ -357,6 +359,7 @@ def patch_panel_ports_list(request, pk):
     })
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def patch_panel_port_connect(request, pk, port_num):
@@ -433,6 +436,7 @@ def patch_panel_port_connect(request, pk, port_num):
         }, status=500)
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def patch_panel_port_disconnect(request, pk, port_num):
@@ -586,6 +590,7 @@ def rack_resources_list(request, pk):
     })
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def update_device_board_position(request, pk):
@@ -648,6 +653,7 @@ def update_device_board_position(request, pk):
         }, status=500)
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def update_resource_board_position(request, pk):
