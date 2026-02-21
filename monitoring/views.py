@@ -13,6 +13,7 @@ from .forms import (
     WebsiteMonitorForm, ExpirationForm, RackForm, RackDeviceForm,
     SubnetForm, IPAddressForm
 )
+from assets.models import Asset
 
 
 # ============================================================================
@@ -267,17 +268,10 @@ def rack_create(request):
     """Create rack."""
     org = get_request_organization(request)
 
-    # Require organization context for creating racks
-    if not org:
-        messages.error(request, 'Organization context required to create racks.')
-        return redirect('accounts:organization_list')
-
     if request.method == 'POST':
-        form = RackForm(request.POST, organization=org)
+        form = RackForm(request.POST, organization=org, user=request.user)
         if form.is_valid():
-            rack = form.save(commit=False)
-            rack.organization = org
-            rack.save()
+            rack = form.save()
             messages.success(request, f'Rack "{rack.name}" created.')
             return redirect('monitoring:rack_detail', pk=rack.pk)
         else:
@@ -287,7 +281,7 @@ def rack_create(request):
             logger.error(f"Rack form validation failed: {form.errors}")
             messages.error(request, 'Please correct the errors below.')
     else:
-        form = RackForm(organization=org)
+        form = RackForm(organization=org, user=request.user)
 
     return render(request, 'monitoring/rack_form.html', {
         'form': form,
@@ -355,13 +349,13 @@ def rack_edit(request, pk):
     rack = get_object_or_404(Rack, pk=pk, organization=org)
 
     if request.method == 'POST':
-        form = RackForm(request.POST, instance=rack, organization=org)
+        form = RackForm(request.POST, instance=rack, organization=org, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f'Rack "{rack.name}" updated.')
             return redirect('monitoring:rack_detail', pk=rack.pk)
     else:
-        form = RackForm(instance=rack, organization=org)
+        form = RackForm(instance=rack, organization=org, user=request.user)
 
     return render(request, 'monitoring/rack_form.html', {
         'form': form,

@@ -63,11 +63,12 @@ class RackForm(forms.ModelForm):
     class Meta:
         model = Rack
         fields = [
-            'name', 'rack_type', 'datacenter', 'building', 'floor', 'room', 'aisle', 'location',
+            'organization', 'name', 'rack_type', 'datacenter', 'building', 'floor', 'room', 'aisle', 'location',
             'units', 'width_inches', 'depth_inches', 'power_capacity_watts', 'cooling_capacity_btu',
             'pdu_count', 'patch_panel_count', 'total_port_count', 'ambient_temp_f', 'notes',
         ]
         widgets = {
+            'organization': forms.Select(attrs={'class': 'form-select'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'rack_type': forms.Select(attrs={'class': 'form-control'}),
             'datacenter': forms.TextInput(attrs={'class': 'form-control'}),
@@ -90,7 +91,23 @@ class RackForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         organization = kwargs.pop('organization', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        # If organization context exists, pre-select it and hide the field
+        if organization:
+            self.fields['organization'].initial = organization
+            self.fields['organization'].widget = forms.HiddenInput()
+        else:
+            # Filter organizations by user permissions
+            from core.models import Organization
+            if user:
+                if user.is_superuser or (hasattr(user, 'is_staff_user') and user.is_staff_user):
+                    # Staff can see all organizations
+                    self.fields['organization'].queryset = Organization.objects.all()
+                else:
+                    # Regular users only see their organizations
+                    self.fields['organization'].queryset = user.organizations.all()
 
 
 class RackDeviceForm(forms.ModelForm):
