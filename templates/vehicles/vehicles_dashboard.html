@@ -18,40 +18,48 @@
 <!-- Fleet Statistics -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card border-primary">
-            <div class="card-body text-center">
-                <i class="fas fa-truck fa-3x mb-2 text-primary"></i>
-                <h3 class="text-primary">{{ total_vehicles }}</h3>
-                <p class="mb-0">Total Vehicles</p>
+        <a href="{% url 'vehicles:vehicle_list' %}" class="text-decoration-none">
+            <div class="card border-primary stat-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-truck fa-3x mb-2 text-primary"></i>
+                    <h3 class="text-primary">{{ total_vehicles }}</h3>
+                    <p class="mb-0 text-dark">Total Vehicles</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3">
-        <div class="card border-success">
-            <div class="card-body text-center">
-                <i class="fas fa-check-circle fa-3x mb-2 text-success"></i>
-                <h3 class="text-success">{{ active_vehicles }}</h3>
-                <p class="mb-0">Active</p>
+        <a href="{% url 'vehicles:vehicle_list' %}?status=active" class="text-decoration-none">
+            <div class="card border-success stat-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-3x mb-2 text-success"></i>
+                    <h3 class="text-success">{{ active_vehicles }}</h3>
+                    <p class="mb-0 text-dark">Active</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3">
-        <div class="card border-warning">
-            <div class="card-body text-center">
-                <i class="fas fa-wrench fa-3x mb-2 text-warning"></i>
-                <h3 class="text-warning">{{ in_maintenance }}</h3>
-                <p class="mb-0">In Maintenance</p>
+        <a href="{% url 'vehicles:vehicle_list' %}?status=maintenance" class="text-decoration-none">
+            <div class="card border-warning stat-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-wrench fa-3x mb-2 text-warning"></i>
+                    <h3 class="text-warning">{{ in_maintenance }}</h3>
+                    <p class="mb-0 text-dark">In Maintenance</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3">
-        <div class="card border-info">
-            <div class="card-body text-center">
-                <i class="fas fa-road fa-3x mb-2 text-info"></i>
-                <h3 class="text-info">{{ total_mileage|floatformat:0 }}</h3>
-                <p class="mb-0">Total Miles</p>
+        <a href="{% url 'vehicles:vehicle_list' %}?sort=-current_mileage" class="text-decoration-none">
+            <div class="card border-info stat-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-road fa-3x mb-2 text-info"></i>
+                    <h3 class="text-info">{{ total_mileage|floatformat:0 }}</h3>
+                    <p class="mb-0 text-dark">Total Miles</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -206,6 +214,16 @@
 </div>
 
 <style>
+.stat-card {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
 .vehicle-card {
     cursor: pointer;
     transition: all 0.2s;
