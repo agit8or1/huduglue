@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Help & Documentation - Client St0r{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-book"></i> Documentation</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'core:help_getting_started' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-play-circle"></i> Getting Started
+                    </a>
+                    <a href="{% url 'core:help_features' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-star"></i> Features
+                    </a>
+                    <a href="{% url 'core:help_assets' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-server"></i> Asset Management
+                    </a>
+                    <a href="{% url 'core:help_vehicles' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-truck"></i> Service Vehicles
+                    </a>
+                    <a href="{% url 'core:help_vault' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-lock"></i> Password Vault
+                    </a>
+                    <a href="{% url 'core:help_monitoring' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-chart-line"></i> Monitoring
+                    </a>
+                    <a href="{% url 'core:help_security' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shield-alt"></i> Security
+                    </a>
+                    <a href="{% url 'core:help_api' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-code"></i> API Documentation
+                    </a>
+                    <hr class="my-2">
+                    <a href="https://github.com/agit8or1/clientst0r" target="_blank" class="list-group-item list-group-item-action">
+                        <i class="fab fa-github"></i> GitHub Repository
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <h2><i class="fas fa-question-circle"></i> Client St0r Help & Documentation</h2>
+            <p class="lead">Welcome to the Client St0r documentation. Select a topic from the left to get started.</p>
+
+            <div class="row g-3 mt-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-play-circle text-primary"></i> Getting Started</h5>
+                            <p class="card-text">New to Client St0r? Start here to learn the basics and set up your first organization.</p>
+                            <a href="{% url 'core:help_getting_started' %}" class="btn btn-primary btn-sm">Read Guide</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-star text-warning"></i> Features</h5>
+                            <p class="card-text">Explore all the features Client St0r has to offer, from asset management to security scanning.</p>
+                            <a href="{% url 'core:help_features' %}" class="btn btn-primary btn-sm">View Features</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-server text-info"></i> Asset Management</h5>
+                            <p class="card-text">Learn how to track assets, manage racks, configure networks, and more.</p>
+                            <a href="{% url 'core:help_assets' %}" class="btn btn-primary btn-sm">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-truck text-success"></i> Service Vehicles</h5>
+                            <p class="card-text">Track your fleet with mileage, maintenance, fuel logs, and damage reports.</p>
+                            <a href="{% url 'core:help_vehicles' %}" class="btn btn-primary btn-sm">Fleet Guide</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-lock text-danger"></i> Password Vault</h5>
+                            <p class="card-text">Securely store passwords with AES-256 encryption and breach detection.</p>
+                            <a href="{% url 'core:help_vault' %}" class="btn btn-primary btn-sm">Vault Guide</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-code text-secondary"></i> API Documentation</h5>
+                            <p class="card-text">Integrate with Client St0r using our REST and GraphQL APIs.</p>
+                            <a href="{% url 'core:help_api' %}" class="btn btn-primary btn-sm">API Docs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-4">
+                <h6><i class="fas fa-info-circle"></i> Quick Help</h6>
+                <ul class="mb-0">
+                    <li><strong>Version:</strong> {{ app_version }}</li>
+                    <li><strong>Need support?</strong> <a href="https://github.com/agit8or1/clientst0r/issues" target="_blank">Report an issue on GitHub</a></li>
+                    <li><strong>Updates:</strong> Check <a href="{% url 'core:system_updates' %}">System Updates</a> for the latest version</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

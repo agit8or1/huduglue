@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Getting Started - Client St0r{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:help_index' %}">Help</a></li>
+            <li class="breadcrumb-item active">Getting Started</li>
+        </ol>
+    </nav>
+
+    <h2><i class="fas fa-play-circle"></i> Getting Started with Client St0r</h2>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h4>Welcome to Client St0r!</h4>
+            <p class="lead">Client St0r is a self-hosted IT documentation platform designed for MSPs and IT departments.</p>
+
+            <h5 class="mt-4">Quick Start</h5>
+            <ol>
+                <li><strong>Organizations:</strong> Create organizations for each client you manage</li>
+                <li><strong>Users:</strong> Add team members and assign them to organizations</li>
+                <li><strong>Assets:</strong> Start tracking IT assets, servers, and equipment</li>
+                <li><strong>Passwords:</strong> Store credentials securely in the encrypted vault</li>
+                <li><strong>Documentation:</strong> Create knowledge base articles and diagrams</li>
+            </ol>
+
+            <h5 class="mt-4">Key Concepts</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-building"></i> Organizations</h6>
+                    <p>Each client gets their own organization with complete data isolation. Staff users can access all organizations.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-users"></i> Users & Roles</h6>
+                    <p>Four access levels: Owner, Admin, Editor, and Read-Only. Control access with 42 granular permissions.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-server"></i> Assets</h6>
+                    <p>Track all IT equipment with custom fields, attachments, and relationships.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-lock"></i> Security</h6>
+                    <p>AES-256 encryption, 2FA, breach detection, vulnerability scanning, and audit logging.</p>
+                </div>
+            </div>
+
+            <h5 class="mt-4">Navigation</h5>
+            <ul>
+                <li><strong>Dashboard:</strong> Overview of recent activity and quick actions</li>
+                <li><strong>Quick Add (+):</strong> Fast creation menu in top navigation</li>
+                <li><strong>Search:</strong> Global search across all content (Ctrl+K)</li>
+                <li><strong>User Menu:</strong> Profile, settings, and documentation</li>
+            </ul>
+
+            <h5 class="mt-4">Next Steps</h5>
+            <div class="list-group">
+                <a href="{% url 'organizations:organization_create' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-plus-circle"></i> Create Your First Organization
+                </a>
+                <a href="{% url 'assets:asset_create' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-server"></i> Add Your First Asset
+                </a>
+                <a href="{% url 'vault:password_create' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-key"></i> Store Your First Password
+                </a>
+                <a href="{% url 'core:help_features' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-star"></i> Explore All Features
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

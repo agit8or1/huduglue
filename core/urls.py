@@ -13,6 +13,7 @@ from . import firewall_views
 from . import fail2ban_views
 from . import webhook_views
 from . import security_views
+from . import help_views
 
 app_name = 'core'
 
@@ -21,6 +22,18 @@ urlpatterns = [
     path('global-dashboard/', dashboard_views.global_dashboard, name='global_dashboard'),
     path('documentation/', views.documentation, name='documentation'),
     path('about/', views.about, name='about'),
+
+    # Help & Documentation
+    path('help/', help_views.help_index, name='help_index'),
+    path('help/getting-started/', help_views.help_getting_started, name='help_getting_started'),
+    path('help/features/', help_views.help_features, name='help_features'),
+    path('help/assets/', help_views.help_assets, name='help_assets'),
+    path('help/vehicles/', help_views.help_vehicles, name='help_vehicles'),
+    path('help/vault/', help_views.help_vault, name='help_vault'),
+    path('help/monitoring/', help_views.help_monitoring, name='help_monitoring'),
+    path('help/security/', help_views.help_security, name='help_security'),
+    path('help/api/', help_views.help_api, name='help_api'),
+
     path('search/', search_views.global_search, name='search'),
     path('report-bug/', views.report_bug, name='report_bug'),
     path('download-mobile-app/<str:app_type>/', views.download_mobile_app, name='download_mobile_app'),

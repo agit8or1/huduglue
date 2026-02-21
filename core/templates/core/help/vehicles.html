@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Client St0r{% endblock %}
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:help_index' %}">Help</a></li>
+            <li class="breadcrumb-item active">{{ title }}</li>
+        </ol>
+    </nav>
+    <h2>{{ title }}</h2>
+    {% if content %}
+    <div class="card mt-4">
+        <div class="card-body">
+            {{ content|safe }}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-4">
+        <i class="fas fa-info-circle"></i> Documentation for this section is being developed.
+        See <a href="https://github.com/agit8or1/clientst0r" target="_blank">GitHub</a> for more information.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
