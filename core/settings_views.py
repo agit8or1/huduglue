@@ -553,24 +553,29 @@ def system_status(request):
             'status': task.last_status,
         })
 
-    # Services status (check if systemd services are running)
+    # Services status (check if processes are running)
     services_status = {}
     try:
         import subprocess
-        # Check Gunicorn
-        result = subprocess.run(['/usr/bin/systemctl', 'is-active', 'clientst0r-gunicorn'],
-                              capture_output=True, text=True, timeout=5)
-        services_status['gunicorn'] = result.stdout.strip() == 'active'
 
-        # Check PSA Sync timer
-        result = subprocess.run(['/usr/bin/systemctl', 'is-active', 'clientst0r-psa-sync.timer'],
+        # Check Gunicorn - look for running gunicorn process
+        result = subprocess.run(['pgrep', '-f', 'gunicorn'],
                               capture_output=True, text=True, timeout=5)
-        services_status['psa_sync'] = result.stdout.strip() == 'active'
+        services_status['gunicorn'] = bool(result.stdout.strip())
 
-        # Check Monitor timer
-        result = subprocess.run(['/usr/bin/systemctl', 'is-active', 'clientst0r-monitor.timer'],
-                              capture_output=True, text=True, timeout=5)
-        services_status['monitor'] = result.stdout.strip() == 'active'
+        # Check PSA Sync - check if scheduled task exists and is enabled
+        from core.models import ScheduledTask
+        psa_task = ScheduledTask.objects.filter(
+            task_name__in=['psa_sync_contacts', 'psa_sync']
+        ).first()
+        services_status['psa_sync'] = psa_task.enabled if psa_task else False
+
+        # Check Monitor - check if scheduled task exists and is enabled
+        monitor_task = ScheduledTask.objects.filter(
+            task_name='monitor_check'
+        ).first()
+        services_status['monitor'] = monitor_task.enabled if monitor_task else False
+
     except Exception as e:
         services_status['error'] = str(e)
 
