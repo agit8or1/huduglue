@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count, Sum, Avg, Max
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+from django.core.exceptions import PermissionDenied
 from datetime import timedelta
 
 from .models import (
