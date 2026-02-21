@@ -1,6 +1,6 @@
 # Client St0r
 
-[![Version 3.8.0](https://img.shields.io/badge/version-3.8.0-brightgreen)](https://github.com/agit8or1/clientst0r)
+[![Version 3.10.4](https://img.shields.io/badge/version-3.10.4-brightgreen)](https://github.com/agit8or1/clientst0r)
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-green)](https://github.com/agit8or1/clientst0r)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Django 6.0](https://img.shields.io/badge/django-6.0-blue)](https://www.djangoproject.com/)
@@ -172,6 +172,8 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 - **Documentation** - Per-org docs with version control, templates, and global MSP knowledge base
 - **Diagrams & Floor Plans** - Draw.io integration, MagicPlan import, auto-generated flowcharts
 - **Infrastructure** - IPAM with subnet management, VLAN tracking, network closets, cable documentation
+- **Service Vehicles** - Fleet management with mileage tracking, maintenance schedules, fuel logs, damage reports with interactive diagrams, vehicle inventory, GPS location, insurance tracking
+- **OS Package Scanner** - System package vulnerability scanning (apt/yum/dnf), automated security update detection, scheduled scans
 - **Monitoring** - Website uptime, SSL certificates, domain expiration, custom alerts, WAN monitoring
 - **Workflows** - Process automation with audit logging, PSA integration, execution tracking
 - **Firewall Management** - iptables firewall rules, GeoIP country blocking, IP whitelist/blacklist
@@ -194,12 +196,52 @@ This project was developed with the assistance of **Luna**, a brilliant German S
 
 ## 🆕 What's New
 
-### Latest Release - v3.8.0 (February 2026)
+### Latest Release - v3.10.4 (February 2026)
 
-**🎉 Major Features in v3.8:**
+**🎉 Major Features in v3.10:**
+- **🚗 Service Vehicles Fleet Management** - Complete fleet tracking with mileage, maintenance, fuel logs, damage reports, inventory, GPS location, and insurance tracking
+- **📦 OS Package Security Scanner** - Automated vulnerability scanning for system packages (apt/yum/dnf) with scheduled scans and security update tracking
+- **🖱️ Enhanced Rack Drag-and-Drop** - Native HTML5 drag-and-drop for moving rack devices with visual feedback and collision detection
+- **🚙 Interactive Vehicle Damage Diagrams** - SVG-based vehicle diagrams with clickable areas for damage reporting and visualization
+- **📊 Clickable Dashboard Statistics** - All dashboard stat cards now link to filtered views for quick access
+
+**Previous Release - v3.8.0:**
 - **🔍 Network Scanner & Asset Discovery** - Automated network scanning using nmap with intelligent device detection and smart import system
 - **🎨 Interactive Rack/Board Visualization** - Wall-mounted board layout with drag-and-drop, realistic device visuals, and snap-to-grid
 - **📡 Patch Panel Management** - Interactive port management with click-to-connect, visual cable tracking, and connection visualization
+
+#### Service Vehicles Fleet Management (v3.9.0+)
+Complete fleet management system for tracking service vehicles with comprehensive features:
+- **Vehicle Tracking**: Make, model, year, VIN, license plate, mileage, condition status
+- **Maintenance Management**: Service history, recurring schedules, costs, repair tracking, overdue detection
+- **Fuel Tracking**: Fuel purchases with automatic MPG calculation, cost analysis, efficiency trends
+- **Damage Reports**: Interactive vehicle diagrams with clickable areas, photo uploads, repair status, insurance claims
+- **Vehicle Inventory**: Per-vehicle inventory tracking (cables, tools, supplies), low-stock alerts
+- **User Assignments**: Assignment history with mileage tracking, active assignment management
+- **Insurance Tracking**: Policy details, expiration warnings, premium tracking
+- **GPS Location**: Store current vehicle coordinates (6 decimal precision), last update timestamp
+- **Dashboard & Analytics**: Fleet statistics, maintenance alerts, fuel costs, vehicle cards with status
+- **Feature Toggle**: Enable/disable vehicles module via system settings
+
+#### OS Package Security Scanner (v3.9.0+)
+Automated vulnerability scanning for system packages with security update tracking:
+- **Multi-Platform Support**: apt (Debian/Ubuntu), yum/dnf (RedHat/CentOS), pacman (Arch)
+- **Security Updates**: Detect security-specific updates from official repositories
+- **Scheduled Scans**: Automated daily scans with configurable schedule
+- **Dashboard Widget**: Security status overview on security dashboard
+- **Scan History**: Track scan results over time with trend visualization
+- **Manual Triggers**: Run scans on-demand via web interface
+- **Package Details**: Total packages, upgradeable packages, security updates count
+- **Alert System**: Webhook notifications for critical security updates
+
+#### Enhanced Rack Device Management (v3.10.0+)
+Improved drag-and-drop with native HTML5 events and better UX:
+- **Native Drag Events**: Replaced SortableJS with HTML5 drag-and-drop for better reliability
+- **Visual Feedback**: Blue highlight on valid drop targets, grab/grabbing cursor states
+- **Collision Detection**: Prevents overlapping devices, validates space before drop
+- **Real-time Updates**: API-driven position updates with error handling
+- **Device Wiring**: Connection management with SVG cable visualization between devices
+- **Port Configuration**: Label and configure network ports on rack-mounted equipment
 
 #### Network Scanner & Asset Discovery (v3.8.0)
 Scan your network to automatically discover and import devices into your asset inventory:
