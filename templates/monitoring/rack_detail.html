@@ -281,17 +281,14 @@
                             <div class="rack-main-area">
                                 <!-- Toolbar -->
                                 <div class="rack-toolbar">
-                                    <button id="toggle-view-mode" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-cube"></i> 3D View
-                                    </button>
                                     <button id="zoom-in" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-search-plus"></i>
+                                        <i class="fas fa-search-plus"></i> Zoom In
                                     </button>
                                     <button id="zoom-out" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-search-minus"></i>
+                                        <i class="fas fa-search-minus"></i> Zoom Out
                                     </button>
                                     <button id="reset-view" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-undo"></i> Reset
+                                        <i class="fas fa-undo"></i> Reset Zoom
                                     </button>
                                 </div>
 
@@ -499,7 +496,6 @@
 // Configuration
 const RACK_ID = {{ rack.id }};
 const RACK_UNITS = {{ rack.units }};
-let VIEW_MODE = '2d';  // '2d' or '3d'
 let ZOOM_LEVEL = 1.0;
 
 // State management
@@ -536,11 +532,6 @@ function renderRack() {
         const device = getDeviceAtUnit(unit);
         const unitDiv = createUnitDiv(unit, device);
         rackVisual.appendChild(unitDiv);
-    }
-
-    // Apply 3D transform if in 3D mode
-    if (VIEW_MODE === '3d') {
-        applyIsometricTransform();
     }
 
     // Initialize drag-and-drop
@@ -764,31 +755,9 @@ function createDeviceFromAsset(assetId, startUnit, units) {
 
 // Toolbar functions
 function initializeToolbar() {
-    document.getElementById('toggle-view-mode').addEventListener('click', toggleViewMode);
     document.getElementById('zoom-in').addEventListener('click', () => setZoom(ZOOM_LEVEL + 0.1));
     document.getElementById('zoom-out').addEventListener('click', () => setZoom(ZOOM_LEVEL - 0.1));
     document.getElementById('reset-view').addEventListener('click', resetView);
-}
-
-function toggleViewMode() {
-    VIEW_MODE = VIEW_MODE === '2d' ? '3d' : '2d';
-    const btn = document.getElementById('toggle-view-mode');
-    btn.innerHTML = VIEW_MODE === '3d'
-        ? '<i class="fas fa-th"></i> 2D View'
-        : '<i class="fas fa-cube"></i> 3D View';
-    renderRack();
-}
-
-function applyIsometricTransform() {
-    const rackVisual = document.getElementById('rack-visual');
-    rackVisual.style.transform = 'rotateX(60deg) rotateZ(-45deg) scale(1.2)';
-    rackVisual.style.transformStyle = 'preserve-3d';
-    rackVisual.style.perspective = '1000px';
-
-    // Add 3D depth to units
-    document.querySelectorAll('.rack-unit').forEach((unit, index) => {
-        unit.style.transform = `translateZ(${index * 0.5}px)`;
-    });
 }
 
 function setZoom(level) {
@@ -798,17 +767,9 @@ function setZoom(level) {
 }
 
 function resetView() {
-    VIEW_MODE = '2d';
     ZOOM_LEVEL = 1.0;
-    const btn = document.getElementById('toggle-view-mode');
-    btn.innerHTML = '<i class="fas fa-cube"></i> 3D View';
     const container = document.getElementById('rack-container');
     container.style.transform = 'scale(1.0)';
-    const rackVisual = document.getElementById('rack-visual');
-    rackVisual.style.transform = '';
-    rackVisual.style.transformStyle = '';
-    rackVisual.style.perspective = '';
-    renderRack();
 }
 
 // Resize handle functionality
