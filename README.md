@@ -82,7 +82,18 @@ A complete, self-hosted IT documentation platform designed for Managed Service P
 </table>
 
 <details>
-<summary><strong>📋 View All Screenshots (34 total)</strong></summary>
+<summary><strong>📋 View All Screenshots (43 total)</strong></summary>
+
+### 🆕 New Features (v3.9-3.10)
+- [Service Vehicles Dashboard](docs/screenshots/vehicles-dashboard.png) - Fleet management with statistics
+- [Vehicles List](docs/screenshots/vehicles-list.png) - All vehicles with filtering
+- [Vehicle Detail - Overview](docs/screenshots/vehicle-detail-overview.png) - Vehicle information and status
+- [Vehicle Detail - Maintenance](docs/screenshots/vehicle-detail-maintenance.png) - Service history and schedules
+- [Vehicle Detail - Fuel](docs/screenshots/vehicle-detail-fuel.png) - Fuel logs with MPG tracking
+- [Vehicle Detail - Damage](docs/screenshots/vehicle-detail-damage.png) - Damage reports with diagram
+- [Vehicle Damage Form](docs/screenshots/vehicle-damage-form.png) - Interactive damage reporting
+- [OS Package Scanner](docs/screenshots/package-scanner-dashboard.png) - System security updates
+- [Enhanced Rack Management](docs/screenshots/rack-enhanced.png) - Drag-and-drop device positioning
 
 ### Core Features
 - [Dashboard](docs/screenshots/dashboard.png) - Main dashboard with random backgrounds
