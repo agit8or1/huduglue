@@ -199,7 +199,6 @@
         </div>
 
         <!-- Vehicle Damage Diagram -->
-        {% if damage_reports %}
         <div class="card bg-light p-3 mb-4">
             <h6 class="mb-3"><i class="fas fa-car"></i> Damage Locations</h6>
             <div id="damage-diagram-container" style="max-width: 700px; margin: 0 auto; position: relative;">
@@ -208,10 +207,13 @@
                 <div id="damage-markers"></div>
             </div>
             <div class="mt-3 text-center">
-                <small class="text-muted"><i class="fas fa-info-circle"></i> Red markers show reported damage locations</small>
+                {% if damage_reports %}
+                <small class="text-muted"><i class="fas fa-info-circle"></i> Red markers show reported damage locations. Click markers to jump to report.</small>
+                {% else %}
+                <small class="text-muted"><i class="fas fa-info-circle"></i> No damage reported yet. Vehicle diagram shows undamaged state.</small>
+                {% endif %}
             </div>
         </div>
-        {% endif %}
 
         {% if damage_reports %}
         {% for report in damage_reports %}

@@ -71,17 +71,42 @@ def run_package_scan(request):
 
         # Parse output
         output = out.getvalue()
+        scan_data = {}
+
         try:
+            # Try direct JSON parse first
             scan_data = json.loads(output)
-        except json.JSONDecodeError:
-            # Command might have printed non-JSON info, get the JSON part
+        except json.JSONDecodeError as e:
+            # Command might have printed non-JSON info, find the JSON part
             lines = output.strip().split('\n')
+            json_found = False
+
             for line in lines:
+                line = line.strip()
                 if line.startswith('{'):
-                    scan_data = json.loads(line)
-                    break
-            else:
-                scan_data = {}
+                    try:
+                        scan_data = json.loads(line)
+                        json_found = True
+                        break
+                    except json.JSONDecodeError:
+                        # Try to find JSON in multi-line output
+                        try:
+                            json_start_idx = output.index('{')
+                            json_end_idx = output.rindex('}') + 1
+                            json_str = output[json_start_idx:json_end_idx]
+                            scan_data = json.loads(json_str)
+                            json_found = True
+                            break
+                        except (ValueError, json.JSONDecodeError):
+                            continue
+
+            if not json_found:
+                # If no JSON found, return error with diagnostic info
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Failed to parse scan output: {str(e)}',
+                    'raw_output': output[:500]  # First 500 chars for debugging
+                }, status=500)
 
         return JsonResponse({
             'success': True,
@@ -92,7 +117,7 @@ def run_package_scan(request):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': f'Scan failed: {str(e)}'
         }, status=500)
 
 
