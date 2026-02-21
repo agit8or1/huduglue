@@ -9,6 +9,16 @@
         <button type="button" class="btn btn-primary" id="runScanBtn">
             <i class="fas fa-sync"></i> Run Scan Now
         </button>
+        {% if stats.security_updates > 0 %}
+        <button type="button" class="btn btn-danger" id="updateSecurityBtn">
+            <i class="fas fa-shield-virus"></i> Update Security ({{ stats.security_updates }})
+        </button>
+        {% endif %}
+        {% if stats.total_updates > 0 %}
+        <button type="button" class="btn btn-warning" id="updateAllBtn">
+            <i class="fas fa-download"></i> Update All ({{ stats.total_updates }})
+        </button>
+        {% endif %}
         <a href="{% url 'core:security_dashboard' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Security Dashboard
         </a>
@@ -221,10 +231,55 @@
     </div>
 </div>
 
+<!-- Update Confirmation Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm System Update</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This will update system packages on the server.
+                </div>
+                <p id="updateModalMessage"></p>
+                <p class="text-muted"><small>This operation requires sudo permissions and may take several minutes.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmUpdateBtn">
+                    <i class="fas fa-check"></i> Confirm Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Progress Modal -->
+<div class="modal fade" id="updateProgressModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Updating Packages</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Updating...</span>
+                </div>
+                <p>Updating system packages...</p>
+                <p class="text-muted"><small>This may take 5-10 minutes. Please do not close this window.</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// Run Scan
 document.getElementById('runScanBtn').addEventListener('click', function() {
     const btn = this;
     const modal = new bootstrap.Modal(document.getElementById('scanModal'));
@@ -258,5 +313,70 @@ document.getElementById('runScanBtn').addEventListener('click', function() {
         btn.disabled = false;
     });
 });
+
+// Update Security Packages
+const updateSecurityBtn = document.getElementById('updateSecurityBtn');
+if (updateSecurityBtn) {
+    updateSecurityBtn.addEventListener('click', function() {
+        const modal = new bootstrap.Modal(document.getElementById('updateModal'));
+        document.getElementById('updateModalMessage').textContent =
+            'This will install {{ stats.security_updates }} security update(s) only.';
+
+        document.getElementById('confirmUpdateBtn').onclick = function() {
+            modal.hide();
+            performUpdate(true);
+        };
+
+        modal.show();
+    });
+}
+
+// Update All Packages
+const updateAllBtn = document.getElementById('updateAllBtn');
+if (updateAllBtn) {
+    updateAllBtn.addEventListener('click', function() {
+        const modal = new bootstrap.Modal(document.getElementById('updateModal'));
+        document.getElementById('updateModalMessage').textContent =
+            'This will install {{ stats.total_updates }} update(s) including all system packages.';
+
+        document.getElementById('confirmUpdateBtn').onclick = function() {
+            modal.hide();
+            performUpdate(false);
+        };
+
+        modal.show();
+    });
+}
+
+// Perform Update
+function performUpdate(securityOnly) {
+    const progressModal = new bootstrap.Modal(document.getElementById('updateProgressModal'));
+    progressModal.show();
+
+    const formData = new FormData();
+    formData.append('security_only', securityOnly ? 'true' : 'false');
+
+    fetch('{% url "core:update_packages" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        progressModal.hide();
+        if (data.success) {
+            alert('Update completed successfully!\n\n' + data.message);
+            location.reload();
+        } else {
+            alert('Update failed: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        progressModal.hide();
+        alert('Update failed: ' + error.message);
+    });
+}
 </script>
 {% endblock %}

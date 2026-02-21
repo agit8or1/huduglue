@@ -18,6 +18,7 @@ def organization_context(request):
             'monitoring_enabled': settings.monitoring_enabled,
             'global_kb_enabled': settings.global_kb_enabled,
             'workflows_enabled': settings.workflows_enabled,
+            'vehicles_enabled': settings.vehicles_enabled,
         }
         system_settings = settings
     except Exception:
@@ -26,6 +27,7 @@ def organization_context(request):
             'monitoring_enabled': True,
             'global_kb_enabled': True,
             'workflows_enabled': True,
+            'vehicles_enabled': True,
         }
         system_settings = None
 

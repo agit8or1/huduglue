@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}End Assignment - Client St0r{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'vehicles:vehicles_dashboard' %}">Vehicles</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'vehicles:vehicle_detail' vehicle.pk %}">{{ vehicle.display_name }}</a></li>
+        <li class="breadcrumb-item active">End Assignment</li>
+    </ol>
+</nav>
+
+<h2><i class="fas fa-stop-circle"></i> End Vehicle Assignment</h2>
+
+<div class="card">
+    <div class="card-body">
+        <p><strong>Vehicle:</strong> {{ vehicle.display_name }}</p>
+        <p><strong>Assigned To:</strong> {{ assignment.user.get_full_name|default:assignment.user.username }}</p>
+        <p><strong>Start Date:</strong> {{ assignment.start_date }}</p>
+        <p><strong>Starting Mileage:</strong> {{ assignment.starting_mileage|floatformat:0 }} miles</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Ending Mileage *</label>
+                <input type="number" name="ending_mileage" class="form-control" value="{{ vehicle.current_mileage }}" required>
+                <small class="form-text text-muted">Current mileage: {{ vehicle.current_mileage|floatformat:0 }} miles</small>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-stop"></i> End Assignment
+                </button>
+                <a href="{% url 'vehicles:vehicle_detail' vehicle.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

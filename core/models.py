@@ -471,6 +471,7 @@ class SystemSetting(models.Model):
     secure_notes_enabled = models.BooleanField(default=True, help_text='Enable secure ephemeral notes feature')
     reports_enabled = models.BooleanField(default=True, help_text='Enable Reports & Analytics feature')
     webhooks_enabled = models.BooleanField(default=True, help_text='Enable Webhooks for event notifications')
+    vehicles_enabled = models.BooleanField(default=True, help_text='Enable service vehicle fleet management features')
 
     # UI/UX Settings (Issue #59)
     stay_on_page_after_org_switch = models.BooleanField(default=True, help_text='Stay on current page when switching organizations instead of redirecting to dashboard')

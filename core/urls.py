@@ -53,6 +53,7 @@ urlpatterns = [
     # Package Scanner (staff only)
     path('security/package-scanner/', security_views.package_scanner_dashboard, name='package_scanner_dashboard'),
     path('security/package-scanner/run/', security_views.run_package_scan, name='run_package_scan'),
+    path('security/package-scanner/update/', security_views.update_packages, name='update_packages'),
     path('security/package-scanner/scan/<int:pk>/', security_views.scan_detail, name='scan_detail'),
     path('api/security/package-scanner/widget/', security_views.get_dashboard_widget_data, name='package_scanner_widget_data'),
 

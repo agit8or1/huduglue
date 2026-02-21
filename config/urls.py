@@ -40,6 +40,7 @@ urlpatterns = [
     path('locations/', include('locations.urls')),
     path('imports/', include('imports.urls')),
     path('reports/', include('reports.urls')),
+    path('vehicles/', include('vehicles.urls')),
 
     # API
     path('api/', include('api.urls')),

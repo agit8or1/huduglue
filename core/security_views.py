@@ -97,6 +97,49 @@ def run_package_scan(request):
 
 
 @login_required
+@require_http_methods(["POST"])
+def update_packages(request):
+    """Update system packages via web interface (OPTIONAL)"""
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    try:
+        security_only = request.POST.get('security_only') == 'true'
+        packages = request.POST.get('packages', '')
+        dry_run = request.POST.get('dry_run') == 'true'
+
+        # Build command arguments
+        args = ['--auto-approve']
+
+        if security_only:
+            args.append('--security-only')
+
+        if packages:
+            args.extend(['--package', packages])
+
+        if dry_run:
+            args.append('--dry-run')
+
+        # Run update command
+        out = io.StringIO()
+        call_command('update_system_packages', *args, stdout=out)
+
+        output = out.getvalue()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Update completed successfully' if not dry_run else 'Dry run completed',
+            'output': output
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
 def scan_detail(request, pk):
     """View details of a specific scan"""
     if not (request.user.is_superuser or request.user.is_staff):

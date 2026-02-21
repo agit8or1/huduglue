@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'locations.apps.LocationsConfig',
     'imports.apps.ImportsConfig',
     'reports.apps.ReportsConfig',
+    'vehicles.apps.VehiclesConfig',
 ]
 
 # Optional apps - only add if installed (allows updates without dependencies)

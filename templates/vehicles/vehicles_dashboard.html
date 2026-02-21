@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Service Vehicles Dashboard - Client St0r{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-truck"></i> Service Vehicles Dashboard</h2>
+    <div>
+        <a href="{% url 'vehicles:vehicle_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Vehicle
+        </a>
+        <a href="{% url 'vehicles:vehicle_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-list"></i> All Vehicles
+        </a>
+    </div>
+</div>
+
+<!-- Fleet Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="fas fa-truck fa-3x mb-2 text-primary"></i>
+                <h3 class="text-primary">{{ total_vehicles }}</h3>
+                <p class="mb-0">Total Vehicles</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-3x mb-2 text-success"></i>
+                <h3 class="text-success">{{ active_vehicles }}</h3>
+                <p class="mb-0">Active</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-wrench fa-3x mb-2 text-warning"></i>
+                <h3 class="text-warning">{{ in_maintenance }}</h3>
+                <p class="mb-0">In Maintenance</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-road fa-3x mb-2 text-info"></i>
+                <h3 class="text-info">{{ total_mileage|floatformat:0 }}</h3>
+                <p class="mb-0">Total Miles</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+{% if alerts %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h5><i class="fas fa-bell"></i> Alerts</h5>
+        {% for alert in alerts %}
+        <div class="alert alert-{{ alert.type }} d-flex align-items-center">
+            <i class="{{ alert.icon }} fa-2x me-3"></i>
+            <div>
+                <strong>{{ alert.title }}</strong><br>
+                {{ alert.message }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-gas-pump"></i> Recent Fuel Logs</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_fuel %}
+                <ul class="list-unstyled mb-0">
+                    {% for log in recent_fuel %}
+                    <li class="mb-2">
+                        <a href="{% url 'vehicles:vehicle_detail' log.vehicle.pk %}">{{ log.vehicle.display_name }}</a><br>
+                        <small class="text-muted">{{ log.date }} - {{ log.gallons }} gal - ${{ log.total_cost }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No fuel logs yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-wrench"></i> Recent Maintenance</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_maintenance %}
+                <ul class="list-unstyled mb-0">
+                    {% for record in recent_maintenance %}
+                    <li class="mb-2">
+                        <a href="{% url 'vehicles:vehicle_detail' record.vehicle.pk %}">{{ record.vehicle.display_name }}</a><br>
+                        <small class="text-muted">{{ record.service_date }} - {{ record.get_maintenance_type_display }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No maintenance records yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Recent Damage Reports</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_damage %}
+                <ul class="list-unstyled mb-0">
+                    {% for report in recent_damage %}
+                    <li class="mb-2">
+                        <a href="{% url 'vehicles:vehicle_detail' report.vehicle.pk %}">{{ report.vehicle.display_name }}</a><br>
+                        <small class="text-muted">{{ report.incident_date }} - {{ report.get_severity_display }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No damage reports</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fleet Metrics -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-chart-line"></i> Fleet Metrics</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <tr>
+                        <th>Average Mileage per Vehicle:</th>
+                        <td>{{ avg_mileage|floatformat:0 }} miles</td>
+                    </tr>
+                    <tr>
+                        <th>Average MPG (30 days):</th>
+                        <td>{{ avg_mpg|floatformat:1 }} MPG</td>
+                    </tr>
+                    <tr>
+                        <th>Total Fuel Cost (30 days):</th>
+                        <td>${{ total_fuel_cost|floatformat:2 }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

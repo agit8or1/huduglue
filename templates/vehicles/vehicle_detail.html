@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}{{ vehicle.display_name }} - Client St0r{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'vehicles:vehicles_dashboard' %}">Vehicles</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'vehicles:vehicle_list' %}">All Vehicles</a></li>
+        <li class="breadcrumb-item active">{{ vehicle.display_name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-truck"></i> {{ vehicle.display_name }}</h2>
+    <div>
+        <a href="{% url 'vehicles:vehicle_edit' vehicle.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'vehicles:vehicle_delete' vehicle.pk %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+        </a>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#overview"><i class="fas fa-info-circle"></i> Overview</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#inventory">
+            <i class="fas fa-boxes"></i> Inventory
+            {% if low_stock_count > 0 %}<span class="badge bg-warning ms-1">{{ low_stock_count }}</span>{% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#damage">
+            <i class="fas fa-exclamation-triangle"></i> Damage
+            {% if pending_damage > 0 %}<span class="badge bg-danger ms-1">{{ pending_damage }}</span>{% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#maintenance">
+            <i class="fas fa-wrench"></i> Maintenance
+            {% if overdue_maintenance > 0 %}<span class="badge bg-danger ms-1">{{ overdue_maintenance }}</span>{% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#fuel"><i class="fas fa-gas-pump"></i> Fuel</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#history"><i class="fas fa-history"></i> History</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header"><h6 class="mb-0"><i class="fas fa-car"></i> Vehicle Information</h6></div>
+                    <div class="card-body">
+                        <table class="table table-sm mb-0">
+                            <tr><th width="40%">Make/Model:</th><td>{{ vehicle.make }} {{ vehicle.model }}</td></tr>
+                            <tr><th>Year:</th><td>{{ vehicle.year }}</td></tr>
+                            <tr><th>Color:</th><td>{{ vehicle.color|default:"N/A" }}</td></tr>
+                            <tr><th>VIN:</th><td><code>{{ vehicle.vin|default:"N/A" }}</code></td></tr>
+                            <tr><th>License Plate:</th><td><code>{{ vehicle.license_plate }}</code></td></tr>
+                            {% if vehicle.qr_code %}<tr><th>QR Code:</th><td><i class="fas fa-qrcode"></i> {{ vehicle.qr_code }}</td></tr>{% endif %}
+                            <tr><th>Type:</th><td>{{ vehicle.get_vehicle_type_display }}</td></tr>
+                            <tr><th>Status:</th><td><span class="badge bg-{% if vehicle.status == 'active' %}success{% elif vehicle.status == 'maintenance' %}warning{% else %}secondary{% endif %}">{{ vehicle.get_status_display }}</span></td></tr>
+                            <tr><th>Condition:</th><td><span class="badge bg-{% if vehicle.condition == 'excellent' or vehicle.condition == 'good' %}success{% elif vehicle.condition == 'fair' %}warning{% else %}danger{% endif %}">{{ vehicle.get_condition_display }}</span></td></tr>
+                            <tr><th>Current Mileage:</th><td><strong>{{ vehicle.current_mileage|floatformat:0 }} miles</strong></td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header"><h6 class="mb-0"><i class="fas fa-user"></i> Assignment</h6></div>
+                    <div class="card-body">
+                        {% if vehicle.assigned_to %}
+                        <p><strong>Assigned to:</strong> {{ vehicle.assigned_to.get_full_name|default:vehicle.assigned_to.username }}</p>
+                        {% if vehicle.get_current_assignment %}
+                        <p class="mb-0"><small class="text-muted">Since {{ vehicle.get_current_assignment.start_date }} ({{ vehicle.get_current_assignment.duration_days }} days)</small></p>
+                        {% endif %}
+                        {% else %}
+                        <p class="text-muted mb-2">Not currently assigned</p>
+                        {% endif %}
+                        <a href="{% url 'vehicles:assignment_create' vehicle.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-user-plus"></i> {% if vehicle.assigned_to %}Reassign{% else %}Assign{% endif %} Vehicle</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header"><h6 class="mb-0"><i class="fas fa-shield-alt"></i> Insurance</h6></div>
+                    <div class="card-body">
+                        {% if vehicle.insurance_provider %}
+                        <table class="table table-sm mb-0">
+                            <tr><th width="40%">Provider:</th><td>{{ vehicle.insurance_provider }}</td></tr>
+                            <tr><th>Policy #:</th><td>{{ vehicle.insurance_policy_number|default:"N/A" }}</td></tr>
+                            <tr><th>Expires:</th><td>
+                                {{ vehicle.insurance_expires_at|default:"N/A" }}
+                                {% if vehicle.is_insurance_expiring_soon %}<span class="badge bg-warning ms-2">Expiring Soon</span>{% endif %}
+                            </td></tr>
+                            <tr><th>Premium:</th><td>${{ vehicle.insurance_premium|default:"0"|floatformat:2 }}</td></tr>
+                        </table>
+                        {% else %}
+                        <p class="text-muted mb-0">No insurance information</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header"><h6 class="mb-0"><i class="fas fa-id-card"></i> Registration</h6></div>
+                    <div class="card-body">
+                        {% if vehicle.registration_expires_at %}
+                        <p><strong>Expires:</strong> {{ vehicle.registration_expires_at }}
+                        {% if vehicle.is_registration_expiring_soon %}<span class="badge bg-warning ms-2">Expiring Soon</span>{% endif %}</p>
+                        {% else %}
+                        <p class="text-muted mb-0">No registration information</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if vehicle.has_location %}
+                <div class="card mb-3">
+                    <div class="card-header"><h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> GPS Location</h6></div>
+                    <div class="card-body">
+                        <p><strong>Coordinates:</strong> {{ vehicle.latitude }}, {{ vehicle.longitude }}</p>
+                        {% if vehicle.last_location_update %}<p class="mb-0"><small class="text-muted">Last updated: {{ vehicle.last_location_update }}</small></p>{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if vehicle.notes %}
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-sticky-note"></i> Notes</h6></div>
+            <div class="card-body">{{ vehicle.notes|linebreaks }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Inventory Tab -->
+    <div class="tab-pane fade" id="inventory">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-boxes"></i> Inventory ({{ inventory_items.count }} items)</h5>
+            <a href="{% url 'vehicles:inventory_item_create' vehicle.pk %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Add Item
+            </a>
+        </div>
+
+        {% if inventory_items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Location</th>
+                        <th>Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory_items %}
+                    <tr {% if item.is_low_stock %}class="table-warning"{% endif %}>
+                        <td>
+                            <strong>{{ item.name }}</strong>
+                            {% if item.qr_code %}<br><small class="text-muted"><i class="fas fa-qrcode"></i> {{ item.qr_code }}</small>{% endif %}
+                            {% if item.reorder_link %}<br><a href="{{ item.reorder_link }}" target="_blank" class="btn btn-xs btn-outline-primary btn-sm"><i class="fas fa-shopping-cart"></i> Reorder</a>{% endif %}
+                        </td>
+                        <td>{{ item.category|default:"Uncategorized" }}</td>
+                        <td>
+                            {{ item.quantity }} {{ item.unit }}
+                            {% if item.is_low_stock %}<span class="badge bg-warning ms-1">Low Stock</span>{% endif %}
+                        </td>
+                        <td>{{ item.location_in_vehicle|default:"N/A" }}</td>
+                        <td>{% if item.total_value %}${{ item.total_value|floatformat:2 }}{% else %}N/A{% endif %}</td>
+                        <td>
+                            <a href="{% url 'vehicles:inventory_item_edit' item.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'vehicles:inventory_item_delete' item.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-info">
+            <strong>Total Inventory Value:</strong> ${{ total_inventory_value|floatformat:2 }}
+        </div>
+        {% else %}
+        <p class="text-muted">No inventory items yet</p>
+        {% endif %}
+    </div>
+
+    <!-- Damage Tab -->
+    <div class="tab-pane fade" id="damage">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-exclamation-triangle"></i> Damage Reports ({{ damage_reports.count }})</h5>
+            <a href="{% url 'vehicles:damage_report_create' vehicle.pk %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-plus"></i> Report Damage
+            </a>
+        </div>
+
+        {% if damage_reports %}
+        {% for report in damage_reports %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h6>{{ report.incident_date }} - <span class="badge bg-{% if report.severity == 'minor' %}info{% elif report.severity == 'moderate' %}warning{% else %}danger{% endif %}">{{ report.get_severity_display }}</span></h6>
+                    <div>
+                        <a href="{% url 'vehicles:damage_report_edit' report.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'vehicles:damage_report_delete' report.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                    </div>
+                </div>
+                <p><strong>Status:</strong> <span class="badge bg-primary">{{ report.get_repair_status_display }}</span></p>
+                <p>{{ report.description }}</p>
+                {% if report.damage_location %}<p><strong>Location:</strong> {{ report.damage_location }}</p>{% endif %}
+                {% if report.actual_cost %}<p><strong>Cost:</strong> ${{ report.actual_cost|floatformat:2 }}</p>{% endif %}
+                <p class="mb-0"><small class="text-muted">Reported by {{ report.reported_by.get_full_name|default:report.reported_by.username }}</small></p>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="alert alert-warning">
+            <strong>Total Damage Cost:</strong> ${{ total_damage_cost|floatformat:2 }}
+        </div>
+        {% else %}
+        <p class="text-muted">No damage reports</p>
+        {% endif %}
+    </div>
+
+    <!-- Maintenance Tab -->
+    <div class="tab-pane fade" id="maintenance">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-wrench"></i> Maintenance Records ({{ maintenance_records.count }})</h5>
+            <a href="{% url 'vehicles:maintenance_record_create' vehicle.pk %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Log Maintenance
+            </a>
+        </div>
+
+        {% if maintenance_records %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Mileage</th>
+                        <th>Cost</th>
+                        <th>Next Due</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in maintenance_records %}
+                    <tr {% if record.is_overdue %}class="table-danger"{% endif %}>
+                        <td>{{ record.service_date }}</td>
+                        <td>{{ record.get_maintenance_type_display }}</td>
+                        <td>{{ record.mileage_at_service|floatformat:0 }} mi</td>
+                        <td>{% if record.total_cost %}${{ record.total_cost|floatformat:2 }}{% else %}N/A{% endif %}</td>
+                        <td>
+                            {% if record.next_due_date %}{{ record.next_due_date }}{% elif record.next_due_mileage %}{{ record.next_due_mileage }} mi{% else %}N/A{% endif %}
+                            {% if record.is_overdue %}<span class="badge bg-danger ms-1">Overdue</span>{% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'vehicles:maintenance_record_edit' record.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'vehicles:maintenance_record_delete' record.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-info">
+            <strong>Total Maintenance Cost:</strong> ${{ total_maintenance_cost|floatformat:2 }}
+        </div>
+        {% else %}
+        <p class="text-muted">No maintenance records yet</p>
+        {% endif %}
+    </div>
+
+    <!-- Fuel Tab -->
+    <div class="tab-pane fade" id="fuel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-gas-pump"></i> Fuel Logs ({{ fuel_logs.count }})</h5>
+            <a href="{% url 'vehicles:fuel_log_create' vehicle.pk %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Log Fuel Purchase
+            </a>
+        </div>
+
+        {% if fuel_logs %}
+        <div class="alert alert-info mb-3">
+            <div class="row">
+                <div class="col-md-4"><strong>Average MPG:</strong> {{ avg_mpg|floatformat:1 }} MPG</div>
+                <div class="col-md-4"><strong>Total Fuel Cost:</strong> ${{ total_fuel_cost|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Mileage</th>
+                        <th>Gallons</th>
+                        <th>$/Gallon</th>
+                        <th>Total Cost</th>
+                        <th>MPG</th>
+                        <th>Station</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in fuel_logs %}
+                    <tr>
+                        <td>{{ log.date }}</td>
+                        <td>{{ log.mileage|floatformat:0 }} mi</td>
+                        <td>{{ log.gallons|floatformat:2 }}</td>
+                        <td>${{ log.cost_per_gallon|floatformat:3 }}</td>
+                        <td>${{ log.total_cost|floatformat:2 }}</td>
+                        <td>{% if log.mpg %}<strong>{{ log.mpg|floatformat:1 }}</strong>{% else %}N/A{% endif %}</td>
+                        <td>{{ log.station|default:"N/A" }}</td>
+                        <td>
+                            <a href="{% url 'vehicles:fuel_log_edit' log.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'vehicles:fuel_log_delete' log.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No fuel logs yet</p>
+        {% endif %}
+    </div>
+
+    <!-- History Tab -->
+    <div class="tab-pane fade" id="history">
+        <h5><i class="fas fa-history"></i> Assignment History</h5>
+        {% if assignments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Starting Mileage</th>
+                        <th>Ending Mileage</th>
+                        <th>Miles Driven</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                    <tr {% if assignment.is_active %}class="table-success"{% endif %}>
+                        <td>{{ assignment.user.get_full_name|default:assignment.user.username }}</td>
+                        <td>{{ assignment.start_date }}</td>
+                        <td>{% if assignment.end_date %}{{ assignment.end_date }}{% else %}<span class="badge bg-success">Active</span>{% endif %}</td>
+                        <td>{{ assignment.starting_mileage|floatformat:0 }} mi</td>
+                        <td>{% if assignment.ending_mileage %}{{ assignment.ending_mileage|floatformat:0 }} mi{% else %}N/A{% endif %}</td>
+                        <td>{% if assignment.miles_driven %}<strong>{{ assignment.miles_driven|floatformat:0 }} mi</strong>{% else %}N/A{% endif %}</td>
+                        <td>
+                            {% if assignment.is_active %}
+                            <a href="{% url 'vehicles:assignment_end' assignment.pk %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-stop"></i> End Assignment
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No assignment history</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

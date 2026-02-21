@@ -203,6 +203,7 @@ def settings_features(request):
         settings.secure_notes_enabled = request.POST.get('secure_notes_enabled') == 'on'
         settings.reports_enabled = request.POST.get('reports_enabled') == 'on'
         settings.webhooks_enabled = request.POST.get('webhooks_enabled') == 'on'
+        settings.vehicles_enabled = request.POST.get('vehicles_enabled') == 'on'
 
         settings.updated_by = request.user
         settings.save()

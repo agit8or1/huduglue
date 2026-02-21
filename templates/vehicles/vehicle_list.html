@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}All Vehicles - Client St0r{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-truck"></i> All Vehicles</h2>
+    <div>
+        <a href="{% url 'vehicles:vehicle_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Vehicle
+        </a>
+        <a href="{% url 'vehicles:vehicles_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="maintenance" {% if status_filter == 'maintenance' %}selected{% endif %}>In Maintenance</option>
+                    <option value="retired" {% if status_filter == 'retired' %}selected{% endif %}>Retired</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Condition</label>
+                <select name="condition" class="form-select">
+                    <option value="">All</option>
+                    <option value="excellent" {% if condition_filter == 'excellent' %}selected{% endif %}>Excellent</option>
+                    <option value="good" {% if condition_filter == 'good' %}selected{% endif %}>Good</option>
+                    <option value="fair" {% if condition_filter == 'fair' %}selected{% endif %}>Fair</option>
+                    <option value="poor" {% if condition_filter == 'poor' %}selected{% endif %}>Poor</option>
+                    <option value="needs_repair" {% if condition_filter == 'needs_repair' %}selected{% endif %}>Needs Repair</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Name, make, model, license plate, VIN..." value="{{ search }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2"><i class="fas fa-filter"></i> Filter</button>
+                <a href="{% url 'vehicles:vehicle_list' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Vehicles Table -->
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover" id="vehiclesTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Make/Model</th>
+                    <th>Year</th>
+                    <th>License Plate</th>
+                    <th>Mileage</th>
+                    <th>Status</th>
+                    <th>Condition</th>
+                    <th>Assigned To</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vehicle in vehicles %}
+                <tr>
+                    <td>
+                        <strong>{{ vehicle.name|default:vehicle.display_name }}</strong>
+                        {% if vehicle.qr_code %}
+                        <br><small class="text-muted"><i class="fas fa-qrcode"></i> {{ vehicle.qr_code }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ vehicle.make }} {{ vehicle.model }}</td>
+                    <td>{{ vehicle.year }}</td>
+                    <td><code>{{ vehicle.license_plate }}</code></td>
+                    <td>{{ vehicle.current_mileage|floatformat:0 }} mi</td>
+                    <td>
+                        {% if vehicle.status == 'active' %}
+                        <span class="badge bg-success">Active</span>
+                        {% elif vehicle.status == 'maintenance' %}
+                        <span class="badge bg-warning">Maintenance</span>
+                        {% elif vehicle.status == 'retired' %}
+                        <span class="badge bg-secondary">Retired</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ vehicle.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if vehicle.condition == 'excellent' %}
+                        <span class="badge bg-success">{{ vehicle.get_condition_display }}</span>
+                        {% elif vehicle.condition == 'good' %}
+                        <span class="badge bg-info">{{ vehicle.get_condition_display }}</span>
+                        {% elif vehicle.condition == 'fair' %}
+                        <span class="badge bg-warning">{{ vehicle.get_condition_display }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{{ vehicle.get_condition_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if vehicle.assigned_to %}
+                        {{ vehicle.assigned_to.get_full_name|default:vehicle.assigned_to.username }}
+                        {% else %}
+                        <span class="text-muted">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'vehicles:vehicle_detail' vehicle.pk %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'vehicles:vehicle_edit' vehicle.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted">No vehicles found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#vehiclesTable').DataTable({
+        order: [[0, 'asc']],
+        pageLength: 25
+    });
+});
+</script>
+{% endblock %}

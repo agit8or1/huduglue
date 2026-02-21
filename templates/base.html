@@ -114,6 +114,19 @@
                         </ul>
                     </li>
                     {% endif %}
+                    {% if vehicles_enabled %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="vehiclesDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-truck"></i> Service Vehicles
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'vehicles:vehicles_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'vehicles:vehicle_list' %}"><i class="fas fa-list"></i> All Vehicles</a></li>
+                            <li><a class="dropdown-item" href="{% url 'vehicles:vehicle_create' %}"><i class="fas fa-plus"></i> Add Vehicle</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-chart-bar"></i> Reports
@@ -236,6 +249,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{% url 'accounts:profile' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="View and edit your user profile"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'docs:document_list' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Documentation and knowledge base"><i class="fas fa-file-alt"></i> Documentation</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'core:about' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="System information and version details"><i class="fas fa-info-circle"></i> About</a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reportBugModal" title="Report an issue to GitHub"><i class="fas fa-bug"></i> Report Bug</a></li>
