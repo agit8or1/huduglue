@@ -3,51 +3,11 @@
 {% block title %}Help & Documentation - Client St0r{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="fas fa-book"></i> Documentation</h6>
-                </div>
-                <div class="list-group list-group-flush">
-                    <a href="{% url 'core:help_getting_started' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-play-circle"></i> Getting Started
-                    </a>
-                    <a href="{% url 'core:help_features' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-star"></i> Features
-                    </a>
-                    <a href="{% url 'core:help_assets' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-server"></i> Asset Management
-                    </a>
-                    <a href="{% url 'core:help_vehicles' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-truck"></i> Service Vehicles
-                    </a>
-                    <a href="{% url 'core:help_vault' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-lock"></i> Password Vault
-                    </a>
-                    <a href="{% url 'core:help_monitoring' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-chart-line"></i> Monitoring
-                    </a>
-                    <a href="{% url 'core:help_security' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-shield-alt"></i> Security
-                    </a>
-                    <a href="{% url 'core:help_api' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-code"></i> API Documentation
-                    </a>
-                    <hr class="my-2">
-                    <a href="https://github.com/agit8or1/clientst0r" target="_blank" class="list-group-item list-group-item-action">
-                        <i class="fab fa-github"></i> GitHub Repository
-                    </a>
-                </div>
-            </div>
-        </div>
+<div class="container">
+    <h2><i class="fas fa-question-circle"></i> Client St0r Help & Documentation</h2>
+    <p class="lead">Welcome to the Client St0r documentation. Explore topics below to get started.</p>
 
-        <div class="col-md-9">
-            <h2><i class="fas fa-question-circle"></i> Client St0r Help & Documentation</h2>
-            <p class="lead">Welcome to the Client St0r documentation. Select a topic from the left to get started.</p>
-
-            <div class="row g-3 mt-4">
+    <div class="row g-3 mt-4">
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
@@ -116,7 +76,6 @@
                     <li><strong>Need support?</strong> <a href="https://github.com/agit8or1/clientst0r/issues" target="_blank">Report an issue on GitHub</a></li>
                     <li><strong>Updates:</strong> Check <a href="{% url 'core:system_updates' %}">System Updates</a> for the latest version</li>
                 </ul>
-            </div>
         </div>
     </div>
 </div>
