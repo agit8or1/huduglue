@@ -82,16 +82,11 @@ A complete, self-hosted IT documentation platform designed for Managed Service P
 </table>
 
 <details>
-<summary><strong>📋 View All Screenshots (37 total)</strong></summary>
-
-### 🆕 New Features (v3.11)
-- [Help & Documentation](docs/screenshots/help-index.png) - Integrated in-app documentation system
-- [Getting Started Guide](docs/screenshots/help-getting-started.png) - Step-by-step setup guide
+<summary><strong>📋 View All Screenshots (34 total)</strong></summary>
 
 ### Core Features
 - [Dashboard](docs/screenshots/dashboard.png) - Main dashboard with random backgrounds
 - [Quick Add](docs/screenshots/quick-add.png) - Fast creation menu for assets, passwords, documents
-- [About](docs/screenshots/about-page.png) - System information and version details
 - [Profile](docs/screenshots/profile.png) - User profile and settings
 - [Favorites](docs/screenshots/favorites.png) - Quick access to favorited items
 
