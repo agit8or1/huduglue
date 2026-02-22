@@ -753,27 +753,64 @@ class UpdateService:
                     logger.info("Scheduling delayed service restart to avoid suicide problem")
 
                     try:
-                        # Schedule restart in 5 seconds - gives time for response to complete
-                        restart_output = self._run_command([
-                            '/usr/bin/sudo', '/usr/bin/systemd-run',
-                            '--on-active=5',  # Wait 5 seconds for response to complete
-                            '/usr/bin/systemctl', 'restart', 'clientst0r-gunicorn.service'
-                        ])
-                        logger.info(f"Service restart scheduled: {restart_output}")
+                        # Check if systemd service exists first
+                        service_check = subprocess.run(
+                            ['/usr/bin/systemctl', 'is-active', 'clientst0r-gunicorn.service'],
+                            capture_output=True,
+                            text=True,
+                            timeout=5
+                        )
+                        service_exists = service_check.returncode == 0 or 'inactive' in service_check.stdout
 
-                        # Verify systemd-run succeeded
-                        if 'Failed' in restart_output or 'failed' in restart_output.lower():
-                            raise Exception(f"systemd-run failed: {restart_output}")
+                        if service_exists:
+                            # Schedule restart in 5 seconds - gives time for response to complete
+                            restart_output = self._run_command([
+                                '/usr/bin/sudo', '/usr/bin/systemd-run',
+                                '--on-active=5',  # Wait 5 seconds for response to complete
+                                '/usr/bin/systemctl', 'restart', 'clientst0r-gunicorn.service'
+                            ])
+                            logger.info(f"Systemd service restart scheduled: {restart_output}")
 
-                        result['steps_completed'].append('restart_service')
-                        result['output'].append(f"✓ Service restart scheduled (5 second delay)")
-                        result['output'].append("⚠️  Please wait 10 seconds, then refresh the page")
-                        result['output'].append("The service will restart automatically to load new code")
+                            result['steps_completed'].append('restart_service')
+                            result['output'].append(f"✓ Service restart scheduled (5 second delay)")
+                            result['output'].append("⚠️  Please wait 10 seconds, then refresh the page")
+                        else:
+                            # No systemd service - use pkill for manual gunicorn
+                            logger.info("No systemd service found - restarting manual gunicorn with pkill")
+
+                            # Schedule pkill HUP in 5 seconds to reload workers
+                            # HUP causes gunicorn to gracefully reload workers with new code
+                            pkill_cmd = self._run_command([
+                                '/usr/bin/sudo', '/usr/bin/systemd-run',
+                                '--on-active=5',
+                                '/usr/bin/pkill', '-HUP', '-f', 'gunicorn'
+                            ])
+                            logger.info(f"Gunicorn worker reload scheduled: {pkill_cmd}")
+
+                            result['steps_completed'].append('restart_service')
+                            result['output'].append(f"✓ Gunicorn reload scheduled (5 second delay)")
+                            result['output'].append("⚠️  Please wait 10 seconds, then refresh the page")
+
                     except Exception as e:
-                        logger.error(f"Service restart scheduling failed: {e}")
-                        # Don't fail the whole update - just warn
-                        result['output'].append(f"⚠️  Auto-restart failed. Click 'Force Restart Services' button")
-                        result['steps_completed'].append('restart_service')
+                        logger.error(f"Service restart failed: {e}")
+                        # Fallback: try direct pkill as last resort
+                        try:
+                            logger.info("Fallback: trying direct gunicorn reload")
+                            subprocess.run(
+                                ['nohup', '/bin/bash', '-c',
+                                 'sleep 5 && pkill -HUP gunicorn'],
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL,
+                                start_new_session=True
+                            )
+                            result['output'].append(f"✓ Gunicorn worker reload scheduled (fallback)")
+                            result['output'].append("⚠️  Please wait 10 seconds, then refresh the page")
+                            result['steps_completed'].append('restart_service')
+                        except Exception as fallback_error:
+                            logger.error(f"All restart methods failed: {fallback_error}")
+                            result['output'].append(f"⚠️  Auto-restart failed. Manually restart gunicorn:")
+                            result['output'].append(f"   kill -HUP $(ps aux | grep gunicorn | grep -v grep | head -1 | awk '{{print $2}}')")
+                            result['steps_completed'].append('restart_service')
                     if progress_tracker:
                         progress_tracker.step_complete('Restart Service')
                 except Exception as e:
@@ -804,6 +841,20 @@ class UpdateService:
             from django.core.cache import cache
             cache.delete('system_update_check')
             logger.info("Cleared system_update_check cache")
+
+            # Force reload version module to display new version immediately
+            # This only affects THIS worker, but at least one worker will show correct version
+            try:
+                import sys
+                import importlib
+                if 'config.version' in sys.modules:
+                    importlib.reload(sys.modules['config.version'])
+                    from config.version import VERSION
+                    self.current_version = VERSION
+                    logger.info(f"Reloaded version module: {VERSION}")
+                    result['output'].append(f"✓ Version updated to {VERSION} (current worker)")
+            except Exception as e:
+                logger.warning(f"Failed to reload version module: {e}")
 
             if progress_tracker:
                 progress_tracker.finish(success=True)
