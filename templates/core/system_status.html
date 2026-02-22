@@ -36,16 +36,19 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-start border-{% if db_info.connected %}success{% else %}danger{% endif %} border-4">
+                        <div class="card border-start border-{% if db_connected %}success{% else %}danger{% endif %} border-4">
                             <div class="card-body p-3">
                                 <h6 class="mb-2"><i class="fas fa-database"></i> Database</h6>
                                 <div class="small">
-                                    {% if db_info.connected %}
+                                    {% if db_connected %}
                                     <span class="badge bg-success mb-1">Connected</span><br>
                                     {{ db_info.version|truncatewords:2 }}<br>
                                     Size: {{ db_info.size_mb }} MB
                                     {% else %}
                                     <span class="badge bg-danger">Disconnected</span>
+                                    {% if db_info.error %}
+                                    <br><small class="text-muted">{{ db_info.error }}</small>
+                                    {% endif %}
                                     {% endif %}
                                 </div>
                             </div>

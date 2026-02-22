@@ -704,9 +704,14 @@ def system_status(request):
     # Final debug log before rendering
     logger.info(f"RENDERING TEMPLATE: db_info['connected']={db_info.get('connected')}")
 
+    # Force boolean conversion and add as separate variable for template debugging
+    db_connected = bool(db_info.get('connected', False))
+    logger.info(f"DB CONNECTED BOOL: {db_connected}, type={type(db_connected)}")
+
     return render(request, 'core/system_status.html', {
         'system_info': system_info,
         'db_info': db_info,
+        'db_connected': db_connected,  # Add explicit boolean
         'disk_usage': disk_usage,
         'memory_info': memory_info,
         'cpu_info': cpu_info,
