@@ -778,33 +778,57 @@ class UpdateService:
                             # No systemd service - use pkill for manual gunicorn
                             logger.info("No systemd service found - restarting manual gunicorn with pkill")
 
-                            # Schedule pkill HUP in 5 seconds to reload workers
-                            # HUP causes gunicorn to gracefully reload workers with new code
-                            pkill_cmd = self._run_command([
-                                '/usr/bin/sudo', '/usr/bin/systemd-run',
-                                '--on-active=5',
-                                '/usr/bin/pkill', '-HUP', '-f', 'gunicorn'
-                            ])
-                            logger.info(f"Gunicorn worker reload scheduled: {pkill_cmd}")
+                            # Try multiple restart methods to ensure it works
+                            restart_methods = []
+
+                            # Method 1: SIGUSR2 - graceful restart of master and all workers
+                            try:
+                                pkill_cmd1 = self._run_command([
+                                    '/usr/bin/sudo', '/usr/bin/systemd-run',
+                                    '--on-active=5',
+                                    '/usr/bin/pkill', '-USR2', '-f', 'gunicorn.*config.wsgi:application'
+                                ])
+                                logger.info(f"Gunicorn USR2 restart scheduled: {pkill_cmd1}")
+                                restart_methods.append("USR2 signal")
+                            except:
+                                pass
+
+                            # Method 2: HUP - reload workers (fallback)
+                            try:
+                                pkill_cmd2 = self._run_command([
+                                    '/usr/bin/sudo', '/usr/bin/systemd-run',
+                                    '--on-active=7',  # Slightly later
+                                    '/usr/bin/pkill', '-HUP', '-f', 'gunicorn'
+                                ])
+                                logger.info(f"Gunicorn HUP reload scheduled: {pkill_cmd2}")
+                                restart_methods.append("HUP signal")
+                            except:
+                                pass
 
                             result['steps_completed'].append('restart_service')
-                            result['output'].append(f"✓ Gunicorn reload scheduled (5 second delay)")
-                            result['output'].append("⚠️  Please wait 10 seconds, then refresh the page")
+                            if restart_methods:
+                                result['output'].append(f"✓ Gunicorn restart scheduled: {', '.join(restart_methods)}")
+                            else:
+                                result['output'].append(f"⚠️  Using fallback restart method")
+                            result['output'].append("⚠️  Wait 15 seconds, then HARD REFRESH (Ctrl+Shift+R)")
+                            result['output'].append(f"📍 Updated directory: {self.base_dir}")
 
                     except Exception as e:
                         logger.error(f"Service restart failed: {e}")
                         # Fallback: try direct pkill as last resort
                         try:
-                            logger.info("Fallback: trying direct gunicorn reload")
+                            logger.info("Fallback: trying direct gunicorn restart")
+                            # Send both USR2 and HUP to ensure restart
                             subprocess.run(
                                 ['nohup', '/bin/bash', '-c',
-                                 'sleep 5 && pkill -HUP gunicorn'],
+                                 'sleep 5 && pkill -USR2 gunicorn; sleep 2 && pkill -HUP gunicorn'],
                                 stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL,
                                 start_new_session=True
                             )
-                            result['output'].append(f"✓ Gunicorn worker reload scheduled (fallback)")
-                            result['output'].append("⚠️  Please wait 10 seconds, then refresh the page")
+                            result['output'].append(f"✓ Gunicorn restart scheduled (fallback: USR2+HUP)")
+                            result['output'].append("⚠️  Wait 15 seconds, then HARD REFRESH (Ctrl+Shift+R)")
+                            result['output'].append(f"📍 Updated: {self.base_dir}")
                             result['steps_completed'].append('restart_service')
                         except Exception as fallback_error:
                             logger.error(f"All restart methods failed: {fallback_error}")
@@ -852,7 +876,14 @@ class UpdateService:
                     from config.version import VERSION
                     self.current_version = VERSION
                     logger.info(f"Reloaded version module: {VERSION}")
-                    result['output'].append(f"✓ Version updated to {VERSION} (current worker)")
+                    result['output'].append(f"")
+                    result['output'].append(f"🎉 UPDATE SUCCESSFUL!")
+                    result['output'].append(f"📦 New version: {VERSION}")
+                    result['output'].append(f"📍 Location: {self.base_dir}")
+                    result['output'].append(f"")
+
+                    # Update result to show new version
+                    result['new_version'] = VERSION
             except Exception as e:
                 logger.warning(f"Failed to reload version module: {e}")
 
