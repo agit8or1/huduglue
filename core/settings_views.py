@@ -494,6 +494,9 @@ def system_status(request):
         db_info['connected'] = False
         db_info['error'] = str(e)
 
+    # Debug logging
+    logger.info(f"DATABASE STATUS CHECK: connected={db_info.get('connected')}, type={type(db_info.get('connected'))}, dict={db_info}")
+
     # Disk space
     disk_usage = {}
     try:
@@ -697,6 +700,9 @@ def system_status(request):
 
     except Exception as e:
         capacity['error'] = str(e)
+
+    # Final debug log before rendering
+    logger.info(f"RENDERING TEMPLATE: db_info['connected']={db_info.get('connected')}")
 
     return render(request, 'core/system_status.html', {
         'system_info': system_info,
