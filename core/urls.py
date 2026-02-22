@@ -158,3 +158,7 @@ urlpatterns = [
 # Test endpoint for database connection
 from core.test_db_view import test_database_connection
 urlpatterns.append(path('test-db/', test_database_connection, name='test_database'))
+
+# Debug version endpoint
+from core.debug_version_view import debug_version
+urlpatterns.append(path('debug-version/', debug_version, name='debug_version'))
