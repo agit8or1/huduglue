@@ -450,18 +450,15 @@ def system_status(request):
     }
 
     # Database information
-    db_info = {'connected': False}  # Initialize as disconnected
+    db_info = {}
     try:
-        from django.db import connection
-
         db_engine = connection.settings_dict['ENGINE']
         db_info['engine'] = db_engine.split('.')[-1]
 
         # Test connection with simple query
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
-            result = cursor.fetchone()
-            # If we got here, connection works
+            # If we got here without exception, connection works
             db_info['connected'] = True
 
             # Get database version based on engine
