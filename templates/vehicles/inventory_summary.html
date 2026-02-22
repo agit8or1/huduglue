@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Inventory Session Complete - {{ vehicle.display_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .summary-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .completion-header {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .completion-icon {
+        font-size: 72px;
+        margin-bottom: 20px;
+    }
+
+    .completion-title {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .completion-subtitle {
+        font-size: 18px;
+        opacity: 0.9;
+    }
+
+    .session-summary {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-box {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        border: 2px solid #dee2e6;
+    }
+
+    .stat-box.highlight {
+        background: #d1e7dd;
+        border-color: #198754;
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: bold;
+        color: #212529;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .changes-list {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+
+    .changes-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .change-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .change-item.increase {
+        border-left-color: #198754;
+        background: #d1e7dd;
+    }
+
+    .change-item.decrease {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+    }
+
+    .change-item.nochange {
+        border-left-color: #6c757d;
+    }
+
+    .change-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: #212529;
+    }
+
+    .change-details {
+        font-size: 14px;
+        color: #6c757d;
+        margin-top: 3px;
+    }
+
+    .change-values {
+        text-align: right;
+    }
+
+    .change-arrow {
+        font-size: 18px;
+        font-weight: bold;
+        color: #212529;
+    }
+
+    .change-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+    }
+
+    .action-buttons .btn {
+        flex: 1;
+        padding: 15px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+
+    @media (max-width: 576px) {
+        .summary-container {
+            padding: 10px;
+        }
+
+        .completion-header {
+            padding: 20px;
+        }
+
+        .completion-title {
+            font-size: 24px;
+        }
+
+        .completion-icon {
+            font-size: 56px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="summary-container">
+    <div class="completion-header">
+        <div class="completion-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="completion-title">Inventory Session Complete!</div>
+        <div class="completion-subtitle">{{ vehicle.display_name }} - {{ vehicle.license_plate }}</div>
+    </div>
+
+    <div class="session-summary">
+        <h5><i class="fas fa-chart-bar"></i> Session Statistics</h5>
+
+        <div class="summary-stats">
+            <div class="stat-box highlight">
+                <span class="stat-value">{{ session_data.total_scanned|default:0 }}</span>
+                <span class="stat-label">Items Scanned</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">
+                    {% with duration=session_data.started_at %}
+                    {% if duration %}
+                        {{ duration|slice:":19" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                    {% endwith %}
+                </span>
+                <span class="stat-label">Started At</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ session_data.scanned_items|length|default:0 }}</span>
+                <span class="stat-label">Updates Made</span>
+            </div>
+        </div>
+    </div>
+
+    {% if session_data.scanned_items %}
+    <div class="changes-list">
+        <div class="changes-title">
+            <i class="fas fa-list-ul"></i> Items Updated
+        </div>
+
+        {% for item in session_data.scanned_items %}
+        <div class="change-item {% if item.new_quantity > item.old_quantity %}increase{% elif item.new_quantity < item.old_quantity %}decrease{% else %}nochange{% endif %}">
+            <div>
+                <div class="change-name">{{ item.name }}</div>
+                <div class="change-details">
+                    <i class="fas fa-clock"></i> {{ item.timestamp|slice:"11:16" }}
+                </div>
+            </div>
+            <div class="change-values">
+                <div class="change-arrow">
+                    {{ item.old_quantity }} → {{ item.new_quantity }}
+                </div>
+                {% if item.new_quantity > item.old_quantity %}
+                    <span class="change-badge" style="background: #198754; color: white;">
+                        <i class="fas fa-arrow-up"></i> +{{ item.new_quantity|add:"-"|add:item.old_quantity }}
+                    </span>
+                {% elif item.new_quantity < item.old_quantity %}
+                    <span class="change-badge" style="background: #dc3545; color: white;">
+                        <i class="fas fa-arrow-down"></i> -{{ item.old_quantity|add:"-"|add:item.new_quantity }}
+                    </span>
+                {% else %}
+                    <span class="change-badge" style="background: #6c757d; color: white;">
+                        <i class="fas fa-equals"></i> No Change
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No items were scanned in this session.
+    </div>
+    {% endif %}
+
+    <div class="action-buttons">
+        <a href="{% url 'vehicles:vehicle_detail' vehicle.pk %}" class="btn btn-primary">
+            <i class="fas fa-truck"></i> Back to Vehicle
+        </a>
+        <a href="{% url 'vehicles:take_inventory' vehicle.pk %}" class="btn btn-success">
+            <i class="fas fa-redo"></i> Start New Session
+        </a>
+        <a href="{% url 'vehicles:vehicle_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> All Vehicles
+        </a>
+    </div>
+
+    <div class="text-center text-muted mt-4">
+        <small>
+            <i class="fas fa-check"></i> All changes have been saved to the database<br>
+            Session data: {{ session_data.total_scanned|default:0 }} items scanned
+        </small>
+    </div>
+</div>
+{% endblock %}

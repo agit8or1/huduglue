@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Take Inventory - {{ vehicle.display_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inventory-session-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .session-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .session-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: bold;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-top: 5px;
+    }
+
+    .scanner-section {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+
+    .scanner-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .qr-scanner-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        margin: 20px auto;
+    }
+
+    #qr-reader {
+        border: 3px solid #667eea;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .manual-entry {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .manual-entry input {
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .recently-scanned {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+
+    .scanned-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+    }
+
+    .scanned-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    .scanned-item.latest {
+        background: #d1e7dd;
+        border: 2px solid #198754;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #212529;
+    }
+
+    .item-change {
+        font-size: 14px;
+        color: #6c757d;
+        margin-top: 3px;
+    }
+
+    .item-timestamp {
+        font-size: 12px;
+        color: #adb5bd;
+    }
+
+    .action-buttons-footer {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .btn-end-session {
+        flex: 1;
+        padding: 15px;
+        font-size: 18px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 8px;
+    }
+
+    .btn-continue {
+        flex: 1;
+        padding: 15px;
+        font-size: 18px;
+        background: #198754;
+        color: white;
+        border: none;
+        border-radius: 8px;
+    }
+
+    @media (max-width: 576px) {
+        .inventory-session-container {
+            padding: 10px;
+        }
+
+        .session-header {
+            padding: 15px;
+        }
+
+        .scanner-section, .recently-scanned {
+            padding: 15px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    let html5QrcodeScanner = null;
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Redirect to scan update page
+        window.location.href = `/vehicles/inventory/scan-update/${decodedText}/`;
+    }
+
+    function onScanError(errorMessage) {
+        // Ignore scan errors (common when nothing is in view)
+    }
+
+    // Initialize scanner on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader",
+            {
+                fps: 10,
+                qrbox: 250,
+                rememberLastUsedCamera: true
+            }
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+    });
+
+    // Manual QR code entry
+    function submitManualQR() {
+        const qrCode = document.getElementById('manual-qr-input').value.trim();
+        if (qrCode) {
+            window.location.href = `/vehicles/inventory/scan-update/${qrCode}/`;
+        }
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="inventory-session-container">
+    <div class="session-header">
+        <h2><i class="fas fa-clipboard-check"></i> Taking Inventory</h2>
+        <p>{{ vehicle.display_name }} - {{ vehicle.license_plate }}</p>
+
+        <div class="session-stats">
+            <div class="stat-card">
+                <span class="stat-number">{{ session_data.total_scanned }}</span>
+                <span class="stat-label">Items Scanned</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ inventory_items.count }}</span>
+                <span class="stat-label">Total Items</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ session_data.started_at|slice:":10" }}</span>
+                <span class="stat-label">Started</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="scanner-section">
+        <div class="scanner-title">
+            <i class="fas fa-qrcode"></i> Scan QR Code
+        </div>
+
+        <div class="qr-scanner-wrapper">
+            <div id="qr-reader"></div>
+        </div>
+
+        <div class="manual-entry">
+            <label><strong>Or Enter QR Code Manually:</strong></label>
+            <input type="text" id="manual-qr-input" placeholder="Enter QR code..."
+                   onkeypress="if(event.key === 'Enter') submitManualQR()">
+            <button class="btn btn-primary btn-block" onclick="submitManualQR()">
+                <i class="fas fa-search"></i> Look Up Item
+            </button>
+        </div>
+    </div>
+
+    {% if session_data.scanned_items %}
+    <div class="recently-scanned">
+        <h5><i class="fas fa-history"></i> Recently Scanned ({{ session_data.scanned_items|length }})</h5>
+
+        {% for item in session_data.scanned_items reversed %}
+        <div class="scanned-item {% if forloop.first %}latest{% endif %}">
+            <div class="item-details">
+                <div class="item-name">{{ item.name }}</div>
+                <div class="item-change">
+                    {{ item.old_quantity }} → {{ item.new_quantity }}
+                    {% if item.old_quantity < item.new_quantity %}
+                        <span class="badge bg-success">+{{ item.new_quantity|add:item.old_quantity|add:"-"|add:item.old_quantity }}</span>
+                    {% elif item.old_quantity > item.new_quantity %}
+                        <span class="badge bg-danger">-{{ item.old_quantity|add:item.new_quantity|add:"-"|add:item.new_quantity }}</span>
+                    {% endif %}
+                </div>
+                <div class="item-timestamp">
+                    <i class="fas fa-clock"></i> {{ item.timestamp|slice:"11:16" }}
+                </div>
+            </div>
+            {% if forloop.first %}
+            <span class="badge bg-success">Latest</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="action-buttons-footer">
+        <a href="{% url 'vehicles:vehicle_detail' vehicle.pk %}" class="btn-continue">
+            <i class="fas fa-arrow-left"></i> Continue Later
+        </a>
+        <a href="{% url 'vehicles:end_inventory_session' vehicle.pk %}" class="btn-end-session">
+            <i class="fas fa-check-circle"></i> End Session
+        </a>
+    </div>
+
+    <div class="text-center text-muted mt-4">
+        <small>
+            <i class="fas fa-mobile-alt"></i> Point camera at QR codes to quickly update inventory<br>
+            Session will be saved even if you navigate away
+        </small>
+    </div>
+</div>
+{% endblock %}

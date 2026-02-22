@@ -787,3 +787,113 @@ def inventory_quick_update(request, pk):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def take_inventory(request, vehicle_id):
+    """
+    Take Inventory mode - scan multiple QR codes to update quantities.
+    Mobile-optimized for quick inventory counts.
+    """
+    vehicle = get_object_or_404(ServiceVehicle, pk=vehicle_id)
+    
+    # Get or initialize session data
+    session_key = f'inventory_session_{vehicle_id}'
+    if session_key not in request.session:
+        request.session[session_key] = {
+            'started_at': timezone.now().isoformat(),
+            'scanned_items': [],
+            'total_scanned': 0
+        }
+    
+    session_data = request.session[session_key]
+    
+    # Get all inventory items for this vehicle
+    inventory_items = vehicle.inventory_items.all().order_by('category', 'name')
+    
+    # Get recently scanned items from session
+    scanned_qr_codes = [item['qr_code'] for item in session_data['scanned_items']]
+    recently_scanned = VehicleInventoryItem.objects.filter(
+        qr_code__in=scanned_qr_codes
+    )
+    
+    context = {
+        'vehicle': vehicle,
+        'inventory_items': inventory_items,
+        'session_data': session_data,
+        'recently_scanned': recently_scanned,
+    }
+    
+    return render(request, 'vehicles/take_inventory.html', context)
+
+
+@login_required  
+@require_http_methods(["POST"])
+def inventory_scan_update(request, qr_code):
+    """
+    Quick scan and update - called from take inventory mode.
+    Updates quantity and adds to session tracking.
+    """
+    item = get_object_or_404(VehicleInventoryItem, qr_code=qr_code)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'set_quantity':
+            new_quantity = int(request.POST.get('quantity', item.quantity))
+            old_quantity = item.quantity
+            item.quantity = new_quantity
+            item.save()
+            
+            # Update session data
+            session_key = f'inventory_session_{item.vehicle.id}'
+            if session_key in request.session:
+                session_data = request.session[session_key]
+                session_data['scanned_items'].append({
+                    'qr_code': qr_code,
+                    'name': item.name,
+                    'old_quantity': old_quantity,
+                    'new_quantity': new_quantity,
+                    'timestamp': timezone.now().isoformat()
+                })
+                session_data['total_scanned'] += 1
+                request.session[session_key] = session_data
+                request.session.modified = True
+            
+            messages.success(request, f'Updated {item.name}: {old_quantity} → {new_quantity}')
+            
+        elif action == 'increment':
+            item.quantity += 1
+            item.save()
+            messages.success(request, f'{item.name}: {item.quantity}')
+            
+        elif action == 'decrement' and item.quantity > 0:
+            item.quantity -= 1
+            item.save()
+            messages.success(request, f'{item.name}: {item.quantity}')
+    
+    # Return to take inventory mode
+    return redirect('vehicles:take_inventory', vehicle_id=item.vehicle.id)
+
+
+@login_required
+def end_inventory_session(request, vehicle_id):
+    """End inventory session and show summary."""
+    vehicle = get_object_or_404(ServiceVehicle, pk=vehicle_id)
+    
+    session_key = f'inventory_session_{vehicle_id}'
+    session_data = request.session.get(session_key, {})
+    
+    # Clear session
+    if session_key in request.session:
+        del request.session[session_key]
+        request.session.modified = True
+    
+    context = {
+        'vehicle': vehicle,
+        'session_data': session_data,
+    }
+    
+    messages.success(request, f'Inventory session completed! Scanned {session_data.get("total_scanned", 0)} items.')
+    
+    return render(request, 'vehicles/inventory_summary.html', context)

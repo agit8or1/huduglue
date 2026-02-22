@@ -10,6 +10,7 @@ and creates corresponding organizations in Client St0r.
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from integrations.models import RMMConnection
+from integrations.providers.rmm import get_rmm_provider
 from core.models import Organization
 import logging
 
@@ -60,7 +61,7 @@ class Command(BaseCommand):
 
         # Get provider
         try:
-            provider = connection.get_provider()
+            provider = get_rmm_provider(connection)
         except Exception as e:
             raise CommandError(f'Failed to get RMM provider: {e}')
 

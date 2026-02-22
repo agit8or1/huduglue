@@ -13,6 +13,7 @@ from .models import PSAConnection, PSACompany, PSAContact, PSATicket, RMMConnect
 from .forms import PSAConnectionForm, RMMConnectionForm
 from .sync import PSASync
 from .providers import get_provider
+from .providers.rmm import get_rmm_provider
 from vault.encryption import EncryptionError
 import logging
 
@@ -819,7 +820,7 @@ def rmm_import_clients(request, pk):
     # GET: Show preview of what will be imported
     if request.method == 'GET':
         try:
-            provider = connection.get_provider()
+            provider = get_rmm_provider(connection)
 
             # Test connection
             if not provider.test_connection():
@@ -871,7 +872,7 @@ def rmm_import_clients(request, pk):
             return redirect('integrations:rmm_import_clients', pk=connection.pk)
 
         try:
-            provider = connection.get_provider()
+            provider = get_rmm_provider(connection)
             devices = provider.list_devices()
 
             # Extract selected clients

@@ -22,6 +22,11 @@ urlpatterns = [
     path('inventory/<int:pk>/edit/', views.inventory_item_edit, name='inventory_item_edit'),
     path('inventory/<int:pk>/delete/', views.inventory_item_delete, name='inventory_item_delete'),
 
+    # Take Inventory (QR Scanning Mode)
+    path('vehicles/<int:vehicle_id>/take-inventory/', views.take_inventory, name='take_inventory'),
+    path('inventory/scan-update/<str:qr_code>/', views.inventory_scan_update, name='inventory_scan_update'),
+    path('vehicles/<int:vehicle_id>/end-inventory/', views.end_inventory_session, name='end_inventory_session'),
+
     # Damage Reports
     path('vehicles/<int:vehicle_id>/damage/create/', views.damage_report_create, name='damage_report_create'),
     path('damage/<int:pk>/edit/', views.damage_report_edit, name='damage_report_edit'),
