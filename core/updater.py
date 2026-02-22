@@ -236,12 +236,12 @@ class UpdateService:
             logger.info("Starting update: Git fetch")
 
             # First, fetch from remote
-            fetch_output = self._run_command(['sudo', '/usr/bin/git', 'fetch', 'origin'])
+            fetch_output = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'fetch', 'origin'])
             result['output'].append(f"Git fetch: {fetch_output}")
 
             # Check if branches are divergent (happens after force push)
-            local_commit = self._run_command(['sudo', '/usr/bin/git', 'rev-parse', 'HEAD']).strip()
-            remote_commit = self._run_command(['sudo', '/usr/bin/git', 'rev-parse', 'origin/main']).strip()
+            local_commit = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'rev-parse', 'HEAD']).strip()
+            remote_commit = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'rev-parse', 'origin/main']).strip()
 
             git_output = ""
             if local_commit != remote_commit:
@@ -250,12 +250,12 @@ class UpdateService:
                 logger.info("Updates available - resetting to remote version")
                 result['output'].append("Updating to latest version...")
 
-                git_output = self._run_command(['sudo', '/usr/bin/git', 'reset', '--hard', 'origin/main'])
+                git_output = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'reset', '--hard', 'origin/main'])
                 result['output'].append(f"Git reset: {git_output}")
 
                 # Check if it was a force push (informational only)
                 try:
-                    self._run_command(['sudo', '/usr/bin/git', 'merge-base', '--is-ancestor', f'{local_commit}', 'origin/main'])
+                    self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'merge-base', '--is-ancestor', f'{local_commit}', 'origin/main'])
                     result['output'].append("✓ Fast-forward update applied")
                 except:
                     result['output'].append("⚠️ Repository history changed (force push detected)")
@@ -281,9 +281,9 @@ class UpdateService:
             # Install main requirements (using venv pip or system pip with sudo)
             venv_pip = os.path.join(self.base_dir, 'venv', 'bin', 'pip')
             if os.path.exists(venv_pip):
-                pip_command = ['sudo', venv_pip]
+                pip_command = ['/usr/bin/sudo', venv_pip]
             else:
-                pip_command = ['sudo', 'pip3']
+                pip_command = ['/usr/bin/sudo', '/usr/bin/pip3']
 
             pip_output = self._run_command(pip_command + [
                 'install', '-r',
@@ -325,9 +325,9 @@ class UpdateService:
             # Use venv python if available
             venv_python = os.path.join(self.base_dir, 'venv', 'bin', 'python')
             if os.path.exists(venv_python):
-                python_command = ['sudo', venv_python]
+                python_command = ['/usr/bin/sudo', venv_python]
             else:
-                python_command = ['sudo', 'python3']
+                python_command = ['/usr/bin/sudo', '/usr/bin/python3']
 
             migrate_output = self._run_command(python_command + [
                 os.path.join(self.base_dir, 'manage.py'),
