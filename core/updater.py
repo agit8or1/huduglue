@@ -25,7 +25,11 @@ class UpdateService:
         self.repo_owner = getattr(settings, 'GITHUB_REPO_OWNER', 'agit8or1')
         self.repo_name = getattr(settings, 'GITHUB_REPO_NAME', 'clientst0r')
         self.current_version = self.get_current_version()
-        self.base_dir = settings.BASE_DIR
+
+        # Auto-detect the ACTUAL running installation directory
+        # Use the location of THIS file (core/updater.py) to find the project root
+        self.base_dir = self._detect_installation_directory()
+        logger.info(f"UpdateService initialized with base_dir: {self.base_dir}")
 
     def get_current_version(self):
         """Get current installed version."""
@@ -34,6 +38,34 @@ class UpdateService:
             return VERSION
         except ImportError:
             return '0.0.0'
+
+    def _detect_installation_directory(self):
+        """
+        Auto-detect the ACTUAL installation directory where code is running.
+
+        This prevents the updater from updating the wrong directory when multiple
+        installations exist on the same server.
+
+        Returns:
+            Path: Absolute path to the project root directory
+        """
+        # Get the directory containing THIS file (core/updater.py)
+        current_file = Path(__file__).resolve()
+
+        # Go up two levels: core/updater.py -> core/ -> project_root/
+        project_root = current_file.parent.parent
+
+        # Validate it's a valid Client St0r installation
+        required_files = ['manage.py', 'config/wsgi.py', 'requirements.txt']
+        for req_file in required_files:
+            if not (project_root / req_file).exists():
+                logger.error(f"Invalid installation: {req_file} not found in {project_root}")
+                # Fallback to settings.BASE_DIR if detection fails
+                logger.warning(f"Falling back to settings.BASE_DIR: {settings.BASE_DIR}")
+                return settings.BASE_DIR
+
+        logger.info(f"Auto-detected installation directory: {project_root}")
+        return str(project_root)
 
     def _get_github_headers(self):
         """Get headers for GitHub API requests with authentication if available."""
