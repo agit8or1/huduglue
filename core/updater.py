@@ -67,6 +67,52 @@ class UpdateService:
         logger.info(f"Auto-detected installation directory: {project_root}")
         return str(project_root)
 
+    def _find_venv_python(self):
+        """
+        Find the virtual environment Python executable.
+
+        Searches multiple common locations to handle different installation patterns.
+
+        Returns:
+            str: Absolute path to venv Python executable
+
+        Raises:
+            Exception: If venv cannot be found in any common location
+        """
+        # Try multiple common locations
+        search_paths = [
+            # Primary: venv in detected base_dir
+            os.path.join(self.base_dir, 'venv', 'bin', 'python'),
+            os.path.join(self.base_dir, 'venv', 'bin', 'python3'),
+            os.path.join(self.base_dir, 'venv', 'bin', 'python3.12'),
+
+            # Alternative: Check if there's a subdirectory that might have the venv
+            os.path.join(self.base_dir, 'huduglue', 'venv', 'bin', 'python'),
+            os.path.join(self.base_dir, 'clientst0r', 'venv', 'bin', 'python'),
+
+            # Fallback: settings.BASE_DIR if different from detected base_dir
+            os.path.join(settings.BASE_DIR, 'venv', 'bin', 'python') if str(settings.BASE_DIR) != self.base_dir else None,
+        ]
+
+        # Remove None values
+        search_paths = [p for p in search_paths if p]
+
+        logger.info(f"Searching for venv Python in {len(search_paths)} locations...")
+        for venv_path in search_paths:
+            if os.path.exists(venv_path):
+                logger.info(f"✓ Found venv Python: {venv_path}")
+                return venv_path
+            else:
+                logger.debug(f"✗ Not found: {venv_path}")
+
+        # If we get here, venv wasn't found anywhere
+        error_msg = f"Virtual environment not found. Searched locations:\n"
+        for path in search_paths:
+            error_msg += f"  - {path}\n"
+        error_msg += "\nPlease ensure your virtual environment is properly installed."
+        logger.error(error_msg)
+        raise Exception(error_msg)
+
     def _get_github_headers(self):
         """Get headers for GitHub API requests with authentication if available."""
         headers = {'Accept': 'application/vnd.github.v3+json'}
@@ -311,9 +357,8 @@ class UpdateService:
             logger.info("Installing Python dependencies")
 
             # Install main requirements using venv python -m pip to ensure venv is used even with sudo
-            venv_python = os.path.join(self.base_dir, 'venv', 'bin', 'python')
-            if not os.path.exists(venv_python):
-                raise Exception(f"Virtual environment python not found at {venv_python}. Please check your installation.")
+            # Search for venv in multiple common locations to handle different installation patterns
+            venv_python = self._find_venv_python()
 
             pip_output = self._run_command([venv_python, '-m', 'pip', 'install', '-r',
                 os.path.join(self.base_dir, 'requirements.txt')
