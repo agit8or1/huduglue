@@ -278,12 +278,12 @@ class UpdateService:
                 progress_tracker.step_start('Install Dependencies')
             logger.info("Installing Python dependencies")
 
-            # Install main requirements (self-healing: tries without sudo, uses sudo if needed)
-            venv_pip = os.path.join(self.base_dir, 'venv', 'bin', 'pip')
-            if not os.path.exists(venv_pip):
-                raise Exception(f"Virtual environment pip not found at {venv_pip}. Please check your installation.")
+            # Install main requirements using venv python -m pip to ensure venv is used even with sudo
+            venv_python = os.path.join(self.base_dir, 'venv', 'bin', 'python')
+            if not os.path.exists(venv_python):
+                raise Exception(f"Virtual environment python not found at {venv_python}. Please check your installation.")
 
-            pip_output = self._run_command([venv_pip, 'install', '-r',
+            pip_output = self._run_command([venv_python, '-m', 'pip', 'install', '-r',
                 os.path.join(self.base_dir, 'requirements.txt')
                 # Note: Removed --upgrade to avoid rebuilding compiled packages like python-ldap
                 # Git pull already brought new code, we only need to install missing packages
@@ -301,7 +301,7 @@ class UpdateService:
                 if os.path.exists(req_path):
                     logger.info(f"Installing optional dependencies from {req_file}")
                     try:
-                        optional_pip_output = self._run_command([venv_pip, 'install', '-r', req_path])
+                        optional_pip_output = self._run_command([venv_python, '-m', 'pip', 'install', '-r', req_path])
                         result['output'].append(f"Optional dependencies ({req_file}): Installed")
                         logger.info(f"Successfully installed {req_file}")
                     except Exception as e:
@@ -317,14 +317,10 @@ class UpdateService:
                 progress_tracker.step_start('Run Migrations')
             logger.info("Running database migrations")
 
-            # Use venv python if available (self-healing: tries without sudo, uses sudo if needed)
-            venv_python = os.path.join(self.base_dir, 'venv', 'bin', 'python')
-            if os.path.exists(venv_python):
-                python_command = [venv_python]
-            else:
-                python_command = ['/usr/bin/python3']
+            # Use venv python for migrations (already validated above during pip install)
+            # venv_python is already set from the pip install step above
 
-            migrate_output = self._run_command(python_command + [
+            migrate_output = self._run_command([venv_python,
                 os.path.join(self.base_dir, 'manage.py'),
                 'migrate', '--noinput'
             ])
@@ -380,7 +376,7 @@ class UpdateService:
             if progress_tracker:
                 progress_tracker.step_start('Collect Static Files')
             logger.info("Collecting static files")
-            static_output = self._run_command(python_command + [
+            static_output = self._run_command([venv_python,
                 os.path.join(self.base_dir, 'manage.py'),
                 'collectstatic', '--noinput'
             ])
@@ -395,7 +391,7 @@ class UpdateService:
             logger.info("Generating diagram previews...")
             try:
                 preview_output = self._run_command([
-                    self._get_python_path(), 'manage.py', 'generate_diagram_previews', '--force'
+                    venv_python, 'manage.py', 'generate_diagram_previews', '--force'
                 ], timeout=60)
                 result['steps_completed'].append('generate_diagram_previews')
                 result['output'].append(f"✓ Diagram previews generated")
@@ -413,8 +409,8 @@ class UpdateService:
             logger.info("Generating workflow diagrams...")
             try:
                 workflow_output = self._run_command([
-                    self._get_python_path(), 'manage.py', 'generate_workflow_diagrams'
-                ], timeout=60)
+                    venv_python, 'manage.py', 'generate_workflow_diagrams'
+                ])
                 result['steps_completed'].append('generate_workflow_diagrams')
                 result['output'].append(f"✓ Workflow diagrams generated")
                 logger.info(f"Workflow diagram generation: {workflow_output[:200]}")
