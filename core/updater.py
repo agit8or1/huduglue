@@ -235,13 +235,13 @@ class UpdateService:
                 progress_tracker.step_start('Git Pull')
             logger.info("Starting update: Git fetch")
 
-            # First, fetch from remote
-            fetch_output = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'fetch', 'origin'])
+            # First, fetch from remote (self-healing: tries without sudo, uses sudo if needed)
+            fetch_output = self._run_command(['/usr/bin/git', 'fetch', 'origin'])
             result['output'].append(f"Git fetch: {fetch_output}")
 
             # Check if branches are divergent (happens after force push)
-            local_commit = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'rev-parse', 'HEAD']).strip()
-            remote_commit = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'rev-parse', 'origin/main']).strip()
+            local_commit = self._run_command(['/usr/bin/git', 'rev-parse', 'HEAD']).strip()
+            remote_commit = self._run_command(['/usr/bin/git', 'rev-parse', 'origin/main']).strip()
 
             git_output = ""
             if local_commit != remote_commit:
@@ -250,12 +250,12 @@ class UpdateService:
                 logger.info("Updates available - resetting to remote version")
                 result['output'].append("Updating to latest version...")
 
-                git_output = self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'reset', '--hard', 'origin/main'])
+                git_output = self._run_command(['/usr/bin/git', 'reset', '--hard', 'origin/main'])
                 result['output'].append(f"Git reset: {git_output}")
 
                 # Check if it was a force push (informational only)
                 try:
-                    self._run_command(['/usr/bin/sudo', '/usr/bin/git', 'merge-base', '--is-ancestor', f'{local_commit}', 'origin/main'])
+                    self._run_command(['/usr/bin/git', 'merge-base', '--is-ancestor', f'{local_commit}', 'origin/main'])
                     result['output'].append("✓ Fast-forward update applied")
                 except:
                     result['output'].append("⚠️ Repository history changed (force push detected)")
@@ -278,12 +278,12 @@ class UpdateService:
                 progress_tracker.step_start('Install Dependencies')
             logger.info("Installing Python dependencies")
 
-            # Install main requirements (using venv pip or system pip with sudo)
+            # Install main requirements (self-healing: tries without sudo, uses sudo if needed)
             venv_pip = os.path.join(self.base_dir, 'venv', 'bin', 'pip')
             if os.path.exists(venv_pip):
-                pip_command = ['/usr/bin/sudo', venv_pip]
+                pip_command = [venv_pip]
             else:
-                pip_command = ['/usr/bin/sudo', '/usr/bin/pip3']
+                pip_command = ['/usr/bin/pip3']
 
             pip_output = self._run_command(pip_command + [
                 'install', '-r',
@@ -322,12 +322,12 @@ class UpdateService:
                 progress_tracker.step_start('Run Migrations')
             logger.info("Running database migrations")
 
-            # Use venv python if available
+            # Use venv python if available (self-healing: tries without sudo, uses sudo if needed)
             venv_python = os.path.join(self.base_dir, 'venv', 'bin', 'python')
             if os.path.exists(venv_python):
-                python_command = ['/usr/bin/sudo', venv_python]
+                python_command = [venv_python]
             else:
-                python_command = ['/usr/bin/sudo', '/usr/bin/python3']
+                python_command = ['/usr/bin/python3']
 
             migrate_output = self._run_command(python_command + [
                 os.path.join(self.base_dir, 'manage.py'),
@@ -796,17 +796,33 @@ class UpdateService:
 
         return result
 
-    def _run_command(self, command):
+    def _find_sudo(self):
+        """Find sudo command dynamically."""
+        import shutil
+        sudo_path = shutil.which('sudo')
+        if sudo_path:
+            return sudo_path
+        # Fallback to common paths
+        for path in ['/usr/bin/sudo', '/bin/sudo', '/usr/local/bin/sudo']:
+            if os.path.exists(path):
+                return path
+        return None
+
+    def _run_command(self, command, use_sudo=False):
         """
         Run a shell command and return output.
 
+        Self-healing: Tries without sudo first, falls back to sudo if permission denied.
+
         Args:
             command: List of command arguments
+            use_sudo: Whether to try with sudo
 
         Returns:
             str: Command output
         """
         try:
+            # Try without sudo first
             result = subprocess.run(
                 command,
                 cwd=self.base_dir,
@@ -816,6 +832,14 @@ class UpdateService:
             )
 
             if result.returncode != 0:
+                # If permission denied and sudo available, retry with sudo
+                if ('permission denied' in result.stderr.lower() or
+                    'operation not permitted' in result.stderr.lower()) and not use_sudo:
+                    sudo_path = self._find_sudo()
+                    if sudo_path:
+                        logger.info(f"Permission denied, retrying with sudo: {' '.join(command)}")
+                        return self._run_command([sudo_path] + command, use_sudo=True)
+
                 raise Exception(f"Command failed: {result.stderr}")
 
             return result.stdout
