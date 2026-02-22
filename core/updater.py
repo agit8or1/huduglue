@@ -280,13 +280,10 @@ class UpdateService:
 
             # Install main requirements (self-healing: tries without sudo, uses sudo if needed)
             venv_pip = os.path.join(self.base_dir, 'venv', 'bin', 'pip')
-            if os.path.exists(venv_pip):
-                pip_command = [venv_pip]
-            else:
-                pip_command = ['/usr/bin/pip3']
+            if not os.path.exists(venv_pip):
+                raise Exception(f"Virtual environment pip not found at {venv_pip}. Please check your installation.")
 
-            pip_output = self._run_command(pip_command + [
-                'install', '-r',
+            pip_output = self._run_command([venv_pip, 'install', '-r',
                 os.path.join(self.base_dir, 'requirements.txt')
                 # Note: Removed --upgrade to avoid rebuilding compiled packages like python-ldap
                 # Git pull already brought new code, we only need to install missing packages
@@ -304,9 +301,7 @@ class UpdateService:
                 if os.path.exists(req_path):
                     logger.info(f"Installing optional dependencies from {req_file}")
                     try:
-                        optional_pip_output = self._run_command(pip_command + [
-                            'install', '-r', req_path
-                        ])
+                        optional_pip_output = self._run_command([venv_pip, 'install', '-r', req_path])
                         result['output'].append(f"Optional dependencies ({req_file}): Installed")
                         logger.info(f"Successfully installed {req_file}")
                     except Exception as e:
