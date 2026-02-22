@@ -93,17 +93,43 @@ class Command(BaseCommand):
             'security_updates': 0,
             'packages': [],
             'security_packages': [],
+            'cache_updated': False,
         }
 
         try:
-            # Update package cache
-            subprocess.run(
-                ['sudo', 'apt-get', 'update'],
-                capture_output=True,
-                timeout=60
-            )
+            # Try to update package cache (requires sudo, may fail)
+            try:
+                result = subprocess.run(
+                    ['sudo', '-n', 'apt-get', 'update'],  # -n = non-interactive, fails if password needed
+                    capture_output=True,
+                    timeout=60
+                )
+                if result.returncode == 0:
+                    scan_data['cache_updated'] = True
+                    if not self.json_output:
+                        self.stdout.write(self.style.SUCCESS('✓ Package cache updated'))
+                else:
+                    if not self.json_output:
+                        self.stdout.write(self.style.WARNING('⚠ Could not update package cache (no sudo access)'))
+            except:
+                if not self.json_output:
+                    self.stdout.write(self.style.WARNING('⚠ Could not update package cache (sudo not available)'))
 
-            # Get list of upgradeable packages
+            # Check cache age
+            apt_cache_dir = Path('/var/lib/apt/lists')
+            if apt_cache_dir.exists():
+                cache_files = list(apt_cache_dir.glob('*Packages'))
+                if cache_files:
+                    latest_cache = max(cache_files, key=lambda p: p.stat().st_mtime)
+                    cache_age_hours = (timezone.now().timestamp() - latest_cache.stat().st_mtime) / 3600
+                    scan_data['cache_age_hours'] = round(cache_age_hours, 1)
+
+                    if not self.json_output and cache_age_hours > 24:
+                        self.stdout.write(self.style.WARNING(
+                            f'⚠ Package cache is {int(cache_age_hours)} hours old. Run "sudo apt-get update" for latest data.'
+                        ))
+
+            # Get list of upgradeable packages (doesn't require sudo)
             result = subprocess.run(
                 ['apt', 'list', '--upgradeable'],
                 capture_output=True,
@@ -129,33 +155,38 @@ class Command(BaseCommand):
             scan_data['packages'] = upgradeable
 
             # Check for security updates specifically
-            unattended_upgrades_file = Path('/var/log/unattended-upgrades/unattended-upgrades.log')
-            if unattended_upgrades_file.exists():
-                # Try to get security updates from Ubuntu Security
+            security_packages = []
+            for pkg in upgradeable:
+                # Check if package is from security repo
+                if '-security' in pkg.get('repo', '') or 'security' in pkg.get('repo', '').lower():
+                    security_packages.append(pkg)
+
+            scan_data['security_updates'] = len(security_packages)
+            scan_data['security_packages'] = security_packages
+
+            # Get total installed packages
+            try:
                 result = subprocess.run(
-                    ['apt', 'list', '--upgradeable'],
+                    ['dpkg', '-l'],
                     capture_output=True,
                     text=True,
                     timeout=30
                 )
-
-                security_packages = []
-                for pkg in upgradeable:
-                    # Check if package is from security repo
-                    if '-security' in pkg.get('repo', '') or 'security' in pkg.get('repo', '').lower():
-                        security_packages.append(pkg)
-
-                scan_data['security_updates'] = len(security_packages)
-                scan_data['security_packages'] = security_packages
-
-            # Get total installed packages
-            result = subprocess.run(
-                ['dpkg', '-l'],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            scan_data['total_packages'] = len([l for l in result.stdout.splitlines() if l.startswith('ii')])
+                if result.returncode == 0:
+                    scan_data['total_packages'] = len([l for l in result.stdout.splitlines() if l.startswith('ii')])
+            except:
+                # Fallback: count from dpkg query
+                try:
+                    result = subprocess.run(
+                        ['dpkg-query', '-f', '.\\n', '-W'],
+                        capture_output=True,
+                        text=True,
+                        timeout=30
+                    )
+                    if result.returncode == 0:
+                        scan_data['total_packages'] = len(result.stdout.splitlines())
+                except:
+                    scan_data['total_packages'] = 0
 
         except subprocess.TimeoutExpired:
             self.stdout.write(self.style.ERROR('Package scan timed out'))
