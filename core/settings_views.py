@@ -562,7 +562,7 @@ def system_status(request):
     services_status = {}
     try:
         import subprocess
-        import os
+        # os already imported at module level
 
         # Check Gunicorn - if we're running this code, gunicorn is running
         # Also verify with ps command for extra confirmation
