@@ -65,6 +65,21 @@ def run_package_scan(request):
         return JsonResponse({'error': 'Permission denied'}, status=403)
 
     try:
+        # First, try to update the apt cache for latest data
+        import subprocess
+        cache_updated = False
+        try:
+            result = subprocess.run(
+                ['sudo', '-n', 'apt-get', 'update'],
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+            if result.returncode == 0:
+                cache_updated = True
+        except:
+            pass  # Continue without cache update if it fails
+
         # Run scan command
         out = io.StringIO()
         call_command('scan_system_packages', '--save', '--json', stdout=out)
@@ -108,9 +123,13 @@ def run_package_scan(request):
                     'raw_output': output[:500]  # First 500 chars for debugging
                 }, status=500)
 
+        # Add cache update status to scan data
+        scan_data['cache_updated'] = cache_updated
+
         return JsonResponse({
             'success': True,
-            'message': 'Scan completed successfully',
+            'message': 'Scan completed successfully' + (' (cache updated)' if cache_updated else ' (using cached data)'),
+            'cache_updated': cache_updated,
             'scan_data': scan_data
         })
 
